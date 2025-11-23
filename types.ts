@@ -41,9 +41,16 @@ export interface StoreSettings {
   siteUrl: string; // New: Needed for Sitemap
   supportEmail: string;
   currencySymbol: string;
-  seoTitle: string;
-  seoDescription: string;
+  
   // SEO & Analytics Integration
+  faviconUrl?: string; // New
+  seoTitle: string; // Home/Global Default
+  seoDescription: string; // Home/Global Default
+  shopSeoTitle?: string; // New
+  shopSeoDescription?: string; // New
+  contactSeoTitle?: string; // New
+  contactSeoDescription?: string; // New
+  
   googleAnalyticsId: string;
   googleSearchConsoleCode: string; // The content of the meta tag
   bingWebmasterCode: string; // The content of the meta tag
@@ -59,4 +66,7 @@ export interface StoreSettings {
     instagram: string;
     linkedin: string;
   };
+  // AI Config
+  aiSystemInstruction: string;
+  aiApiKey?: string;
 }

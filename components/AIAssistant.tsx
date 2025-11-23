@@ -1,9 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, X, Bot, Sparkles } from 'lucide-react';
 import { getProductRecommendation } from '../services/geminiService';
-import { ChatMessage } from '../types';
+import { ChatMessage, Product, StoreSettings } from '../types';
 
-export const AIAssistant: React.FC = () => {
+interface AIAssistantProps {
+  products: Product[];
+  settings: StoreSettings;
+}
+
+export const AIAssistant: React.FC<AIAssistantProps> = ({ products, settings }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: 'init', role: 'model', text: "Hi! I'm your Digital Assistant. Looking for a specific plugin or need a recommendation?" }
@@ -32,7 +37,13 @@ export const AIAssistant: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const responseText = await getProductRecommendation(userMsg.text);
+      const responseText = await getProductRecommendation(
+        userMsg.text, 
+        products,
+        settings.aiSystemInstruction,
+        settings.aiApiKey
+      );
+      
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'model',
@@ -41,6 +52,7 @@ export const AIAssistant: React.FC = () => {
       setMessages(prev => [...prev, botMsg]);
     } catch (error) {
        console.error(error);
+       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Sorry, I encountered an error. Please try again." }]);
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +73,7 @@ export const AIAssistant: React.FC = () => {
         className={`fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${
           isOpen ? 'bg-slate-800 text-white rotate-90' : 'bg-indigo-600 text-white'
         }`}
+        aria-label="Ask AI"
       >
         {isOpen ? <X size={24} /> : <><MessageSquare size={24} /><span className="font-semibold hidden sm:inline">Ask AI</span></>}
       </button>
