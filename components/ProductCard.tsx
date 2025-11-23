@@ -1,14 +1,27 @@
+
 import React, { useState } from 'react';
-import { Plus, Check, Tag, ImageOff } from 'lucide-react';
+import { Plus, Check, Tag, ImageOff, Heart } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onViewDetails?: () => void;
+  isWishlisted?: boolean;
+  onToggleWishlist?: (e: React.MouseEvent) => void;
+  priceMultiplier?: number;
+  currencySymbol?: string;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewDetails }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ 
+  product, 
+  onAddToCart, 
+  onViewDetails,
+  isWishlisted = false,
+  onToggleWishlist,
+  priceMultiplier = 1,
+  currencySymbol = '$'
+}) => {
   const [isAdded, setIsAdded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -29,6 +42,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
       default: return 'from-slate-500 to-gray-500';
     }
   };
+
+  const displayPrice = (product.price * priceMultiplier).toFixed(2);
 
   return (
     <div 
@@ -57,9 +72,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
             {product.category}
          </div>
          
+         {/* Wishlist Button Overlay */}
+         {onToggleWishlist && (
+           <button 
+             onClick={onToggleWishlist}
+             className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm hover:bg-white hover:shadow-md transition-all z-10 group/heart"
+             title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+           >
+             <Heart 
+               size={18} 
+               className={`transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-slate-400 group-hover/heart:text-red-500'}`} 
+             />
+           </button>
+         )}
+
          {/* Price Badge Overlay */}
          <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-md text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
-           ${product.price}
+           {currencySymbol}{displayPrice}
          </div>
       </div>
 

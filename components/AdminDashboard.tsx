@@ -6,7 +6,7 @@ import {
   ArrowLeft, Lock, LogIn, LayoutGrid, Package, ShoppingCart, 
   Settings, TrendingUp, DollarSign, Users, ExternalLink, Globe, Share2,
   CheckCircle, AlertCircle, AlertTriangle, Sparkles, MapPin, FileText,
-  BarChart, Download, Bot
+  BarChart, Download
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -188,7 +188,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       price: 0,
       category: 'Plugins & Tools',
       description: 'New product description.',
-      image: '' 
+      image: '',
+      seoTitle: '',
+      seoDescription: ''
     });
   };
 
@@ -211,7 +213,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         price: Number(editForm.price),
         category: editForm.category || 'Plugins & Tools',
         description: editForm.description || '',
-        image: finalImage
+        image: finalImage,
+        seoTitle: editForm.seoTitle || '',
+        seoDescription: editForm.seoDescription || ''
       };
       onAdd(newProduct);
       setIsAdding(false);
@@ -562,8 +566,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                {/* Edit Sidebar */}
                {(editingId || isAdding) && (
-                 <div className="w-full lg:w-96 bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-fit sticky top-0 z-20">
-                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                 <div className="w-full lg:w-96 bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-fit sticky top-0 z-20 overflow-y-auto max-h-[90vh]">
+                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl sticky top-0 z-10">
                       <h3 className="font-bold text-slate-900">{isAdding ? 'Add Product' : 'Edit Product'}</h3>
                       <button onClick={() => {setEditingId(null); setIsAdding(false);}} className="text-slate-400 hover:text-slate-600">
                         <X size={20} />
@@ -611,7 +615,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </button>
                         </div>
                       </div>
-                      <div>
+                      
+                      {/* SEO Fields */}
+                      <div className="pt-4 border-t border-slate-100 mt-4">
+                        <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1"><Globe size={14} className="text-green-600"/> SEO Settings</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">SEO Title (Optional)</label>
+                            <input
+                                type="text"
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                placeholder="Custom Title Tag"
+                                value={editForm.seoTitle || ''}
+                                onChange={e => setEditForm({...editForm, seoTitle: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Meta Description (Optional)</label>
+                            <textarea
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                rows={2}
+                                placeholder="Custom Meta Description"
+                                value={editForm.seoDescription || ''}
+                                onChange={e => setEditForm({...editForm, seoDescription: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4">
                         <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Description</label>
                         <textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg" rows={6} value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} />
                       </div>
@@ -813,40 +845,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    </div>
                  </div>
               </div>
-
-               {/* AI Configuration */}
-               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                 <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Bot size={20} className="text-purple-600"/> AI Configuration</h2>
-                 <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Gemini API Key (Optional)</label>
-                      <div className="relative">
-                        <input 
-                          type="password" 
-                          placeholder="Override env API key (stored in local storage)"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.aiApiKey || ''}
-                          onChange={e => setTempSettings({...tempSettings, aiApiKey: e.target.value})}
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                          <Lock size={16} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1">Leave blank to use system default. Warning: Stored locally in browser.</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">System Instruction</label>
-                      <textarea
-                        rows={4}
-                        placeholder="You are a helpful assistant..."
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.aiSystemInstruction || ''}
-                        onChange={e => setTempSettings({...tempSettings, aiSystemInstruction: e.target.value})}
-                      />
-                      <p className="text-xs text-slate-400 mt-1">Customize how the AI behaves and speaks to customers.</p>
-                    </div>
-                 </div>
-               </div>
 
                {/* SEO & Analytics Settings */}
                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

@@ -4,14 +4,14 @@ import { getProductRecommendation } from '../services/geminiService';
 import { ChatMessage, Product, StoreSettings } from '../types';
 
 interface AIAssistantProps {
+  storeSettings: StoreSettings;
   products: Product[];
-  settings: StoreSettings;
 }
 
-export const AIAssistant: React.FC<AIAssistantProps> = ({ products, settings }) => {
+export const AIAssistant: React.FC<AIAssistantProps> = ({ storeSettings, products }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: 'init', role: 'model', text: "Hi! I'm your Digital Assistant. Looking for a specific plugin or need a recommendation?" }
+    { id: 'init', role: 'model', text: `Hi! I'm your Digital Assistant for ${storeSettings.storeName}. Looking for a specific plugin or need a recommendation?` }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +22,15 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ products, settings }) 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+      setMessages(prev => {
+          if (prev.length === 1 && prev[0].id === 'init') {
+               return [{ id: 'init', role: 'model', text: `Hi! I'm your Digital Assistant for ${storeSettings.storeName}. Looking for a specific plugin or need a recommendation?` }];
+          }
+          return prev;
+      });
+  }, [storeSettings.storeName]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -37,13 +46,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ products, settings }) 
     setIsLoading(true);
 
     try {
-      const responseText = await getProductRecommendation(
-        userMsg.text, 
-        products,
-        settings.aiSystemInstruction,
-        settings.aiApiKey
-      );
-      
+      const responseText = await getProductRecommendation(userMsg.text, products, storeSettings);
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'model',
@@ -52,7 +55,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ products, settings }) 
       setMessages(prev => [...prev, botMsg]);
     } catch (error) {
        console.error(error);
-       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Sorry, I encountered an error. Please try again." }]);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +75,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ products, settings }) 
         className={`fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${
           isOpen ? 'bg-slate-800 text-white rotate-90' : 'bg-indigo-600 text-white'
         }`}
-        aria-label="Ask AI"
       >
         {isOpen ? <X size={24} /> : <><MessageSquare size={24} /><span className="font-semibold hidden sm:inline">Ask AI</span></>}
       </button>

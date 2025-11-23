@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { X, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { CartItem } from '../types';
@@ -8,6 +9,8 @@ interface CartSidebarProps {
   items: CartItem[];
   onRemoveItem: (id: string) => void;
   onUpdateQuantity: (id: string, delta: number) => void;
+  priceMultiplier?: number;
+  currencySymbol?: string;
 }
 
 export const CartSidebar: React.FC<CartSidebarProps> = ({
@@ -15,9 +18,11 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   onClose,
   items,
   onRemoveItem,
-  onUpdateQuantity
+  onUpdateQuantity,
+  priceMultiplier = 1,
+  currencySymbol = '$'
 }) => {
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * priceMultiplier;
 
   return (
     <>
@@ -84,7 +89,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                         <Trash2 size={16} />
                       </button>
                     </div>
-                    <p className="text-indigo-600 font-bold mb-3">${item.price}</p>
+                    <p className="text-indigo-600 font-bold mb-3">
+                      {currencySymbol}{(item.price * priceMultiplier).toFixed(2)}
+                    </p>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
@@ -112,7 +119,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             <div className="p-6 bg-slate-50 border-t border-slate-200">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="text-2xl font-bold text-slate-900">${total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-slate-900">{currencySymbol}{total.toFixed(2)}</span>
               </div>
               <p className="text-xs text-slate-500 mb-4 text-center">
                 Taxes and shipping calculated at checkout.

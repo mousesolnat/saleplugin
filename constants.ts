@@ -1,7 +1,14 @@
 
-import { Product } from './types';
+import { Product, Currency } from './types';
 
 export const STORE_NAME = "DigiMarket Pro";
+
+export const CURRENCIES: Currency[] = [
+  { code: 'USD', symbol: '$', rate: 1, flag: '🇺🇸', name: 'USD' },
+  { code: 'EUR', symbol: '€', rate: 0.92, flag: '🇪🇺', name: 'EUR' },
+  { code: 'GBP', symbol: '£', rate: 0.79, flag: '🇬🇧', name: 'GBP' },
+  { code: 'MAD', symbol: 'DH', rate: 10.12, flag: '🇲🇦', name: 'MAD' },
+];
 
 // Helper to auto-categorize based on name keywords
 const categorize = (name: string): string => {

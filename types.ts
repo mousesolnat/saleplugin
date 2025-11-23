@@ -6,6 +6,8 @@ export interface Product {
   category: string;
   description?: string;
   image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 export interface CartItem extends Product {
@@ -36,11 +38,28 @@ export interface Page {
   content: string;
 }
 
+export interface Currency {
+  code: string;
+  symbol: string;
+  rate: number;
+  flag: string;
+  name: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  password?: string; // Demo only
+  joinDate: string;
+}
+
 export interface StoreSettings {
   storeName: string;
   siteUrl: string; // New: Needed for Sitemap
   supportEmail: string;
-  currencySymbol: string;
+  currencySymbol: string; // Base currency symbol (usually USD)
+  currencyCode: string;   // Base currency code
   seoTitle: string;
   seoDescription: string;
   // SEO & Analytics Integration
@@ -60,6 +79,12 @@ export interface StoreSettings {
     linkedin: string;
   };
   // AI Config
-  aiSystemInstruction: string;
+  aiSystemInstruction?: string;
   aiApiKey?: string;
+  // Page Specific SEO
+  shopSeoTitle?: string;
+  shopSeoDescription?: string;
+  contactSeoTitle?: string;
+  contactSeoDescription?: string;
+  faviconUrl?: string;
 }

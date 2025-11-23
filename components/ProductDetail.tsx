@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, ShoppingCart, Check, ShieldCheck, Clock, 
-  AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard
+  AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard, Heart
 } from 'lucide-react';
 import { Product } from '../types';
 
@@ -9,11 +10,49 @@ interface ProductDetailProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onBack: () => void;
+  isWishlisted?: boolean;
+  onToggleWishlist?: () => void;
+  priceMultiplier?: number;
+  currencySymbol?: string;
+  recentlyViewed?: Product[];
+  onViewHistoryItem?: (product: Product) => void;
 }
 
-export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCart, onBack }) => {
+export const ProductDetail: React.FC<ProductDetailProps> = ({ 
+  product, 
+  onAddToCart, 
+  onBack,
+  isWishlisted = false,
+  onToggleWishlist,
+  priceMultiplier = 1,
+  currencySymbol = '$',
+  recentlyViewed = [],
+  onViewHistoryItem
+}) => {
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
   const [isAdded, setIsAdded] = useState(false);
+
+  const finalPrice = (product.price * priceMultiplier).toFixed(2);
+
+  // SEO: Update Title and Meta Description when product changes
+  useEffect(() => {
+    // Update Document Title
+    // Use the explicit SEO title if available, otherwise fallback to Product Name
+    const title = product.seoTitle || product.name;
+    document.title = title;
+
+    // Update Meta Description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    
+    // Use explicit SEO description, or truncate product description, or empty string
+    const description = product.seoDescription || product.description?.substring(0, 160) || '';
+    metaDesc.setAttribute('content', description);
+  }, [product]);
 
   const handleAdd = () => {
     onAddToCart(product);
@@ -38,7 +77,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
   const sku = `SKU-${product.id.split('_')[1].padStart(5, '0')}`;
   
   return (
-    <div className="animate-fade-in pb-12">
+    <div className="animate-fade-in pb-12 relative">
       {/* Breadcrumb / Back */}
       <div className="mb-6">
         <button 
@@ -53,18 +92,20 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
         <div className="grid grid-cols-1 lg:grid-cols-2">
           
           {/* Left Column: Image */}
-          <div className="p-8 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 flex items-center justify-center">
-            {product.image ? (
-              <img 
-                src={product.image} 
-                alt={product.name} 
-                className="w-full max-w-lg object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-500"
-              />
-            ) : (
-              <div className="w-full aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                No Image
-              </div>
-            )}
+          <div className="p-8 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col items-center justify-center gap-6">
+            <div className="relative w-full max-w-lg aspect-square lg:aspect-auto lg:h-[400px] flex items-center justify-center">
+              {product.image ? (
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  className="w-full h-full object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div className="w-full h-full bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
+                  No Image
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right Column: Details */}
@@ -72,7 +113,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
             <h1 className="text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
             
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-3xl font-bold text-indigo-600">${product.price}</span>
+              <span className="text-3xl font-bold text-indigo-600">{currencySymbol}{finalPrice}</span>
               <div className="flex items-center gap-1 text-amber-400">
                 <Star size={16} fill="currentColor" />
                 <Star size={16} fill="currentColor" />
@@ -94,7 +135,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
             </div>
 
             {/* Warning / Instruction Box */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex gap-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex gap-4 animate-pulse">
               <AlertTriangle className="text-amber-600 shrink-0 mt-1" />
               <div>
                 <h4 className="font-bold text-amber-800 mb-1">Activation Requirement</h4>
@@ -133,6 +174,21 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
               >
                 <CreditCard size={24} /> Buy Now
               </button>
+
+              {/* Wishlist Button */}
+              {onToggleWishlist && (
+                <button
+                  onClick={onToggleWishlist}
+                  className={`w-16 flex items-center justify-center rounded-xl border-2 transition-all ${
+                    isWishlisted 
+                    ? 'border-red-500 bg-red-50 text-red-500' 
+                    : 'border-slate-200 text-slate-400 hover:border-red-400 hover:text-red-500'
+                  }`}
+                  title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                >
+                  <Heart size={24} className={isWishlisted ? 'fill-current' : ''} />
+                </button>
+              )}
             </div>
 
             {/* Feature List */}
@@ -213,6 +269,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
                  <p>
                    Share Your Review on Our Google Profile to help other developers find safe, affordable tools.
                  </p>
+                 {product.description && product.description.length > 100 && (
+                     <div className="mt-6 pt-6 border-t border-slate-200">
+                        <h4 className="font-bold text-slate-900 mb-2">Additional Information</h4>
+                        <p>{product.description}</p>
+                     </div>
+                 )}
                </div>
              )}
              
@@ -228,6 +290,34 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCa
            </div>
         </div>
       </div>
+      
+      {/* Recently Viewed Section */}
+      {recentlyViewed.length > 0 && (
+        <div className="mt-16 animate-fade-in-up">
+           <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-2">
+             <Clock size={24} className="text-slate-400"/> Recently Viewed
+           </h3>
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {recentlyViewed.map(item => (
+                <div 
+                   key={item.id}
+                   onClick={() => onViewHistoryItem && onViewHistoryItem(item)}
+                   className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
+                   <div className="aspect-square bg-slate-100 rounded-lg mb-3 overflow-hidden">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">No Image</div>
+                      )}
+                   </div>
+                   <h4 className="font-bold text-slate-900 text-sm line-clamp-1">{item.name}</h4>
+                   <p className="text-indigo-600 font-bold text-sm mt-1">{currencySymbol}{(item.price * priceMultiplier).toFixed(2)}</p>
+                </div>
+              ))}
+           </div>
+        </div>
+      )}
     </div>
   );
 };
