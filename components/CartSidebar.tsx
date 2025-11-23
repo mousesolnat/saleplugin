@@ -76,8 +76,12 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             ) : (
               items.map((item) => (
                 <div key={item.id} className="flex gap-4 group">
-                  <div className="w-20 h-20 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-medium text-xs text-center p-2">
-                    {item.category}
+                  <div className="w-20 h-20 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-medium text-xs text-center p-2 overflow-hidden">
+                     {item.image ? (
+                        <img src={item.image} alt="" className="w-full h-full object-cover rounded-lg" />
+                     ) : (
+                        item.category
+                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
@@ -95,7 +99,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
-                        className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-600"
+                        className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-600 transition-colors"
                         disabled={item.quantity <= 1}
                       >
                         -
@@ -103,7 +107,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                       <span className="w-8 text-center font-medium text-slate-900">{item.quantity}</span>
                       <button
                         onClick={() => onUpdateQuantity(item.id, 1)}
-                        className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-600"
+                        className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-600 transition-colors"
                       >
                         +
                       </button>

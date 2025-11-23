@@ -444,6 +444,8 @@ const App: React.FC = () => {
     (p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
      p.description?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+  
+  const searchResults = searchQuery.length > 0 ? filteredProducts.slice(0, 5) : [];
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
@@ -505,6 +507,21 @@ const App: React.FC = () => {
             Get instant access to 100% original, verified license keys for the world's best plugins and themes. 
             Secure, affordable, and developer-friendly.
           </p>
+
+          {/* New Hero Search Bar */}
+          <div className="max-w-2xl mx-auto mb-10 animate-fade-in-up delay-200 relative z-20">
+            <div className="relative group">
+               <input
+                 type="text"
+                 placeholder="Search 5,000+ plugins & themes..."
+                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-indigo-200 rounded-2xl py-4 pl-14 pr-4 text-lg focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-indigo-400 transition-all shadow-xl"
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 onKeyDown={(e) => e.key === 'Enter' && setCurrentView('shop')}
+               />
+               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-300" size={24} />
+            </div>
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
             <button 
@@ -1052,6 +1069,8 @@ const App: React.FC = () => {
         onOpenLogin={() => setIsAuthModalOpen(true)}
         onLogout={handleLogout}
         onOpenProfile={() => setCurrentView('profile')}
+        onViewProduct={handleViewProduct}
+        searchResults={searchResults}
       />
 
       <main className="flex-1 pt-4">

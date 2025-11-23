@@ -159,7 +159,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               >
                 {isAdded ? (
                   <>
-                    <Check size={24} className="animate-bounce" /> Added!
+                    <Check size={24} className="animate-bounce text-white" /> <span className="text-white">Added!</span>
                   </>
                 ) : (
                   <>
