@@ -12,8 +12,7 @@ import { Product, CartItem, StoreSettings, Page } from './types';
 import { 
   Filter, SlidersHorizontal, ArrowRight, Mail, Phone, MapPin, Send, Star, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, Headphones, ChevronDown, ChevronUp, HelpCircle,
-  LayoutGrid, ChevronLeft, ChevronRight, Key, CreditCard, Download, Users, Code, Lock,
-  LifeBuoy
+  LayoutGrid, ChevronLeft, ChevronRight, Key, CreditCard, Download, Users, Code, Lock
 } from 'lucide-react';
 
 const TESTIMONIALS = [
@@ -156,12 +155,6 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : DEFAULT_PAGES;
   });
 
-  // Recently Viewed State
-  const [recentlyViewed, setRecentlyViewed] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('digimarket_recent');
-    return saved ? JSON.parse(saved) : [];
-  });
-
   // Global Store Settings
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
     const saved = localStorage.getItem('digimarket_settings');
@@ -172,10 +165,6 @@ const App: React.FC = () => {
       currencySymbol: '$',
       seoTitle: 'DigiMarket Pro - Premium WordPress Tools',
       seoDescription: 'The best marketplace for WordPress plugins, themes, and builder integrations. Instant delivery and verified licenses.',
-      shopSeoTitle: 'Shop Premium Plugins - DigiMarket Pro',
-      shopSeoDescription: 'Browse our extensive catalog of premium WordPress plugins and themes.',
-      contactSeoTitle: 'Contact Support - DigiMarket Pro',
-      contactSeoDescription: 'Get in touch with our support team for any questions or assistance.',
       googleAnalyticsId: '',
       googleSearchConsoleCode: '',
       bingWebmasterCode: '',
@@ -232,58 +221,21 @@ Rules:
     localStorage.setItem('digimarket_pages', JSON.stringify(pages));
   }, [pages]);
 
-  // Save Recently Viewed
-  useEffect(() => {
-    localStorage.setItem('digimarket_recent', JSON.stringify(recentlyViewed));
-  }, [recentlyViewed]);
-
-  // Save settings & Update SEO / Favicon
+  // Save settings when they change & Update Document Title / Meta
   useEffect(() => {
     localStorage.setItem('digimarket_settings', JSON.stringify(storeSettings));
+    document.title = storeSettings.seoTitle || storeSettings.storeName;
     
-    // 1. Dynamic Page Title & Description Logic
-    let pageTitle = storeSettings.seoTitle || storeSettings.storeName;
-    let pageDesc = storeSettings.seoDescription;
-
-    if (currentView === 'product' && selectedProduct) {
-       pageTitle = `${selectedProduct.name} | ${storeSettings.storeName}`;
-       // If no product description, fallback to global
-       pageDesc = selectedProduct.description ? selectedProduct.description.substring(0, 160) : pageDesc;
-    } else if (currentView === 'page' && selectedPage) {
-       pageTitle = `${selectedPage.title} | ${storeSettings.storeName}`;
-       // Pages generally don't have unique meta desc fields in this simple app, revert to global
-    } else if (currentView === 'shop') {
-       pageTitle = storeSettings.shopSeoTitle || `Shop | ${storeSettings.storeName}`;
-       pageDesc = storeSettings.shopSeoDescription || pageDesc;
-    } else if (currentView === 'contact') {
-       pageTitle = storeSettings.contactSeoTitle || `Contact | ${storeSettings.storeName}`;
-       pageDesc = storeSettings.contactSeoDescription || pageDesc;
-    }
-
-    // Apply Title
-    document.title = pageTitle;
-    
-    // Apply Meta Description
+    // Update Meta Description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
       metaDesc = document.createElement('meta');
       metaDesc.setAttribute('name', 'description');
       document.head.appendChild(metaDesc);
     }
-    metaDesc.setAttribute('content', pageDesc);
+    metaDesc.setAttribute('content', storeSettings.seoDescription);
 
-    // 2. Favicon Injection
-    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.getElementsByTagName('head')[0].appendChild(link);
-    }
-    if (storeSettings.faviconUrl) {
-      link.href = storeSettings.faviconUrl;
-    }
-
-    // 3. Verification Meta Tags
+    // Update Google Search Console
     if (storeSettings.googleSearchConsoleCode) {
       let gscMeta = document.querySelector('meta[name="google-site-verification"]');
       if (!gscMeta) {
@@ -294,6 +246,7 @@ Rules:
       gscMeta.setAttribute('content', storeSettings.googleSearchConsoleCode);
     }
 
+    // Update Bing Webmaster
     if (storeSettings.bingWebmasterCode) {
       let bingMeta = document.querySelector('meta[name="msvalidate.01"]');
       if (!bingMeta) {
@@ -304,7 +257,8 @@ Rules:
       bingMeta.setAttribute('content', storeSettings.bingWebmasterCode);
     }
 
-    // 4. Google Analytics Script Injection
+    // Update Google Analytics
+    // Remove existing scripts to prevent duplicates if ID changes
     const existingScript = document.getElementById('ga-script');
     if (existingScript) existingScript.remove();
     const existingInline = document.getElementById('ga-inline');
@@ -328,7 +282,7 @@ Rules:
       document.head.appendChild(inlineScript);
     }
 
-  }, [storeSettings, currentView, selectedProduct, selectedPage]);
+  }, [storeSettings]);
 
   // Reset pagination when category or search changes
   useEffect(() => {
@@ -376,10 +330,6 @@ Rules:
 
   // View Details
   const handleViewProduct = (product: Product) => {
-    setRecentlyViewed(prev => {
-       const filtered = prev.filter(p => p.id !== product.id);
-       return [product, ...filtered].slice(0, 4);
-    });
     setSelectedProductId(product.id);
     setCurrentView('product');
     window.scrollTo(0,0);
@@ -435,10 +385,12 @@ Rules:
       <div className="space-y-24 pb-12">
         {/* Hero Section */}
         <div className="relative bg-indigo-900 rounded-[2.5rem] p-8 md:p-20 overflow-hidden shadow-2xl animate-fade-in-up">
-          {/* Background & Hero Content (Unchanged) */}
+          {/* Animated Background Elements */}
           <div className="absolute top-0 left-0 w-full h-full">
              <div className="absolute top-10 right-10 w-32 h-32 bg-indigo-500 rounded-full blur-[80px] opacity-40 animate-pulse-slow"></div>
              <div className="absolute bottom-10 left-10 w-48 h-48 bg-purple-500 rounded-full blur-[100px] opacity-30 animate-pulse-slow delay-300"></div>
+             
+             {/* Floating Icons */}
              <div className="absolute top-20 right-[15%] text-indigo-300/20 animate-float hidden md:block">
                 <Code size={120} strokeWidth={1} />
              </div>
@@ -530,10 +482,10 @@ Rules:
                 <p className="text-slate-500 text-sm leading-relaxed">Get the latest features, bug fixes, and security patches instantly via dashboard.</p>
              </div>
              
-             {/* Item 4 - Changed Icon to LifeBuoy */}
+             {/* Item 4 */}
              <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
                 <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white duration-300">
-                   <LifeBuoy size={32} />
+                   <Headphones size={32} />
                 </div>
                 <h3 className="font-bold text-xl text-slate-900 mb-3">Quick Support</h3>
                 <p className="text-slate-500 text-sm leading-relaxed">Dedicated expert support team available to help you set up and activate.</p>
@@ -541,7 +493,6 @@ Rules:
           </div>
         </div>
 
-        {/* Rest of Home Sections (Featured, How It Works, Best Sellers, Testimonials, FAQ, Newsletter) */}
         {/* Featured Section */}
         <div className="animate-fade-in-up delay-300">
           <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
@@ -565,7 +516,7 @@ Rules:
           </div>
         </div>
 
-        {/* How It Works Section */}
+        {/* How It Works Section (New) */}
         <div className="py-12 animate-fade-in-up delay-200">
             <div className="text-center mb-16">
                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">How It Works</h2>
@@ -573,25 +524,37 @@ Rules:
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+               {/* Connecting Line (Desktop) */}
                <div className="hidden md:block absolute top-12 left-[20%] right-[20%] h-0.5 bg-gradient-to-r from-indigo-200 via-indigo-400 to-indigo-200 z-0"></div>
-               {/* Steps... (Unchanged) */}
+
+               {/* Step 1 */}
                <div className="relative z-10 flex flex-col items-center text-center group">
                   <div className="w-24 h-24 bg-white border-4 border-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg group-hover:border-indigo-500 transition-colors duration-300">
-                     <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white"><CreditCard size={32} /></div>
+                     <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                        <CreditCard size={32} />
+                     </div>
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">1. Choose & Buy</h3>
                   <p className="text-slate-500 max-w-xs">Select your desired plugin or theme and complete the secure payment.</p>
                </div>
+
+               {/* Step 2 */}
                <div className="relative z-10 flex flex-col items-center text-center group">
                   <div className="w-24 h-24 bg-white border-4 border-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg group-hover:border-indigo-500 transition-colors duration-300">
-                     <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white"><Download size={32} /></div>
+                     <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                        <Download size={32} />
+                     </div>
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">2. Receive Info</h3>
                   <p className="text-slate-500 max-w-xs">Get your original license key and download links instantly via email.</p>
                </div>
+
+               {/* Step 3 */}
                <div className="relative z-10 flex flex-col items-center text-center group">
                   <div className="w-24 h-24 bg-white border-4 border-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg group-hover:border-indigo-500 transition-colors duration-300">
-                     <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white"><Lock size={32} /></div>
+                     <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                        <Lock size={32} />
+                     </div>
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">3. Activate</h3>
                   <p className="text-slate-500 max-w-xs">Enter the key in your WordPress dashboard or let our team activate it for you.</p>
@@ -599,7 +562,7 @@ Rules:
             </div>
         </div>
 
-        {/* Best Sellers */}
+        {/* Best Sellers Section */}
         <div className="animate-fade-in-up delay-200">
           <div className="flex justify-between items-end mb-10">
             <div>
@@ -616,12 +579,13 @@ Rules:
           </div>
         </div>
 
-        {/* Testimonials */}
+        {/* Testimonials Grid */}
         <div className="bg-slate-100 rounded-[2.5rem] p-10 md:p-20 animate-fade-in-up delay-300">
            <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">Trusted by Agencies & Freelancers</h2>
               <p className="text-slate-500 mt-4 text-lg">See what our customers are saying about us</p>
            </div>
+           
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
              {TESTIMONIALS.map((testimonial) => (
                 <div key={testimonial.id} className="bg-white p-10 rounded-3xl shadow-sm h-full flex flex-col hover:-translate-y-2 transition-transform duration-300 border border-slate-100">
@@ -630,7 +594,12 @@ Rules:
                    </div>
                    <p className="text-slate-600 mb-8 leading-relaxed flex-1 text-lg italic">"{testimonial.text}"</p>
                    <div className="flex items-center gap-4 mt-auto border-t border-slate-50 pt-6">
-                      <img src={testimonial.image} alt={testimonial.name} className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50" loading="lazy"/>
+                      <img 
+                        src={testimonial.image} 
+                        alt={testimonial.name} 
+                        className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50" 
+                        loading="lazy"
+                      />
                       <div>
                          <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
                          <p className="text-sm text-slate-500">{testimonial.role}</p>
@@ -641,21 +610,35 @@ Rules:
            </div>
         </div>
 
+        {/* FAQ Section */}
         <FAQSection />
 
-        {/* Newsletter */}
+        {/* Newsletter / CTA */}
         <div className="bg-indigo-600 rounded-[2.5rem] p-10 md:p-24 text-center text-white relative overflow-hidden mb-12 shadow-2xl animate-fade-in-up delay-300">
            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full blur-[100px] opacity-60 -mr-20 -mt-20 animate-pulse-slow"></div>
            <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-600 rounded-full blur-[100px] opacity-60 -ml-20 -mb-20 animate-pulse-slow delay-500"></div>
+           
            <div className="relative z-10 max-w-3xl mx-auto">
-              <span className="inline-block bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-indigo-100 font-bold text-sm mb-6 border border-white/20">🚀 Join 25,000+ Developers</span>
+              <span className="inline-block bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-indigo-100 font-bold text-sm mb-6 border border-white/20">
+                🚀 Join 25,000+ Developers
+              </span>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">Get Exclusive Deals & Updates</h2>
-              <p className="text-indigo-100 mb-10 text-lg md:text-xl leading-relaxed">Subscribe to our newsletter and get <span className="font-bold text-white bg-indigo-500/50 px-2 py-0.5 rounded">10% off</span> your first purchase.</p>
+              <p className="text-indigo-100 mb-10 text-lg md:text-xl leading-relaxed">
+                Subscribe to our newsletter and get <span className="font-bold text-white bg-indigo-500/50 px-2 py-0.5 rounded">10% off</span> your first purchase of any plugin or theme.
+              </p>
               <div className="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
-                 <input type="email" placeholder="Enter your email address" className="flex-1 px-8 py-4 rounded-full text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-400 text-lg shadow-lg placeholder:text-slate-400"/>
-                 <button className="px-10 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105">Subscribe</button>
+                 <input 
+                    type="email" 
+                    placeholder="Enter your email address" 
+                    className="flex-1 px-8 py-4 rounded-full text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-400 text-lg shadow-lg placeholder:text-slate-400"
+                 />
+                 <button className="px-10 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:scale-105">
+                    Subscribe
+                 </button>
               </div>
-              <p className="text-indigo-200 text-sm mt-6 flex items-center justify-center gap-2"><ShieldCheck size={16} /> No spam, unsubscribe at any time.</p>
+              <p className="text-indigo-200 text-sm mt-6 flex items-center justify-center gap-2">
+                 <ShieldCheck size={16} /> No spam, unsubscribe at any time.
+              </p>
            </div>
         </div>
       </div>
@@ -663,7 +646,7 @@ Rules:
   };
 
   const ShopView = () => {
-    // ... Existing ShopView logic
+    // Pagination Logic
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -681,71 +664,134 @@ Rules:
             <h3 className="font-bold text-slate-900 mb-4 hidden lg:flex items-center gap-2">
               <Filter size={18} className="text-indigo-600"/> Categories
             </h3>
+            
+            {/* Category List - Horizontal on Mobile, Vertical on Desktop */}
             <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0" style={{scrollbarWidth: 'none'}}>
               {categories.map(cat => {
-                const count = cat === 'All' ? products.length : products.filter(p => p.category === cat).length;
+                const count = cat === 'All' 
+                  ? products.length 
+                  : products.filter(p => p.category === cat).length;
                 const isActive = selectedCategory === cat;
+
                 return (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
                     className={`
                       shrink-0 transition-all text-sm font-medium
+                      /* Mobile Styles: Chip/Pill */
                       px-4 py-2 rounded-full border flex items-center
+                      /* Desktop Styles: List Item */
                       lg:border-0 lg:rounded-xl lg:px-4 lg:py-3 lg:w-full lg:flex lg:justify-between lg:items-center
-                      ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 lg:bg-slate-50 lg:hover:bg-slate-100 lg:hover:border-transparent'}
+                      ${isActive 
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' 
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 lg:bg-slate-50 lg:hover:bg-slate-100 lg:hover:border-transparent'
+                      }
                     `}
                   >
                     <span className="whitespace-nowrap">{cat}</span>
-                    <span className={`hidden lg:inline-block text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500 group-hover:bg-white group-hover:text-indigo-600'}`}>{count}</span>
+                    <span className={`hidden lg:inline-block text-xs px-2 py-0.5 rounded-full ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500 group-hover:bg-white group-hover:text-indigo-600'
+                    }`}>
+                      {count}
+                    </span>
                   </button>
                 )
               })}
             </div>
          </div>
+         
+         {/* Optional: Placeholder for future filters (Price, etc) */}
          <div className="hidden lg:block bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
             <h4 className="font-bold text-indigo-900 mb-2">Need Help?</h4>
             <p className="text-sm text-indigo-700 mb-4">Our AI assistant can help you find the perfect plugin.</p>
-            <button onClick={() => document.querySelector('button[aria-label="Ask AI"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))} className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors">Ask AI</button>
+            <button 
+              onClick={() => document.querySelector('button[aria-label="Ask AI"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))}
+              className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors"
+            >
+               Ask AI
+            </button>
          </div>
       </aside>
 
-      {/* Product Grid */}
+      {/* Main Content Area */}
       <div className="flex-1 w-full">
          <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">{selectedCategory}</h1>
-              <p className="text-slate-500 text-sm">Showing {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} results</p>
+              <p className="text-slate-500 text-sm">
+                 Showing {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} results
+              </p>
             </div>
          </div>
+
+         {/* Product Grid */}
          {filteredProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
                 {paginatedProducts.map(product => (
-                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} onViewDetails={() => handleViewProduct(product)} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                    onViewDetails={() => handleViewProduct(product)}
+                  />
                 ))}
               </div>
+
+              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2">
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronLeft size={20} /></button>
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button key={page} onClick={() => handlePageChange(page)} className={`w-10 h-10 rounded-lg font-medium transition-colors ${currentPage === page ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{page}</button>
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                        currentPage === page
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
                   ))}
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronRight size={20} /></button>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
                 </div>
               )}
             </>
          ) : (
             <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
-              <div className="bg-slate-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4"><LayoutGrid size={32} className="text-slate-400" /></div>
+              <div className="bg-slate-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <LayoutGrid size={32} className="text-slate-400" />
+              </div>
               <h3 className="text-xl font-bold text-slate-900">No products found</h3>
               <p className="text-slate-500 mt-2">Try adjusting your search or category.</p>
-              <button onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }} className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">Clear Filters</button>
+              <button
+                 onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+                 className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
          )}
       </div>
     </div>
-    );
+  );
   }
 
   const ContactView = () => (
@@ -754,30 +800,53 @@ Rules:
         <h1 className="text-4xl font-bold text-slate-900 mb-4">Get in Touch</h1>
         <p className="text-slate-500 text-lg">Have questions about a product or need support? We're here to help.</p>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
          <div className="p-8 md:p-12 bg-indigo-900 text-white flex flex-col justify-between">
             <div>
               <h3 className="text-2xl font-bold mb-6">Contact Information</h3>
               <ul className="space-y-6">
-                <li className="flex items-start gap-4"><MapPin className="text-indigo-400 mt-1" /><span>{storeSettings.contactAddress}</span></li>
-                <li className="flex items-center gap-4"><Mail className="text-indigo-400" /><span>{storeSettings.supportEmail}</span></li>
-                <li className="flex items-center gap-4"><Phone className="text-indigo-400" /><span>{storeSettings.contactPhone}</span></li>
+                <li className="flex items-start gap-4">
+                  <MapPin className="text-indigo-400 mt-1" />
+                  <span>{storeSettings.contactAddress}</span>
+                </li>
+                <li className="flex items-center gap-4">
+                  <Mail className="text-indigo-400" />
+                  <span>{storeSettings.supportEmail}</span>
+                </li>
+                <li className="flex items-center gap-4">
+                  <Phone className="text-indigo-400" />
+                  <span>{storeSettings.contactPhone}</span>
+                </li>
               </ul>
             </div>
             <div className="mt-12">
                <div className="flex gap-4">
+                 {/* Social Icons for Contact Page */}
                  <a href={storeSettings.socials.facebook || '#'} target="_blank" className="w-10 h-10 bg-indigo-800 rounded-full flex items-center justify-center hover:bg-indigo-600 cursor-pointer transition-colors text-white font-bold">f</a>
                  <a href={storeSettings.socials.linkedin || '#'} target="_blank" className="w-10 h-10 bg-indigo-800 rounded-full flex items-center justify-center hover:bg-indigo-600 cursor-pointer transition-colors text-white font-bold">in</a>
                  <a href={storeSettings.socials.twitter || '#'} target="_blank" className="w-10 h-10 bg-indigo-800 rounded-full flex items-center justify-center hover:bg-indigo-600 cursor-pointer transition-colors text-white font-bold">x</a>
                </div>
             </div>
          </div>
+
          <div className="p-8 md:p-12">
             <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert('Message sent!'); }}>
-              <div><label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="John Doe" /></div>
-              <div><label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label><input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="john@example.com" /></div>
-              <div><label className="block text-sm font-medium text-slate-700 mb-1">Message</label><textarea rows={4} className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="How can we help you?" /></div>
-              <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"><Send size={18} /> Send Message</button>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="John Doe" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="john@example.com" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Message</label>
+                <textarea rows={4} className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="How can we help you?" />
+              </div>
+              <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                <Send size={18} /> Send Message
+              </button>
             </form>
          </div>
       </div>
@@ -790,7 +859,9 @@ Rules:
       <div className="max-w-4xl mx-auto py-8 animate-fade-in-up">
         <h1 className="text-3xl font-bold text-slate-900 mb-6">{selectedPage.title}</h1>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12">
-           <div className="prose prose-slate max-w-none whitespace-pre-wrap">{selectedPage.content}</div>
+           <div className="prose prose-slate max-w-none whitespace-pre-wrap">
+             {selectedPage.content}
+           </div>
         </div>
       </div>
     );
@@ -820,8 +891,6 @@ Rules:
             product={selectedProduct} 
             onAddToCart={handleAddToCart}
             onBack={() => setCurrentView('shop')}
-            recentlyViewed={recentlyViewed.filter(p => p.id !== selectedProduct.id)}
-            onViewRecent={(p) => handleViewProduct(p)}
           />
         )}
       </main>
@@ -830,7 +899,12 @@ Rules:
         settings={storeSettings} 
         pages={pages}
         onChangeView={(view, id) => { 
-          if(view === 'page' && id) { handleViewPage(id); } else { setCurrentView(view); window.scrollTo(0,0); }
+          if(view === 'page' && id) {
+             handleViewPage(id);
+          } else {
+             setCurrentView(view); 
+             window.scrollTo(0,0); 
+          }
         }}
       />
 
@@ -842,7 +916,10 @@ Rules:
         onUpdateQuantity={handleUpdateQuantity}
       />
 
-      <AIAssistant products={products} settings={storeSettings} />
+      <AIAssistant 
+        products={products}
+        settings={storeSettings}
+      />
     </div>
   );
 };

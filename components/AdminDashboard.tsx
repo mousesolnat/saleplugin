@@ -135,7 +135,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   </url>`;
     });
 
-    // Products
+    // Products (Assuming URL structure /product/id for now, though App uses internal state)
+    // For SEO purposes in a real app, you'd want clean URLs.
     products.forEach(product => {
       const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       xml += `
@@ -262,7 +263,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
      setPageForm({});
   };
 
-  // --- Delete Handler ---
+  // --- Delete Handler (Shared) ---
   const handleDeleteRequest = (id: string, type: 'product' | 'page') => {
     setDeleteConfirmId(id);
     setDeleteType(type);
@@ -302,6 +303,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     showToast('Store settings saved successfully');
   };
 
+  // --- Login Screen ---
   if (!isAuthenticated) {
     return (
       <div className="fixed inset-0 bg-slate-50 z-50 flex items-center justify-center p-4">
@@ -347,6 +349,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   }
 
+  // --- Main Dashboard Layout ---
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden font-sans relative">
       
@@ -418,9 +421,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header */}
+        {/* Mobile Header / Top Bar */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
            <div className="flex items-center gap-4">
              <button className="md:hidden text-slate-500" onClick={onClose}><ArrowLeft size={20}/></button>
@@ -434,10 +437,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
            </div>
         </header>
 
-        {/* Content */}
+        {/* Scrollable Content */}
         <div className="flex-1 overflow-auto p-6">
           
-          {/* OVERVIEW */}
+          {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -446,7 +449,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <StatCard title="Total Pages" value={pages.length.toString()} icon={<FileText className="text-amber-500" />} change="+1" />
                 <StatCard title="Total Customers" value="1,203" icon={<Users className="text-purple-500" />} change="+18%" />
               </div>
-              {/* Recent Sales & Inventory Summary (same as before) */}
+              
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                   <h3 className="font-bold text-slate-900 mb-4">Recent Sales</h3>
@@ -467,6 +470,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                      ))}
                   </div>
                 </div>
+                
                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                   <h3 className="font-bold text-slate-900 mb-4">Inventory Summary</h3>
                   <div className="space-y-3">
@@ -493,8 +497,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {/* PRODUCTS TAB */}
           {activeTab === 'products' && (
-             <div className="flex flex-col lg:flex-row gap-6 h-full">
-               {/* Product List */}
+            <div className="flex flex-col lg:flex-row gap-6 h-full">
                <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[500px]">
                   <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50">
                      <div className="relative flex-1">
@@ -514,6 +517,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <Plus size={18} /> Add New
                       </button>
                   </div>
+                  
                   <div className="flex-1 overflow-y-auto">
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-slate-50 sticky top-0 z-10">
@@ -618,7 +622,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* PAGES TAB */}
+          {/* PAGES TAB (NEW) */}
           {activeTab === 'pages' && (
             <div className="flex flex-col lg:flex-row gap-6 h-full">
               <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[500px]">
@@ -653,6 +657,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               </td>
                            </tr>
                          ))}
+                         {pages.length === 0 && (
+                           <tr><td colSpan={3} className="p-8 text-center text-slate-400">No pages found. Create one to get started.</td></tr>
+                         )}
                       </tbody>
                     </table>
                  </div>
@@ -661,7 +668,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Page Editor */}
               {(editingPageId || isAddingPage) && (
                  <div className="w-full lg:w-[32rem] bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-fit sticky top-0 z-20">
-                     {/* ... Same as existing page editor ... */}
                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
                        <h3 className="font-bold text-slate-900">{isAddingPage ? 'Create Page' : 'Edit Page'}</h3>
                        <button onClick={() => {setEditingPageId(null); setIsAddingPage(false);}} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
@@ -694,6 +700,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                            value={pageForm.content || ''} 
                            onChange={e => setPageForm({...pageForm, content: e.target.value})} 
                          />
+                         <p className="text-xs text-slate-400 mt-1">Basic text format. Use double line breaks for paragraphs.</p>
                        </div>
                        <button onClick={handleSavePage} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"><Save size={18} /> Save Page</button>
                      </div>
@@ -705,7 +712,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ORDERS TAB */}
           {activeTab === 'orders' && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-               {/* ... Order Table Same as Before ... */}
                <div className="p-4 border-b border-slate-100 bg-slate-50">
                  <h2 className="font-bold text-slate-800">Recent Orders</h2>
                </div>
@@ -794,24 +800,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         )}
                       </div>
                    </div>
-                   
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Favicon URL (Browser Tab Icon)</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="https://example.com/favicon.ico"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.faviconUrl || ''}
-                          onChange={e => setTempSettings({...tempSettings, faviconUrl: e.target.value})}
-                        />
-                         {tempSettings.faviconUrl && (
-                          <div className="w-10 h-10 border border-slate-200 rounded p-1 flex items-center justify-center bg-slate-50">
-                            <img src={tempSettings.faviconUrl} alt="Favicon" className="max-w-full max-h-full object-contain" />
-                          </div>
-                        )}
-                      </div>
-                   </div>
 
                    <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Website URL (For Sitemap)</label>
@@ -826,7 +814,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  </div>
               </div>
 
-               {/* AI Config (Unchanged) */}
+               {/* AI Configuration */}
                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Bot size={20} className="text-purple-600"/> AI Configuration</h2>
                  <div className="space-y-4">
@@ -844,6 +832,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <Lock size={16} />
                         </div>
                       </div>
+                      <p className="text-xs text-slate-400 mt-1">Leave blank to use system default. Warning: Stored locally in browser.</p>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">System Instruction</label>
@@ -854,6 +843,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         value={tempSettings.aiSystemInstruction || ''}
                         onChange={e => setTempSettings({...tempSettings, aiSystemInstruction: e.target.value})}
                       />
+                      <p className="text-xs text-slate-400 mt-1">Customize how the AI behaves and speaks to customers.</p>
                     </div>
                  </div>
                </div>
@@ -863,116 +853,78 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Globe size={20} className="text-green-600"/> SEO & Analytics Configuration</h2>
                  
                  <div className="space-y-4">
-                   
-                   {/* Home SEO */}
-                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                     <h3 className="font-bold text-slate-800 mb-3 text-sm uppercase">Global / Home Page SEO</h3>
-                     <div className="grid grid-cols-1 gap-4">
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Title</label>
-                          <input 
-                            type="text" 
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={tempSettings.seoTitle || ''}
-                            onChange={e => setTempSettings({...tempSettings, seoTitle: e.target.value})}
-                          />
-                       </div>
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Description</label>
-                          <textarea
-                            rows={2}
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={tempSettings.seoDescription || ''}
-                            onChange={e => setTempSettings({...tempSettings, seoDescription: e.target.value})}
-                          />
-                       </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Title</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. DigiMarket - Premium WordPress Plugins"
+                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          value={tempSettings.seoTitle || ''}
+                          onChange={e => setTempSettings({...tempSettings, seoTitle: e.target.value})}
+                        />
                      </div>
-                   </div>
-
-                   {/* Shop Page SEO */}
-                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                     <h3 className="font-bold text-slate-800 mb-3 text-sm uppercase">Shop Page SEO</h3>
-                     <div className="grid grid-cols-1 gap-4">
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Title</label>
-                          <input 
-                            type="text" 
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={tempSettings.shopSeoTitle || ''}
-                            onChange={e => setTempSettings({...tempSettings, shopSeoTitle: e.target.value})}
-                          />
-                       </div>
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Description</label>
-                          <textarea
-                            rows={2}
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={tempSettings.shopSeoDescription || ''}
-                            onChange={e => setTempSettings({...tempSettings, shopSeoDescription: e.target.value})}
-                          />
-                       </div>
-                     </div>
-                   </div>
-
-                   {/* Contact Page SEO */}
-                   <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                     <h3 className="font-bold text-slate-800 mb-3 text-sm uppercase">Contact Page SEO</h3>
-                     <div className="grid grid-cols-1 gap-4">
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Title</label>
-                          <input 
-                            type="text" 
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={tempSettings.contactSeoTitle || ''}
-                            onChange={e => setTempSettings({...tempSettings, contactSeoTitle: e.target.value})}
-                          />
-                       </div>
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Description</label>
-                          <textarea
-                            rows={2}
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            value={tempSettings.contactSeoDescription || ''}
-                            onChange={e => setTempSettings({...tempSettings, contactSeoDescription: e.target.value})}
-                          />
-                       </div>
-                     </div>
-                   </div>
-
-                   {/* Technical SEO */}
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-4 border-t border-slate-100">
                      <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-1">Google Analytics ID</label>
                         <input 
                           type="text" 
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+                          placeholder="G-XXXXXXXXXX"
+                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-sm"
                           value={tempSettings.googleAnalyticsId || ''}
                           onChange={e => setTempSettings({...tempSettings, googleAnalyticsId: e.target.value})}
                         />
                      </div>
+                   </div>
+                   
+                   <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Description</label>
+                      <textarea
+                        rows={3}
+                        placeholder="e.g. The best marketplace for digital products..."
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        value={tempSettings.seoDescription || ''}
+                        onChange={e => setTempSettings({...tempSettings, seoDescription: e.target.value})}
+                      />
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Search Console Code</label>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Google Search Console (Meta Content)</label>
                         <input 
                           type="text" 
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+                          placeholder="verification-code-string"
+                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-sm"
                           value={tempSettings.googleSearchConsoleCode || ''}
                           onChange={e => setTempSettings({...tempSettings, googleSearchConsoleCode: e.target.value})}
                         />
+                        <p className="text-xs text-slate-400 mt-1">Enter just the 'content' part of the meta tag.</p>
+                     </div>
+                     <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Bing Webmaster (Meta Content)</label>
+                        <input 
+                          type="text" 
+                          placeholder="verification-code-string"
+                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-sm"
+                          value={tempSettings.bingWebmasterCode || ''}
+                          onChange={e => setTempSettings({...tempSettings, bingWebmasterCode: e.target.value})}
+                        />
+                        <p className="text-xs text-slate-400 mt-1">Enter just the 'content' part of the meta tag.</p>
                      </div>
                    </div>
 
-                   <div className="pt-4">
+                   <div className="pt-4 border-t border-slate-100">
                       <button 
                         onClick={handleDownloadSitemap}
                         className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium"
                       >
                          <Download size={18} /> Generate & Download Sitemap.xml
                       </button>
+                      <p className="text-xs text-slate-400 mt-1">Generates a sitemap based on your current products and pages for you to upload to your host.</p>
                    </div>
                  </div>
               </div>
 
-               {/* Contact & Footer Settings (Unchanged) */}
+               {/* Contact & Footer Settings */}
                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><MapPin size={20} className="text-amber-600"/> Contact & Footer Information</h2>
                  
@@ -1002,6 +954,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Footer About Text</label>
                       <textarea
                         rows={2}
+                        placeholder="Description appearing in the footer..."
                         className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         value={tempSettings.footerDescription || ''}
                         onChange={e => setTempSettings({...tempSettings, footerDescription: e.target.value})}
@@ -1012,6 +965,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Popular Categories List (One per line)</label>
                       <textarea
                         rows={4}
+                        placeholder="WordPress Plugins..."
                         className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         value={categoriesText}
                         onChange={e => setCategoriesText(e.target.value)}
@@ -1020,7 +974,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  </div>
               </div>
 
-              {/* Social Media (Unchanged) */}
+              {/* Social Media */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Share2 size={20} className="text-blue-600"/> Social Media Links</h2>
                  
@@ -1079,6 +1033,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 };
+
+// --- Subcomponents ---
 
 const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
   <button 

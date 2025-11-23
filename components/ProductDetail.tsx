@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { 
   ArrowLeft, ShoppingCart, Check, ShieldCheck, Clock, 
-  AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard, Play, X
+  AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard
 } from 'lucide-react';
 import { Product } from '../types';
 
@@ -10,16 +9,11 @@ interface ProductDetailProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onBack: () => void;
-  recentlyViewed?: Product[];
-  onViewRecent?: (product: Product) => void;
 }
 
-export const ProductDetail: React.FC<ProductDetailProps> = ({ 
-  product, onAddToCart, onBack, recentlyViewed = [], onViewRecent 
-}) => {
+export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onAddToCart, onBack }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
   const [isAdded, setIsAdded] = useState(false);
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   const handleAdd = () => {
     onAddToCart(product);
@@ -45,29 +39,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   
   return (
     <div className="animate-fade-in pb-12">
-      {/* Video Modal */}
-      {isVideoOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-black relative w-full max-w-4xl aspect-video rounded-2xl shadow-2xl overflow-hidden">
-             <button 
-               onClick={() => setIsVideoOpen(false)}
-               className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-white/20 transition-colors"
-             >
-               <X size={24} />
-             </button>
-             <iframe 
-               width="100%" 
-               height="100%" 
-               src="https://www.youtube.com/embed/1oHTlv1hdcI?autoplay=1" 
-               title="Product Video" 
-               frameBorder="0" 
-               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-               allowFullScreen
-             ></iframe>
-          </div>
-        </div>
-      )}
-
       {/* Breadcrumb / Back */}
       <div className="mb-6">
         <button 
@@ -78,32 +49,22 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-12">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2">
           
           {/* Left Column: Image */}
-          <div className="p-8 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col items-center justify-center relative">
-            <div className="relative group w-full max-w-lg">
-                {product.image ? (
-                <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    className="w-full object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-500"
-                />
-                ) : (
-                <div className="w-full aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                    No Image
-                </div>
-                )}
-                
-                {/* Watch Video Button */}
-                <button 
-                    onClick={() => setIsVideoOpen(true)}
-                    className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur text-red-600 px-6 py-2.5 rounded-full font-bold shadow-lg hover:scale-110 transition-transform flex items-center gap-2 group-hover:opacity-100"
-                >
-                    <Play size={20} fill="currentColor" /> Watch Video
-                </button>
-            </div>
+          <div className="p-8 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 flex items-center justify-center">
+            {product.image ? (
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full max-w-lg object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="w-full aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
+                No Image
+              </div>
+            )}
           </div>
 
           {/* Right Column: Details */}
@@ -132,14 +93,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               </p>
             </div>
 
-            {/* Warning / Instruction Box (Enhanced Emotion) */}
-            <div className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-5 mb-8 flex gap-4 animate-fade-in">
-              <div className="bg-red-100 p-2 rounded-full h-fit animate-pulse">
-                 <AlertTriangle className="text-red-600 shrink-0" size={24} />
-              </div>
+            {/* Warning / Instruction Box */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex gap-4">
+              <AlertTriangle className="text-amber-600 shrink-0 mt-1" />
               <div>
-                <h4 className="font-bold text-red-800 mb-1 text-lg">Activation Requirement</h4>
-                <p className="text-sm text-red-700 leading-relaxed font-medium">
+                <h4 className="font-bold text-amber-800 mb-1">Activation Requirement</h4>
+                <p className="text-sm text-amber-700">
                   You have to provide temporary admin login details for your website. 
                   We’ll activate your licenses with our original license key manually.
                 </p>
@@ -269,32 +228,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
            </div>
         </div>
       </div>
-
-      {/* Recently Viewed Section */}
-      {recentlyViewed.length > 0 && (
-          <div className="animate-fade-in-up">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Recently Viewed</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {recentlyViewed.map(item => (
-                      <div 
-                        key={item.id} 
-                        onClick={() => onViewRecent && onViewRecent(item)}
-                        className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md cursor-pointer transition-all group"
-                      >
-                          <div className="bg-slate-100 rounded-lg aspect-square mb-3 overflow-hidden">
-                             {item.image ? (
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">No Image</div>
-                             )}
-                          </div>
-                          <h4 className="font-bold text-slate-900 text-sm line-clamp-1 group-hover:text-indigo-600 transition-colors">{item.name}</h4>
-                          <p className="text-indigo-600 font-bold text-sm">${item.price}</p>
-                      </div>
-                  ))}
-              </div>
-          </div>
-      )}
     </div>
   );
 };
