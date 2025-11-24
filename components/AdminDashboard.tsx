@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Product, StoreSettings, Order, Page } from '../types';
+import { CURRENCIES } from '../constants';
 import { 
   Plus, Edit, Trash2, X, Save, Search, Image as ImageIcon, 
   ArrowLeft, Lock, LogIn, LayoutGrid, Package, ShoppingCart, 
@@ -394,13 +395,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 hidden md:flex">
-        <div className="p-6 border-b border-slate-100 flex items-center gap-2">
-           <div className="bg-indigo-500 p-1.5 rounded-lg text-white">
+      {/* Sidebar - BLUE THEME */}
+      <aside className="w-64 bg-indigo-900 border-r border-indigo-800 flex flex-col shrink-0 transition-all duration-300 hidden md:flex text-white">
+        <div className="p-6 border-b border-indigo-800 flex items-center gap-2">
+           <div className="bg-white p-1.5 rounded-lg text-indigo-900">
              <LayoutGrid size={20} />
            </div>
-           <span className="font-bold text-lg tracking-tight text-slate-800">AdminPanel</span>
+           <span className="font-bold text-lg tracking-tight text-white">AdminPanel</span>
         </div>
         
         <nav className="flex-1 p-4 space-y-1">
@@ -411,15 +412,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <SidebarItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
         </nav>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-indigo-800">
            <div className="flex items-center gap-3 px-3 py-2">
-             <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-bold text-xs text-white">A</div>
+             <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center font-bold text-xs text-white border border-indigo-600">A</div>
              <div className="overflow-hidden">
-               <p className="text-sm font-medium truncate text-slate-800">Administrator</p>
-               <p className="text-xs text-slate-500 truncate">admin@digimarket.pro</p>
+               <p className="text-sm font-medium truncate text-white">Administrator</p>
+               <p className="text-xs text-indigo-300 truncate">admin@digimarket.pro</p>
              </div>
            </div>
-           <button onClick={onClose} className="mt-4 w-full flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800 text-sm py-2 hover:bg-slate-50 rounded-lg transition-colors">
+           <button onClick={onClose} className="mt-4 w-full flex items-center justify-center gap-2 text-indigo-300 hover:text-white text-sm py-2 hover:bg-indigo-800 rounded-lg transition-colors">
               <ExternalLink size={14} /> Sign Out
            </button>
         </div>
@@ -654,7 +655,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* PAGES TAB (NEW) */}
+          {/* PAGES TAB */}
           {activeTab === 'pages' && (
             <div className="flex flex-col lg:flex-row gap-6 h-full">
               <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[500px]">
@@ -815,6 +816,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                      </div>
                    </div>
                    
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-1">Default Currency</label>
+                          <select 
+                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                            value={tempSettings.currencyCode}
+                            onChange={(e) => {
+                               const selected = CURRENCIES.find(c => c.code === e.target.value);
+                               if(selected) {
+                                  setTempSettings({...tempSettings, currencyCode: selected.code, currencySymbol: selected.symbol});
+                               }
+                            }}
+                          >
+                            {CURRENCIES.map(c => (
+                               <option key={c.code} value={c.code}>{c.flag} {c.name} ({c.symbol})</option>
+                            ))}
+                          </select>
+                       </div>
+                   </div>
+
                    <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Logo URL</label>
                       <div className="flex gap-2">
@@ -1118,7 +1139,7 @@ const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active: bool
   <button 
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-sm ${
-      active ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+      active ? 'bg-indigo-800 text-white shadow-lg' : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
     }`}
   >
     {icon}

@@ -8,6 +8,16 @@ export interface Product {
   image?: string;
   seoTitle?: string;
   seoDescription?: string;
+  reviews?: Review[];
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  date: string;
 }
 
 export interface CartItem extends Product {

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -8,7 +9,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
-import { Product, CartItem, StoreSettings, Page, Currency, Customer } from './types';
+import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review } from './types';
 import { 
   Filter, SlidersHorizontal, ArrowRight, Mail, Phone, MapPin, Send, Star, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, Headphones, ChevronDown, ChevronUp, HelpCircle,
@@ -422,6 +423,22 @@ const App: React.FC = () => {
     });
   };
 
+  const handleAddReview = (productId: string, review: Omit<Review, 'id' | 'productId' | 'date'>) => {
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        const newReview: Review = {
+          id: `rev_${Date.now()}`,
+          productId,
+          date: new Date().toISOString(),
+          ...review
+        };
+        const existingReviews = p.reviews || [];
+        return { ...p, reviews: [newReview, ...existingReviews] };
+      }
+      return p;
+    }));
+  };
+
   const handleViewProduct = (product: Product) => {
     // Add to History
     setRecentlyViewed(prev => {
@@ -449,7 +466,7 @@ const App: React.FC = () => {
   
   const searchResults = searchQuery.length > 0 ? filteredProducts.slice(0, 5) : [];
 
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
+  const categories: string[] = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
   const getCategoryIcon = (category: string) => {
     switch(category) {
@@ -806,7 +823,7 @@ const App: React.FC = () => {
                           style={selectedCategory === cat ? { color: 'var(--color-primary)', backgroundColor: '#f1f5f9' } : {}}
                         >
                            <span className="flex items-center gap-2">
-                             {getCategoryIcon(cat)} {cat}
+                             {getCategoryIcon(cat as string)} {cat}
                            </span>
                            <span className="text-xs bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full">
                               {products.filter(p => cat === 'All' || p.category === cat).length}
@@ -828,7 +845,7 @@ const App: React.FC = () => {
                           }`}
                           style={selectedCategory === cat ? { backgroundColor: 'var(--color-primary)' } : {}}
                         >
-                           {getCategoryIcon(cat)} {cat}
+                           {getCategoryIcon(cat as string)} {cat}
                         </button>
                      ))}
                   </div>
@@ -1217,6 +1234,8 @@ const App: React.FC = () => {
               currencySymbol={selectedCurrency.symbol}
               recentlyViewed={recentlyViewed}
               onViewHistoryItem={handleViewProduct}
+              currentUser={currentUser}
+              onAddReview={handleAddReview}
             />
           </div>
         )}
