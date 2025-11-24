@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, ShoppingCart, Check, ShieldCheck, Clock, 
@@ -37,7 +36,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   // SEO: Update Title and Meta Description when product changes
   useEffect(() => {
     // Update Document Title
-    // Use the explicit SEO title if available, otherwise fallback to Product Name
     const title = product.seoTitle || product.name;
     document.title = title;
 
@@ -49,7 +47,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
       document.head.appendChild(metaDesc);
     }
     
-    // Use explicit SEO description, or truncate product description, or empty string
     const description = product.seoDescription || product.description?.substring(0, 160) || '';
     metaDesc.setAttribute('content', description);
   }, [product]);
@@ -159,7 +156,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               >
                 {isAdded ? (
                   <>
-                    <Check size={24} className="animate-bounce text-white" /> <span className="text-white">Added!</span>
+                    <Check size={24} className="text-white" /> <span className="text-white">Added!</span>
                   </>
                 ) : (
                   <>
@@ -214,9 +211,21 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               <div className="flex gap-2">
                 <span className="font-bold text-slate-900 w-24">Share:</span> 
                 <div className="flex gap-2">
-                  <Facebook size={16} className="hover:text-indigo-600 cursor-pointer" />
-                  <Twitter size={16} className="hover:text-indigo-600 cursor-pointer" />
-                  <Linkedin size={16} className="hover:text-indigo-600 cursor-pointer" />
+                  <Facebook 
+                    size={16} 
+                    className="text-slate-400 hover:text-[#1877F2] cursor-pointer transition-colors hover:scale-110" 
+                    title="Share on Facebook"
+                  />
+                  <Twitter 
+                    size={16} 
+                    className="text-slate-400 hover:text-[#1DA1F2] cursor-pointer transition-colors hover:scale-110" 
+                    title="Share on Twitter"
+                  />
+                  <Linkedin 
+                    size={16} 
+                    className="text-slate-400 hover:text-[#0077b5] cursor-pointer transition-colors hover:scale-110" 
+                    title="Share on LinkedIn"
+                  />
                 </div>
               </div>
             </div>

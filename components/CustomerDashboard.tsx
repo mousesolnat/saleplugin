@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Customer, Order } from '../types';
 import { User, Package, LogOut, ShoppingBag, MapPin, CreditCard, Settings, Download } from 'lucide-react';

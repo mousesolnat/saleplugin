@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -197,7 +196,10 @@ const App: React.FC = () => {
         twitter: 'https://twitter.com',
         instagram: 'https://instagram.com',
         linkedin: 'https://linkedin.com'
-      }
+      },
+      primaryColor: '#4f46e5',
+      heroHeadline: 'Premium WordPress Tools Without The Premium Price',
+      heroSubheadline: 'Get instant access to 100% original, verified license keys for the world\'s best plugins and themes. Secure, affordable, and developer-friendly.'
     };
     return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
   });
@@ -218,7 +220,7 @@ const App: React.FC = () => {
   });
   
   // View State (Simple Routing)
-  const [currentView, setCurrentView] = useState<'home' | 'shop' | 'contact' | 'product' | 'page' | 'wishlist' | 'profile'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'shop' | 'contact' | 'product' | 'page' | 'wishlist' | 'profile' | 'checkout'>('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
 
@@ -479,33 +481,45 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // --- Theme Generator ---
+  const generateThemeStyles = () => {
+     // Generate CSS variable for primary color
+     const primary = storeSettings.primaryColor || '#4f46e5';
+     return (
+       <style>{`
+         :root {
+           --color-primary: ${primary};
+         }
+       `}</style>
+     );
+  };
+
   // --- Views ---
 
   const HomeView = () => (
     <div className="space-y-24 pb-12">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-slate-900 py-20 lg:py-32">
+      <div 
+        className="relative overflow-hidden py-20 lg:py-32"
+        style={{ backgroundColor: `var(--color-primary)` }}
+      >
         <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-indigo-500 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl animate-float"></div>
             <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-500 rounded-full blur-3xl animate-float-delayed"></div>
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-indigo-300 text-sm font-medium mb-8 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-8 animate-fade-in-up">
             <Zap size={16} className="fill-current" />
             <span>Instant Digital Delivery</span>
           </div>
           
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 animate-fade-in-up delay-100 leading-tight">
-            Premium WordPress Tools <br className="hidden md:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-              Without The Premium Price
-            </span>
+             {storeSettings.heroHeadline || 'Premium WordPress Tools Without The Premium Price'}
           </h1>
           
-          <p className="max-w-2xl mx-auto text-lg text-slate-300 mb-10 animate-fade-in-up delay-200 leading-relaxed">
-            Get instant access to 100% original, verified license keys for the world's best plugins and themes. 
-            Secure, affordable, and developer-friendly.
+          <p className="max-w-2xl mx-auto text-lg text-white/90 mb-10 animate-fade-in-up delay-200 leading-relaxed">
+            {storeSettings.heroSubheadline || "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly."}
           </p>
 
           {/* New Hero Search Bar */}
@@ -514,19 +528,20 @@ const App: React.FC = () => {
                <input
                  type="text"
                  placeholder="Search 5,000+ plugins & themes..."
-                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-indigo-200 rounded-2xl py-4 pl-14 pr-4 text-lg focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-indigo-400 transition-all shadow-xl"
+                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/70 rounded-2xl py-4 pl-14 pr-4 text-lg focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white transition-all shadow-xl"
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
                  onKeyDown={(e) => e.key === 'Enter' && setCurrentView('shop')}
                />
-               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-300" size={24} />
+               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/70" size={24} />
             </div>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
             <button 
               onClick={() => setCurrentView('shop')}
-              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-indigo-900/50 hover:shadow-indigo-600/50 flex items-center justify-center gap-2"
+              className="px-8 py-4 bg-white hover:bg-slate-50 rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
+              style={{ color: 'var(--color-primary)' }}
             >
               Browse Shop <ArrowRight size={20} />
             </button>
@@ -535,7 +550,7 @@ const App: React.FC = () => {
                 const element = document.getElementById('how-it-works');
                 element?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
+              className="px-8 py-4 bg-black/20 hover:bg-black/30 text-white border border-white/20 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
             >
               How It Works
             </button>
@@ -544,24 +559,24 @@ const App: React.FC = () => {
           {/* Trust strip */}
           <div className="mt-16 pt-8 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in-up delay-500">
              <div className="flex flex-col items-center gap-2">
-                <ShieldCheck className="text-emerald-400 w-8 h-8 mb-1" />
+                <ShieldCheck className="text-emerald-300 w-8 h-8 mb-1" />
                 <span className="text-white font-bold">100% Original</span>
-                <span className="text-slate-400 text-xs">Verified Licenses</span>
+                <span className="text-white/70 text-xs">Verified Licenses</span>
              </div>
              <div className="flex flex-col items-center gap-2">
-                <Ban className="text-red-400 w-8 h-8 mb-1" />
+                <Ban className="text-red-300 w-8 h-8 mb-1" />
                 <span className="text-white font-bold">No GPL/Nulled</span>
-                <span className="text-slate-400 text-xs">Safe & Secure</span>
+                <span className="text-white/70 text-xs">Safe & Secure</span>
              </div>
              <div className="flex flex-col items-center gap-2">
-                <RefreshCw className="text-blue-400 w-8 h-8 mb-1" />
+                <RefreshCw className="text-blue-300 w-8 h-8 mb-1" />
                 <span className="text-white font-bold">Regular Updates</span>
-                <span className="text-slate-400 text-xs">Via Dashboard</span>
+                <span className="text-white/70 text-xs">Via Dashboard</span>
              </div>
              <div className="flex flex-col items-center gap-2">
-                <LifeBuoy className="text-amber-400 w-8 h-8 mb-1" />
+                <LifeBuoy className="text-amber-300 w-8 h-8 mb-1" />
                 <span className="text-white font-bold">Quick Support</span>
-                <span className="text-slate-400 text-xs">Expert Help</span>
+                <span className="text-white/70 text-xs">Expert Help</span>
              </div>
           </div>
         </div>
@@ -589,9 +604,47 @@ const App: React.FC = () => {
            ))}
         </div>
         <div className="text-center mt-12">
-           <button onClick={() => setCurrentView('shop')} className="text-indigo-600 font-bold hover:text-indigo-800 flex items-center justify-center gap-1 mx-auto group">
+           <button 
+             onClick={() => setCurrentView('shop')} 
+             className="font-bold hover:underline flex items-center justify-center gap-1 mx-auto group"
+             style={{ color: 'var(--color-primary)' }}
+           >
              View All Products <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
            </button>
+        </div>
+      </div>
+
+      {/* Best Sellers Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8 animate-fade-in-up">
+           <div>
+             <h2 className="text-3xl font-extrabold text-slate-900 flex items-center gap-3">
+               <Trophy className="text-amber-500 fill-current" /> Best Sellers
+             </h2>
+             <p className="text-slate-500 mt-2">Top rated tools loved by our customers.</p>
+           </div>
+           <button 
+             onClick={() => { setSelectedCategory('Builders & Addons'); setCurrentView('shop'); }} 
+             className="text-sm font-bold hover:underline flex items-center gap-1"
+             style={{ color: 'var(--color-primary)' }}
+           >
+             View All <ArrowRight size={14} />
+           </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+           {products.slice(4, 8).map((product, idx) => (
+               <div key={product.id} className={`animate-fade-in-up`} style={{ animationDelay: `${idx * 100}ms` }}>
+                 <ProductCard 
+                   product={product} 
+                   onAddToCart={addToCart} 
+                   onViewDetails={() => handleViewProduct(product)}
+                   isWishlisted={wishlist.some(p => p.id === product.id)}
+                   onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
+                   priceMultiplier={selectedCurrency.rate}
+                   currencySymbol={selectedCurrency.symbol}
+                 />
+               </div>
+           ))}
         </div>
       </div>
 
@@ -604,7 +657,11 @@ const App: React.FC = () => {
              </h2>
              <p className="text-slate-500 text-sm mt-1">Capture more leads and grow your list.</p>
            </div>
-           <button onClick={() => { setSelectedCategory('Forms & Leads'); setCurrentView('shop'); }} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+           <button 
+             onClick={() => { setSelectedCategory('Forms & Leads'); setCurrentView('shop'); }} 
+             className="text-sm font-bold hover:underline flex items-center gap-1"
+             style={{ color: 'var(--color-primary)' }}
+           >
              View Category <ArrowRight size={14} />
            </button>
         </div>
@@ -628,7 +685,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="bg-indigo-900 py-16 text-white relative overflow-hidden">
+      <div className="py-16 text-white relative overflow-hidden" style={{ backgroundColor: '#1e293b' }}>
          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -658,399 +715,460 @@ const App: React.FC = () => {
             <h2 className="text-3xl font-extrabold text-slate-900">How It Works</h2>
             <p className="text-slate-500 mt-2">Get your premium tools in 4 simple steps.</p>
          </div>
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
-            {/* Connector Line (Desktop) */}
-            <div className="hidden md:block absolute top-8 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
-            
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { icon: <Search size={24} />, title: "Browse", desc: "Choose from our wide range of premium plugins." },
-              { icon: <CreditCard size={24} />, title: "Secure Pay", desc: "Pay safely with Stripe or PayPal." },
-              { icon: <Mail size={24} />, title: "Receive", desc: "Get your license key instantly via email." },
-              { icon: <CheckCircle size={24} />, title: "Activate", desc: "Activate and enjoy automatic updates." },
-            ].map((step, idx) => (
-               <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center relative group hover:-translate-y-2 transition-transform duration-300">
-                  <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
-                     {step.icon}
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-900 mb-2">{step.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{step.desc}</p>
-               </div>
-            ))}
-         </div>
-      </div>
-
-      {/* Best Sellers */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-         <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <Trophy className="text-amber-500" /> Best Sellers
-              </h2>
-            </div>
-         </div>
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Just picking some specific items as best sellers */}
-            {products.filter(p => ['Elementor Pro', 'WP Rocket', 'Rank Math Pro', 'Advanced Custom Fields (ACF) Pro'].includes(p.name) || p.price > 30).slice(0,4).map(product => (
-               <ProductCard 
-                 key={product.id} 
-                 product={product} 
-                 onAddToCart={addToCart} 
-                 onViewDetails={() => handleViewProduct(product)}
-                 isWishlisted={wishlist.some(p => p.id === product.id)}
-                 onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
-                 priceMultiplier={selectedCurrency.rate}
-                 currencySymbol={selectedCurrency.symbol}
-               />
+              { icon: <Search size={32} />, title: "1. Browse", desc: "Find the plugin or theme you need from our catalog." },
+              { icon: <CreditCard size={32} />, title: "2. Checkout", desc: "Pay securely via Stripe or PayPal." },
+              { icon: <Mail size={32} />, title: "3. Receive", desc: "Get your license key delivered to your email instantly." },
+              { icon: <CheckCircle size={32} />, title: "4. Activate", desc: "Enter the key in your WordPress dashboard and enjoy." }
+            ].map((step, i) => (
+              <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:-translate-y-2 transition-transform duration-300">
+                 <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ color: 'var(--color-primary)' }}>
+                   {step.icon}
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
+                 <p className="text-slate-500 leading-relaxed">{step.desc}</p>
+              </div>
             ))}
          </div>
       </div>
 
       {/* Testimonials */}
-      <div className="bg-slate-50 py-20 border-y border-slate-200">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-               <h2 className="text-3xl font-extrabold text-slate-900">Trusted by Developers</h2>
-               <p className="text-slate-500 mt-2">See what our community has to say.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               {TESTIMONIALS.map((t) => (
-                  <div key={t.id} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                     <div className="flex items-center gap-4 mb-6">
-                        <img src={t.image} alt={t.name} className="w-12 h-12 rounded-full object-cover" />
-                        <div>
-                           <h4 className="font-bold text-slate-900">{t.name}</h4>
-                           <p className="text-xs text-slate-500 uppercase font-semibold tracking-wider">{t.role}</p>
-                        </div>
-                     </div>
-                     <div className="flex gap-1 mb-4 text-amber-400">
-                        {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="currentColor" />)}
-                     </div>
-                     <p className="text-slate-600 leading-relaxed italic">"{t.text}"</p>
-                  </div>
-               ))}
-            </div>
-         </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-extrabold text-slate-900">Trusted by Developers</h2>
+          <p className="text-slate-500 mt-2">Join thousands of happy customers.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           {TESTIMONIALS.map((t) => (
+             <div key={t.id} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                <img src={t.image} alt={t.name} className="w-16 h-16 rounded-full object-cover mb-4 ring-4 ring-slate-50" />
+                <p className="text-slate-600 italic mb-6">"{t.text}"</p>
+                <div>
+                   <h4 className="font-bold text-slate-900">{t.name}</h4>
+                   <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-primary)' }}>{t.role}</span>
+                </div>
+             </div>
+           ))}
+        </div>
       </div>
 
-      {/* FAQ Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-         <FAQSection />
-      </div>
+      <FAQSection />
 
       {/* Newsletter */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-         <div className="bg-indigo-600 rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden shadow-2xl shadow-indigo-900/20">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            <div className="relative z-10">
-               <h2 className="text-3xl font-bold mb-4">Join 10,000+ Developers</h2>
-               <p className="text-indigo-100 mb-8 max-w-lg mx-auto">Get exclusive discounts, new product alerts, and WordPress tips delivered to your inbox.</p>
-               <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                  <input 
-                    type="email" 
-                    placeholder="Enter your email" 
-                    className="flex-1 px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-indigo-200 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/50"
-                  />
-                  <button className="px-8 py-3 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors">
-                     Subscribe
-                  </button>
-               </div>
-               <p className="text-xs text-indigo-300 mt-4">No spam, unsubscribe anytime.</p>
-            </div>
-         </div>
-      </div>
-    </div>
-  );
-
-  const ShopView = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex flex-col md:flex-row gap-8 relative">
-        
-        {/* Sidebar Filters */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="sticky top-24 space-y-8">
-             {/* Mobile Filter Bar (Sticky Horizontal) */}
-             <div className="md:hidden sticky top-16 z-20 bg-white/95 backdrop-blur-md py-3 -mx-4 px-4 border-b border-slate-100 overflow-x-auto no-scrollbar flex gap-2">
-                {categories.map(category => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all flex items-center gap-2 ${
-                      selectedCategory === category
-                        ? 'bg-slate-900 text-white shadow-md'
-                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                    }`}
-                  >
-                    {getCategoryIcon(category)}
-                    {category}
-                  </button>
-                ))}
-             </div>
-
-             {/* Desktop Sidebar */}
-             <div className="hidden md:block bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-2 font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100">
-                  <Filter size={20} /> Categories
-                </div>
-                <div className="space-y-1">
-                  {categories.map(category => {
-                    const count = category === 'All' 
-                      ? products.length 
-                      : products.filter(p => p.category === category).length;
-                    
-                    return (
-                      <button
-                        key={category}
-                        onClick={() => setSelectedCategory(category)}
-                        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all flex justify-between items-center group ${
-                          selectedCategory === category
-                            ? 'bg-indigo-50 text-indigo-600 font-bold'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                            {getCategoryIcon(category)}
-                            {category}
-                        </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                           selectedCategory === category ? 'bg-indigo-200 text-indigo-700' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
-                        }`}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-             </div>
-          </div>
-        </aside>
-
-        {/* Product Grid */}
-        <div className="flex-1 min-w-0">
-           <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-extrabold text-slate-900 flex items-center gap-2">
-                    {getCategoryIcon(selectedCategory)}
-                    {selectedCategory}
-                </h1>
-                <p className="text-slate-500 mt-1">Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} results</p>
-              </div>
-              <div className="flex items-center gap-3">
-                 <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm font-medium text-slate-600 flex items-center gap-2">
-                    Sort by: <span className="text-slate-900 font-bold">Popularity</span> <ChevronDown size={14} />
-                 </div>
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+           <div className="relative z-10">
+              <h2 className="text-3xl font-bold text-white mb-4">Join Our Developer Community</h2>
+              <p className="text-slate-300 mb-8 max-w-lg mx-auto">Subscribe for exclusive discounts, new product alerts, and WordPress tips delivered to your inbox.</p>
+              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                 <input type="email" placeholder="Enter your email" className="flex-1 px-6 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:bg-white/20 transition-all" />
+                 <button 
+                   className="px-8 py-4 text-white font-bold rounded-xl transition-colors"
+                   style={{ backgroundColor: 'var(--color-primary)' }}
+                 >
+                   Subscribe
+                 </button>
               </div>
            </div>
-
-           {currentProducts.length > 0 ? (
-             <>
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-                 {currentProducts.map((product) => (
-                   <ProductCard 
-                     key={product.id} 
-                     product={product} 
-                     onAddToCart={addToCart} 
-                     onViewDetails={() => handleViewProduct(product)}
-                     isWishlisted={wishlist.some(p => p.id === product.id)}
-                     onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
-                     priceMultiplier={selectedCurrency.rate}
-                     currencySymbol={selectedCurrency.symbol}
-                   />
-                 ))}
-               </div>
-
-               {/* Pagination */}
-               {totalPages > 1 && (
-                 <div className="mt-12 flex justify-center items-center gap-2">
-                    <button 
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                       <button
-                         key={page}
-                         onClick={() => handlePageChange(page)}
-                         className={`w-10 h-10 rounded-lg font-bold text-sm transition-colors ${
-                           currentPage === page 
-                             ? 'bg-slate-900 text-white' 
-                             : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                         }`}
-                       >
-                         {page}
-                       </button>
-                    ))}
-
-                    <button 
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                 </div>
-               )}
-             </>
-           ) : (
-             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                  <Search size={32} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">No products found</h3>
-                <p className="text-slate-500 mt-2">Try adjusting your search or filter.</p>
-                <button 
-                  onClick={() => {setSelectedCategory('All'); setSearchQuery('');}}
-                  className="mt-6 text-indigo-600 font-bold hover:underline"
-                >
-                  Clear all filters
-                </button>
-             </div>
-           )}
         </div>
       </div>
     </div>
   );
 
+  const ShopView = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-8 animate-fade-in">
+       {/* Page Header */}
+       <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900">{selectedCategory}</h1>
+          <p className="text-slate-500 mt-1">Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} results</p>
+       </div>
+
+       <div className="flex flex-col lg:flex-row gap-8">
+         {/* Sidebar Filters */}
+         <aside className="lg:w-64 shrink-0">
+            <div className="sticky top-24 space-y-8">
+               {/* Categories */}
+               <div>
+                  <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Filter size={18}/> Categories</h3>
+                  
+                  {/* Desktop Vertical List */}
+                  <div className="hidden lg:flex flex-col space-y-1">
+                     {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`flex items-center justify-between w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                             selectedCategory === cat 
+                             ? 'bg-slate-100 text-slate-900' 
+                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                          style={selectedCategory === cat ? { color: 'var(--color-primary)', backgroundColor: '#f1f5f9' } : {}}
+                        >
+                           <span className="flex items-center gap-2">
+                             {getCategoryIcon(cat)} {cat}
+                           </span>
+                           <span className="text-xs bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full">
+                              {products.filter(p => cat === 'All' || p.category === cat).length}
+                           </span>
+                        </button>
+                     ))}
+                  </div>
+
+                  {/* Mobile Horizontal Scroll */}
+                  <div className="lg:hidden -mx-4 px-4 overflow-x-auto pb-4 no-scrollbar flex gap-2 sticky top-16 z-30 bg-white/95 backdrop-blur-sm py-2">
+                     {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors border ${
+                             selectedCategory === cat 
+                             ? 'text-white border-transparent' 
+                             : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                          }`}
+                          style={selectedCategory === cat ? { backgroundColor: 'var(--color-primary)' } : {}}
+                        >
+                           {getCategoryIcon(cat)} {cat}
+                        </button>
+                     ))}
+                  </div>
+               </div>
+            </div>
+         </aside>
+
+         {/* Product Grid */}
+         <div className="flex-1">
+            {currentProducts.length > 0 ? (
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentProducts.map(product => (
+                     <ProductCard 
+                       key={product.id} 
+                       product={product} 
+                       onAddToCart={addToCart} 
+                       onViewDetails={() => handleViewProduct(product)}
+                       isWishlisted={wishlist.some(p => p.id === product.id)}
+                       onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
+                       priceMultiplier={selectedCurrency.rate}
+                       currencySymbol={selectedCurrency.symbol}
+                     />
+                  ))}
+               </div>
+            ) : (
+               <div className="text-center py-24 bg-slate-50 rounded-3xl border border-slate-100 border-dashed">
+                  <div className="inline-block p-4 bg-white rounded-full shadow-sm mb-4">
+                     <Search size={32} className="text-slate-300" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">No products found</h3>
+                  <p className="text-slate-500">Try adjusting your search or filter.</p>
+                  <button onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }} className="mt-4 font-bold hover:underline" style={{ color: 'var(--color-primary)' }}>
+                     Clear all filters
+                  </button>
+               </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+               <div className="mt-12 flex justify-center items-center gap-2">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`w-10 h-10 rounded-lg font-bold transition-colors ${
+                        currentPage === page 
+                        ? 'text-white' 
+                        : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                      style={currentPage === page ? { backgroundColor: 'var(--color-primary)' } : {}}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+               </div>
+            )}
+         </div>
+       </div>
+    </div>
+  );
+
   const ContactView = () => (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-      <div className="text-center mb-16 animate-fade-in-up">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Get in Touch</h1>
-        <p className="text-xl text-slate-500 max-w-2xl mx-auto">
-          Have questions about a license or need technical support? We're here to help 24/7.
-        </p>
-      </div>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+       <div className="text-center mb-16">
+          <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Get in Touch</h1>
+          <p className="text-lg text-slate-500">Have questions about a license? Our team is here to help 24/7.</p>
+       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 animate-fade-in-up delay-100">
-         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Mail size={24} />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">Email Support</h3>
-            <p className="text-slate-500 text-sm mb-4">Typical response time: 2 hours</p>
-            <a href={`mailto:${storeSettings.supportEmail}`} className="text-indigo-600 font-bold hover:underline">{storeSettings.supportEmail}</a>
-         </div>
-         
-         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Phone size={24} />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">Phone Support</h3>
-            <p className="text-slate-500 text-sm mb-4">Mon-Fri 9am-5pm EST</p>
-            <a href={`tel:${storeSettings.contactPhone}`} className="text-indigo-600 font-bold hover:underline">{storeSettings.contactPhone}</a>
-         </div>
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+             <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ color: 'var(--color-primary)' }}>
+                <Mail size={24} />
+             </div>
+             <h3 className="font-bold text-slate-900 mb-2">Email Support</h3>
+             <p className="text-slate-500 text-sm mb-4">We usually reply within 2 hours.</p>
+             <a href={`mailto:${storeSettings.supportEmail}`} className="font-bold hover:underline" style={{ color: 'var(--color-primary)' }}>{storeSettings.supportEmail}</a>
+          </div>
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Phone size={24} />
+             </div>
+             <h3 className="font-bold text-slate-900 mb-2">Phone</h3>
+             <p className="text-slate-500 text-sm mb-4">Mon-Fri from 8am to 5pm.</p>
+             <a href={`tel:${storeSettings.contactPhone}`} className="font-bold hover:underline" style={{ color: 'var(--color-primary)' }}>{storeSettings.contactPhone}</a>
+          </div>
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <MapPin size={24} />
+             </div>
+             <h3 className="font-bold text-slate-900 mb-2">Office</h3>
+             <p className="text-slate-500 text-sm mb-4">Come say hello.</p>
+             <span className="text-slate-600 text-sm block px-4">{storeSettings.contactAddress}</span>
+          </div>
+       </div>
 
-         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <MapPin size={24} />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">Office Address</h3>
-            <p className="text-slate-500 text-sm">{storeSettings.contactAddress}</p>
-         </div>
-      </div>
-
-      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden animate-fade-in-up delay-200 flex flex-col md:flex-row">
-         <div className="bg-indigo-600 p-10 text-white md:w-1/3 flex flex-col justify-between relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+       <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8 md:p-12">
+          <h2 className="text-2xl font-bold text-slate-900 mb-8">Send us a message</h2>
+          <form className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                   <label className="block text-sm font-semibold text-slate-700 mb-2">Name</label>
+                   <input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="Your name" />
+                </div>
+                <div>
+                   <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                   <input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="your@email.com" />
+                </div>
+             </div>
              <div>
-               <h3 className="text-2xl font-bold mb-4">Send Message</h3>
-               <p className="text-indigo-100 leading-relaxed">Fill out the form and our team will get back to you within 24 hours.</p>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Subject</label>
+                <input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="How can we help?" />
              </div>
-             <div className="mt-8 space-y-4 text-indigo-100 text-sm">
-                <div className="flex items-center gap-3"><CheckCircle size={16} /> Technical Support</div>
-                <div className="flex items-center gap-3"><CheckCircle size={16} /> Sales Inquiry</div>
-                <div className="flex items-center gap-3"><CheckCircle size={16} /> Partnership</div>
+             <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Message</label>
+                <textarea rows={6} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="Tell us more details..." />
              </div>
-         </div>
-         
-         <div className="p-10 md:w-2/3">
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">First Name</label>
-                    <input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="John" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
-                    <input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="Doe" />
-                  </div>
-               </div>
-               <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
-                  <input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="john@example.com" />
-               </div>
-               <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Message</label>
-                  <textarea rows={4} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="How can we help you?" />
-               </div>
-               <button className="px-8 py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-indigo-600 transition-colors flex items-center gap-2">
-                 Send Message <Send size={18} />
-               </button>
-            </form>
-         </div>
-      </div>
+             <button 
+               className="w-full py-4 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+               style={{ backgroundColor: 'var(--color-primary)' }}
+             >
+                <Send size={20} /> Send Message
+             </button>
+          </form>
+       </div>
     </div>
   );
 
   const WishlistView = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[60vh]">
-       <div className="text-center mb-12 animate-fade-in-up">
-         <h1 className="text-3xl font-extrabold text-slate-900 flex items-center justify-center gap-3">
-           <Heart className="text-red-500 fill-red-500" /> My Wishlist
-         </h1>
-         <p className="text-slate-500 mt-2">{wishlist.length} items saved for later</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+       <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+             <Heart className="text-red-500 fill-current" /> My Wishlist
+          </h1>
+          <p className="text-slate-500 mt-1">{wishlist.length} items saved for later</p>
        </div>
 
        {wishlist.length > 0 ? (
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-fade-in-up delay-100">
-           {wishlist.map(product => (
-             <ProductCard 
-                 key={product.id} 
-                 product={product} 
-                 onAddToCart={addToCart} 
-                 onViewDetails={() => handleViewProduct(product)}
-                 isWishlisted={true}
-                 onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
-                 priceMultiplier={selectedCurrency.rate}
-                 currencySymbol={selectedCurrency.symbol}
-               />
-           ))}
-         </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+             {wishlist.map(product => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={addToCart} 
+                  onViewDetails={() => handleViewProduct(product)}
+                  isWishlisted={true}
+                  onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
+                  priceMultiplier={selectedCurrency.rate}
+                  currencySymbol={selectedCurrency.symbol}
+                />
+             ))}
+          </div>
        ) : (
-         <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm animate-fade-in-up delay-100">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Heart className="text-slate-300" size={32} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900">Your wishlist is empty</h3>
-            <p className="text-slate-500 mt-2 mb-8">Browse our shop and save your favorite plugins.</p>
-            <button 
-              onClick={() => setCurrentView('shop')}
-              className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors"
-            >
-              Start Shopping
-            </button>
-         </div>
+          <div className="text-center py-24 bg-slate-50 rounded-3xl border border-slate-100 border-dashed">
+             <div className="inline-block p-4 bg-white rounded-full shadow-sm mb-4">
+                <Heart size={32} className="text-slate-300" />
+             </div>
+             <h3 className="text-lg font-bold text-slate-900">Your wishlist is empty</h3>
+             <p className="text-slate-500 mb-6">Save items you want to check out later.</p>
+             <button 
+               onClick={() => setCurrentView('shop')} 
+               className="px-6 py-3 text-white rounded-xl font-bold"
+               style={{ backgroundColor: 'var(--color-primary)' }}
+             >
+                Browse Shop
+             </button>
+          </div>
        )}
     </div>
   );
 
   const PageView = () => {
-    if (!selectedPage) return <div className="text-center py-20">Page not found</div>;
+    if (!selectedPage) return <div>Page not found</div>;
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 animate-fade-in">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-8 pb-4 border-b border-slate-200">{selectedPage.title}</h1>
-        <div className="prose prose-slate max-w-none prose-lg">
-          {selectedPage.content.split('\n').map((para, i) => (
-             <p key={i}>{para}</p>
-          ))}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+         <h1 className="text-4xl font-extrabold text-slate-900 mb-8">{selectedPage.title}</h1>
+         <div className="prose prose-slate max-w-none bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-100">
+            {selectedPage.content.split('\n').map((para, i) => (
+              <p key={i} className="mb-4 leading-relaxed text-slate-600">{para}</p>
+            ))}
+         </div>
+      </div>
+    );
+  };
+
+  const CheckoutView = () => {
+    const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) * selectedCurrency.rate;
+
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+        <h1 className="text-3xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+           <Lock className="text-indigo-600" style={{ color: 'var(--color-primary)' }} /> Secure Checkout
+        </h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           {/* Billing Form */}
+           <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                 <h2 className="text-xl font-bold text-slate-900 mb-6">Billing Details</h2>
+                 <form className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">First Name *</label>
+                          <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" required />
+                       </div>
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">Last Name *</label>
+                          <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" required />
+                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">Email address *</label>
+                          <input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" required />
+                       </div>
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
+                          <input type="tel" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" required />
+                       </div>
+                    </div>
+
+                    <div>
+                       <label className="block text-sm font-semibold text-slate-700 mb-2">Address (optional)</label>
+                       <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Street address" />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">Country *</label>
+                          <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                             <option>Select a country / region...</option>
+                             <option value="US">United States</option>
+                             <option value="UK">United Kingdom</option>
+                             <option value="CA">Canada</option>
+                             <option value="AU">Australia</option>
+                          </select>
+                       </div>
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">Town / City *</label>
+                          <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" required />
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">State / County (optional)</label>
+                          <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+                       </div>
+                       <div>
+                          <label className="block text-sm font-semibold text-slate-700 mb-2">Postcode / ZIP *</label>
+                          <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" required />
+                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                       <input type="checkbox" id="create_account" className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300" />
+                       <label htmlFor="create_account" className="text-slate-700 font-medium cursor-pointer">Create an account?</label>
+                    </div>
+
+                    <div>
+                       <label className="block text-sm font-semibold text-slate-700 mb-2">Additional information</label>
+                       <textarea rows={4} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Notes about your order, e.g. special notes for delivery." />
+                    </div>
+                 </form>
+              </div>
+           </div>
+
+           {/* Order Summary */}
+           <div className="lg:col-span-1">
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 sticky top-24">
+                 <h2 className="text-lg font-bold text-slate-900 mb-6">Your Order</h2>
+                 <div className="space-y-4 mb-6">
+                    {cartItems.map(item => (
+                       <div key={item.id} className="flex justify-between text-sm">
+                          <span className="text-slate-600">{item.name} <span className="text-xs text-slate-400">x{item.quantity}</span></span>
+                          <span className="font-medium text-slate-900">{selectedCurrency.symbol}{(item.price * item.quantity * selectedCurrency.rate).toFixed(2)}</span>
+                       </div>
+                    ))}
+                    {cartItems.length === 0 && <p className="text-slate-400 italic text-sm text-center py-4">Cart is empty</p>}
+                 </div>
+                 
+                 <div className="border-t border-slate-200 pt-4 flex justify-between items-center mb-6">
+                    <span className="font-bold text-slate-700">Total</span>
+                    <span className="text-2xl font-extrabold" style={{ color: 'var(--color-primary)' }}>{selectedCurrency.symbol}{total.toFixed(2)}</span>
+                 </div>
+
+                 <div className="space-y-3 mb-6">
+                    <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-start gap-3">
+                       <input type="radio" name="payment" defaultChecked className="mt-1" />
+                       <div>
+                          <span className="font-bold text-slate-900 block text-sm">Credit Card (Stripe)</span>
+                          <span className="text-xs text-slate-500">Pay securely with credit card.</span>
+                       </div>
+                    </div>
+                    <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-start gap-3">
+                       <input type="radio" name="payment" className="mt-1" />
+                       <div>
+                          <span className="font-bold text-slate-900 block text-sm">PayPal</span>
+                          <span className="text-xs text-slate-500">Pay via PayPal; you can pay with your credit card if you don’t have a PayPal account.</span>
+                       </div>
+                    </div>
+                 </div>
+
+                 <button 
+                   className="w-full py-4 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                   style={{ backgroundColor: 'var(--color-primary)' }}
+                 >
+                    Place Order <ArrowRight size={20} />
+                 </button>
+                 
+                 <div className="mt-4 flex items-center justify-center gap-2 text-slate-400 text-xs">
+                    <Lock size={12} /> Secure 256-bit SSL Encryption
+                 </div>
+              </div>
+           </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50/50">
+      {generateThemeStyles()}
+      
       <Header 
         storeName={storeSettings.storeName}
         logoUrl={storeSettings.logoUrl}
@@ -1060,7 +1178,7 @@ const App: React.FC = () => {
         setSearchQuery={setSearchQuery}
         onOpenAdmin={() => setIsAdminOpen(true)}
         currentView={currentView}
-        onChangeView={setCurrentView}
+        onChangeView={(view: string) => setCurrentView(view as any)}
         wishlistCount={wishlist.length}
         onOpenWishlist={() => setCurrentView('wishlist')}
         selectedCurrency={selectedCurrency}
@@ -1072,18 +1190,27 @@ const App: React.FC = () => {
         onViewProduct={handleViewProduct}
         searchResults={searchResults}
       />
-
-      <main className="flex-1 pt-4">
+      
+      <main className="flex-1 pt-6">
         {currentView === 'home' && <HomeView />}
         {currentView === 'shop' && <ShopView />}
         {currentView === 'contact' && <ContactView />}
         {currentView === 'wishlist' && <WishlistView />}
+        {currentView === 'page' && <PageView />}
+        {currentView === 'checkout' && <CheckoutView />}
+        {currentView === 'profile' && currentUser && (
+           <CustomerDashboard 
+             customer={currentUser} 
+             onLogout={handleLogout} 
+             currencySymbol={selectedCurrency.symbol}
+           />
+        )}
         {currentView === 'product' && selectedProduct && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <ProductDetail 
               product={selectedProduct} 
-              onAddToCart={addToCart}
-              onBack={() => setCurrentView('shop')}
+              onAddToCart={addToCart} 
+              onBack={() => setCurrentView('shop')} 
               isWishlisted={wishlist.some(p => p.id === selectedProduct.id)}
               onToggleWishlist={() => handleToggleWishlist(selectedProduct)}
               priceMultiplier={selectedCurrency.rate}
@@ -1093,27 +1220,18 @@ const App: React.FC = () => {
             />
           </div>
         )}
-        {currentView === 'page' && <PageView />}
-        {currentView === 'profile' && currentUser && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-             <CustomerDashboard 
-               customer={currentUser} 
-               onLogout={handleLogout}
-               currencySymbol={selectedCurrency.symbol}
-             />
-          </div>
-        )}
       </main>
 
       <Footer 
         settings={storeSettings} 
         pages={pages}
-        onChangeView={currentView === 'page' ? handleViewPage : (view, id) => {
-           if(view === 'page' && id) handleViewPage(id);
-           else setCurrentView(view);
+        onChangeView={(view: string, id?: string) => {
+           if(id && typeof id === 'string') handleViewPage(id as string);
+           else setCurrentView(view as any);
+           window.scrollTo(0,0);
         }}
       />
-
+      
       <CartSidebar 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
@@ -1122,17 +1240,22 @@ const App: React.FC = () => {
         onUpdateQuantity={updateQuantity}
         priceMultiplier={selectedCurrency.rate}
         currencySymbol={selectedCurrency.symbol}
+        onCheckout={() => {
+           setIsCartOpen(false);
+           setCurrentView('checkout' as any);
+           window.scrollTo(0,0);
+        }}
       />
 
       <AuthModal 
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
+         isOpen={isAuthModalOpen}
+         onClose={() => setIsAuthModalOpen(false)}
+         onLogin={handleLogin}
+         onRegister={handleRegister}
       />
-
+      
       {isAdminOpen && (
-        <div className="fixed inset-0 z-50 overflow-auto bg-slate-100">
+        <div className="fixed inset-0 z-50 bg-white animate-fade-in">
           <AdminDashboard 
             products={products}
             onAdd={(p) => setProducts([...products, p])}
@@ -1140,7 +1263,7 @@ const App: React.FC = () => {
             onDelete={(id) => setProducts(products.filter(p => p.id !== id))}
             onClose={() => setIsAdminOpen(false)}
             storeSettings={storeSettings}
-            onUpdateSettings={setStoreSettings}
+            onUpdateSettings={(s: StoreSettings) => setStoreSettings(s)}
             pages={pages}
             onAddPage={(p) => setPages([...pages, p])}
             onUpdatePage={(p) => setPages(pages.map(page => page.id === p.id ? p : page))}

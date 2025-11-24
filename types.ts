@@ -78,6 +78,11 @@ export interface StoreSettings {
     instagram: string;
     linkedin: string;
   };
+  // Design & Home Page Config
+  primaryColor?: string;
+  heroHeadline?: string;
+  heroSubheadline?: string;
+  
   // AI Config
   aiSystemInstruction?: string;
   aiApiKey?: string;

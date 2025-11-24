@@ -11,6 +11,7 @@ interface CartSidebarProps {
   onUpdateQuantity: (id: string, delta: number) => void;
   priceMultiplier?: number;
   currencySymbol?: string;
+  onCheckout?: () => void;
 }
 
 export const CartSidebar: React.FC<CartSidebarProps> = ({
@@ -20,7 +21,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   onRemoveItem,
   onUpdateQuantity,
   priceMultiplier = 1,
-  currencySymbol = '$'
+  currencySymbol = '$',
+  onCheckout
 }) => {
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * priceMultiplier;
 
@@ -128,7 +130,10 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
               <p className="text-xs text-slate-500 mb-4 text-center">
                 Taxes and shipping calculated at checkout.
               </p>
-              <button className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+              <button 
+                onClick={onCheckout}
+                className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+              >
                 Checkout Now <ArrowRight size={20} />
               </button>
             </div>

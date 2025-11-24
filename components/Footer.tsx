@@ -5,7 +5,7 @@ import { StoreSettings, Page } from '../types';
 interface FooterProps {
   settings: StoreSettings;
   pages?: Page[];
-  onChangeView: (view: any, id?: string) => void;
+  onChangeView: (view: string, id?: string) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeView }) => {
@@ -27,23 +27,47 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
             </p>
             <div className="flex gap-4 pt-2">
               {settings.socials.facebook && (
-                <a href={settings.socials.facebook} target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all">
-                  <Facebook size={18} />
+                <a 
+                  href={settings.socials.facebook} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-slate-800 p-2 rounded-full hover:bg-[#1877F2] hover:text-white transition-all duration-300 group"
+                  aria-label="Facebook"
+                >
+                  <Facebook size={18} className="group-hover:scale-110 transition-transform" />
                 </a>
               )}
               {settings.socials.twitter && (
-                <a href={settings.socials.twitter} target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all">
-                  <Twitter size={18} />
+                <a 
+                  href={settings.socials.twitter} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-slate-800 p-2 rounded-full hover:bg-[#1DA1F2] hover:text-white transition-all duration-300 group"
+                  aria-label="Twitter"
+                >
+                  <Twitter size={18} className="group-hover:scale-110 transition-transform" />
                 </a>
               )}
               {settings.socials.instagram && (
-                <a href={settings.socials.instagram} target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all">
-                  <Instagram size={18} />
+                <a 
+                  href={settings.socials.instagram} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-slate-800 p-2 rounded-full hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all duration-300 group"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={18} className="group-hover:scale-110 transition-transform" />
                 </a>
               )}
               {settings.socials.linkedin && (
-                <a href={settings.socials.linkedin} target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all">
-                  <Linkedin size={18} />
+                <a 
+                  href={settings.socials.linkedin} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-slate-800 p-2 rounded-full hover:bg-[#0077b5] hover:text-white transition-all duration-300 group"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin size={18} className="group-hover:scale-110 transition-transform" />
                 </a>
               )}
             </div>

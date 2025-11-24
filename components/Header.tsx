@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ShoppingCart, Search, Package, LayoutDashboard, Menu, X, Heart, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { CartItem, Currency, Customer } from '../types';
@@ -13,7 +12,7 @@ interface HeaderProps {
   setSearchQuery: (query: string) => void;
   onOpenAdmin: () => void;
   currentView: string;
-  onChangeView: (view: any) => void;
+  onChangeView: (view: string) => void;
   wishlistCount?: number;
   onOpenWishlist?: () => void;
   selectedCurrency?: Currency;
@@ -188,6 +187,14 @@ export const Header: React.FC<HeaderProps> = ({
             )}
 
             <button 
+              onClick={onOpenAdmin}
+              className="hidden md:block p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              title="Admin Dashboard"
+            >
+              <LayoutDashboard size={22} />
+            </button>
+
+            <button 
               onClick={onOpenWishlist}
               className="p-2.5 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all relative group"
               aria-label="Wishlist"
@@ -270,7 +277,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="pb-4 lg:hidden">
+        <div className="pb-4 lg:hidden relative z-30">
             <div className="relative">
               <input 
                 type="text"
@@ -279,15 +286,45 @@ export const Header: React.FC<HeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             </div>
+
+            {/* Mobile Search Dropdown */}
+            {isSearchFocused && searchQuery && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden max-h-80 overflow-y-auto z-40">
+                 {searchResults.length > 0 ? (
+                   searchResults.map(product => (
+                     <div 
+                        key={product.id}
+                        onClick={() => onViewProduct && onViewProduct(product)}
+                        className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-none"
+                     >
+                        <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                           {product.image && <img src={product.image} alt={product.name} className="w-full h-full object-cover" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                           <p className="text-sm font-bold text-slate-900 truncate">{product.name}</p>
+                           <p className="text-xs text-slate-500 truncate">{product.category}</p>
+                        </div>
+                        <span className="text-sm font-bold text-indigo-600">
+                          {selectedCurrency?.symbol}{(product.price * (selectedCurrency?.rate || 1)).toFixed(2)}
+                        </span>
+                     </div>
+                   ))
+                 ) : (
+                   <div className="p-4 text-center text-slate-500 text-sm">No results found</div>
+                 )}
+              </div>
+            )}
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 absolute w-full left-0 z-30 shadow-lg animate-fade-in-up">
+        <div className="md:hidden bg-white border-t border-slate-100 absolute w-full left-0 z-20 shadow-lg animate-fade-in-up">
           <div className="px-4 py-6 space-y-4">
             <button onClick={() => { onChangeView('home'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">Home</button>
             <button onClick={() => { onChangeView('shop'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">Shop</button>
