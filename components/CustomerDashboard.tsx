@@ -230,11 +230,22 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="md:col-span-2">
                              <label className="text-xs font-bold text-slate-500 uppercase">Subject</label>
-                             <input type="text" required className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Brief summary of issue" value={ticketForm.subject} onChange={e => setTicketForm({...ticketForm, subject: e.target.value})} />
+                             <input 
+                                type="text" 
+                                required 
+                                className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 placeholder:text-slate-400" 
+                                placeholder="Brief summary of issue" 
+                                value={ticketForm.subject} 
+                                onChange={e => setTicketForm({...ticketForm, subject: e.target.value})} 
+                             />
                           </div>
                           <div>
                              <label className="text-xs font-bold text-slate-500 uppercase">Priority</label>
-                             <select className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" value={ticketForm.priority} onChange={e => setTicketForm({...ticketForm, priority: e.target.value as any})}>
+                             <select 
+                                className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900" 
+                                value={ticketForm.priority} 
+                                onChange={e => setTicketForm({...ticketForm, priority: e.target.value as any})}
+                             >
                                 <option value="low">Low</option>
                                 <option value="medium">Medium</option>
                                 <option value="high">High</option>
@@ -243,7 +254,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                        </div>
                        <div>
                           <label className="text-xs font-bold text-slate-500 uppercase">Message</label>
-                          <textarea required rows={4} className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Describe your issue in detail..." value={ticketForm.message} onChange={e => setTicketForm({...ticketForm, message: e.target.value})} />
+                          <textarea 
+                             required 
+                             rows={4} 
+                             className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 placeholder:text-slate-400" 
+                             placeholder="Describe your issue in detail..." 
+                             value={ticketForm.message} 
+                             onChange={e => setTicketForm({...ticketForm, message: e.target.value})} 
+                          />
                        </div>
                        <button type="submit" disabled={isSubmittingTicket} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-70">
                           {isSubmittingTicket ? 'Sending...' : <><Send size={16}/> Submit Ticket</>}
@@ -306,7 +324,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                    <input 
                                       type="text" 
-                                      className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" 
+                                      className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900" 
                                       value={formData.name} 
                                       onChange={e => setFormData({...formData, name: e.target.value})}
                                    />
@@ -318,7 +336,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                    <input 
                                       type="email" 
-                                      className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" 
+                                      className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900" 
                                       value={formData.email} 
                                       onChange={e => setFormData({...formData, email: e.target.value})}
                                    />
@@ -335,7 +353,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                        <input 
                                           type="password" 
-                                          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" 
+                                          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900" 
                                           value={formData.currentPassword}
                                           onChange={e => setFormData({...formData, currentPassword: e.target.value})}
                                        />
@@ -347,7 +365,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                        <input 
                                           type="password" 
-                                          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" 
+                                          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900" 
                                           value={formData.newPassword}
                                           onChange={e => setFormData({...formData, newPassword: e.target.value})}
                                        />
@@ -359,7 +377,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                        <input 
                                           type="password" 
-                                          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all" 
+                                          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900" 
                                           value={formData.confirmPassword}
                                           onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
                                        />
