@@ -15,7 +15,7 @@ import {
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
   ShoppingBag, Heart, User, Clock, CreditCard, AlertCircle, ChevronDown, 
-  ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock
+  ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock, Download
 } from 'lucide-react';
 
 const TESTIMONIALS = [
@@ -324,10 +324,13 @@ const App: React.FC = () => {
   });
   
   // View State
-  const [currentView, setCurrentView] = useState<'home' | 'shop' | 'contact' | 'about' | 'blog' | 'blog-post' | 'product' | 'page' | 'wishlist' | 'profile' | 'checkout'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'shop' | 'contact' | 'about' | 'blog' | 'blog-post' | 'product' | 'page' | 'wishlist' | 'profile' | 'checkout' | 'thank-you'>('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  
+  // New Order State for Thank You Page
+  const [lastOrder, setLastOrder] = useState<Order | null>(null);
 
   // Derived selected items
   const selectedProduct = useMemo(() => products.find(p => p.id === selectedProductId) || null, [products, selectedProductId]);
@@ -1065,6 +1068,70 @@ const App: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in"><h1 className="text-3xl font-bold mb-8 flex items-center gap-3"><Heart className="text-red-500 fill-current"/> My Wishlist</h1>{wishlist.length > 0 ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">{wishlist.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} onViewDetails={() => handleViewProduct(p)} isWishlisted={true} onToggleWishlist={(e) => {e.stopPropagation(); handleToggleWishlist(p)}} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol}/>)}</div> : <div className="text-center py-24"><p>Wishlist empty</p></div>}</div>
   );
 
+  const ThankYouView = () => {
+    if (!lastOrder) return <div className="p-12 text-center">Order not found. <button onClick={() => setCurrentView('home')} className="text-indigo-600 underline">Go Home</button></div>;
+
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-16 animate-fade-in text-center">
+        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+          <CheckCircle size={48} />
+        </div>
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Thank You!</h1>
+        <p className="text-xl text-slate-600 mb-8">Your order has been placed successfully.</p>
+        
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-lg mb-8 text-left max-w-lg mx-auto relative overflow-hidden">
+           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+           <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+              <div>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Order Number</p>
+                 <p className="text-lg font-bold text-indigo-600">{lastOrder.id}</p>
+              </div>
+              <div className="text-right">
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Amount</p>
+                 <p className="text-lg font-bold text-slate-900">{selectedCurrency.symbol}{lastOrder.total.toFixed(2)}</p>
+              </div>
+           </div>
+           
+           <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
+                    <Mail size={18} />
+                 </div>
+                 <div>
+                    <p className="font-bold text-slate-900">Confirmation Email</p>
+                    <p className="text-sm text-slate-500">Sent to {lastOrder.email}</p>
+                 </div>
+              </div>
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
+                    <Download size={18} />
+                 </div>
+                 <div>
+                    <p className="font-bold text-slate-900">Downloads</p>
+                    <p className="text-sm text-slate-500">Available in your account dashboard</p>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+           <button onClick={() => setCurrentView('shop')} className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2">
+             <ArrowLeft size={18} /> Continue Shopping
+           </button>
+           {currentUser ? (
+              <button onClick={() => setCurrentView('profile')} className="px-8 py-3 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-bold hover:bg-indigo-50 transition-all flex items-center justify-center gap-2">
+                 <User size={18} /> View Account
+              </button>
+           ) : (
+             <button onClick={() => setIsAuthModalOpen(true)} className="px-8 py-3 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-bold hover:bg-indigo-50 transition-all flex items-center justify-center gap-2">
+                 <User size={18} /> Create Account
+              </button>
+           )}
+        </div>
+      </div>
+    );
+  };
+
   const CheckoutView = () => {
     const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) * selectedCurrency.rate;
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '', country: '', city: '', zip: '' });
@@ -1096,10 +1163,11 @@ const App: React.FC = () => {
                   items: cartItems.reduce((acc, i) => acc + i.quantity, 0)
               };
               setOrders(prev => [newOrder, ...prev]);
+              setLastOrder(newOrder);
               setIsSubmitting(false); 
               setCartItems([]); 
-              setCurrentView('home'); 
-              alert('Order placed successfully! You can track it in your account.'); 
+              setCurrentView('thank-you'); 
+              window.scrollTo(0, 0);
           }, 2000);
        } else {
           window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1276,7 +1344,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white pb-20 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-white">
       {generateThemeStyles()}
       
       <Header 
@@ -1311,6 +1379,7 @@ const App: React.FC = () => {
         {currentView === 'wishlist' && <WishlistView />}
         {currentView === 'page' && <PageView />}
         {currentView === 'checkout' && <CheckoutView />}
+        {currentView === 'thank-you' && <ThankYouView />}
         {currentView === 'profile' && currentUser && <CustomerDashboard customer={currentUser} onLogout={handleLogout} currencySymbol={selectedCurrency.symbol} onUpdateProfile={handleUpdateProfile} tickets={tickets} onOpenTicket={handleAddTicket} />}
         {currentView === 'product' && selectedProduct && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><ProductDetail product={selectedProduct} onAddToCart={addToCart} onBack={() => setCurrentView('shop')} isWishlisted={wishlist.some(p => p.id === selectedProduct.id)} onToggleWishlist={() => handleToggleWishlist(selectedProduct)} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} recentlyViewed={recentlyViewed} onViewHistoryItem={handleViewProduct} currentUser={currentUser} onAddReview={handleAddReview} /></div>}
       </main>
