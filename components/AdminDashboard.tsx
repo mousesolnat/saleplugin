@@ -55,7 +55,7 @@ const generatePlaceholder = (name: string, category: string) => {
   return `https://placehold.co/600x400/${color}/ffffff?text=${text}`;
 };
 
-const SidebarItem = ({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void }) => (
+const SidebarItem = ({ icon, label, active, onClick, badgeCount }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void, badgeCount?: number }) => (
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
@@ -67,7 +67,12 @@ const SidebarItem = ({ icon, label, active, onClick }: { icon: React.ReactNode, 
     <span className={active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}>
       {icon}
     </span>
-    {label}
+    <span className="flex-1 text-left">{label}</span>
+    {badgeCount !== undefined && badgeCount > 0 && (
+       <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse-slow">
+         {badgeCount}
+       </span>
+    )}
   </button>
 );
 
@@ -148,6 +153,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (reviewFilter === 'rejected') return r.status === 'rejected';
       return true;
   });
+
+  // Calculate Notification Counts
+  const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
+  const pendingReviewsCount = allReviews.filter(r => r.status === 'pending').length;
 
   // --- Helpers ---
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -531,8 +540,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <nav className="flex-1 p-4 space-y-1">
           <SidebarItem icon={<TrendingUp size={18} />} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <SidebarItem icon={<Package size={18} />} label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} />
-          <SidebarItem icon={<ShoppingCart size={18} />} label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} />
-          <SidebarItem icon={<MessageSquare size={18} />} label="Reviews" active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')} />
+          <SidebarItem icon={<ShoppingCart size={18} />} label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} badgeCount={pendingOrdersCount} />
+          <SidebarItem icon={<MessageSquare size={18} />} label="Reviews" active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')} badgeCount={pendingReviewsCount} />
           <SidebarItem icon={<FileText size={18} />} label="Pages" active={activeTab === 'pages'} onClick={() => setActiveTab('pages')} />
           <SidebarItem icon={<BookOpen size={18} />} label="Blog" active={activeTab === 'blog'} onClick={() => setActiveTab('blog')} />
           <SidebarItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
@@ -561,8 +570,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total Revenue" value={`$${orders.filter(o => o.status === 'completed').reduce((acc, o) => acc + o.total, 0).toLocaleString()}`} icon={<DollarSign className="text-green-500" />} change="+12%" />
                 <StatCard title="Total Products" value={products.length.toString()} icon={<Package className="text-blue-500" />} change="+4" />
-                <StatCard title="Total Orders" value={orders.length.toString()} icon={<ShoppingCart className="text-amber-500" />} change={`+${orders.length}`} />
-                <StatCard title="Pending Reviews" value={allReviews.filter(r => r.status === 'pending').length.toString()} icon={<MessageSquare className="text-purple-500" />} change="Needs Action" />
+                <StatCard title="Pending Orders" value={pendingOrdersCount.toString()} icon={<ShoppingCart className={pendingOrdersCount > 0 ? "text-red-500" : "text-slate-400"} />} change={pendingOrdersCount > 0 ? "Action Needed" : "All Clear"} />
+                <StatCard title="Pending Reviews" value={pendingReviewsCount.toString()} icon={<MessageSquare className={pendingReviewsCount > 0 ? "text-purple-500" : "text-slate-400"} />} change={pendingReviewsCount > 0 ? "Action Needed" : "All Clear"} />
               </div>
             </div>
           )}

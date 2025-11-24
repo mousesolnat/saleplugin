@@ -51,7 +51,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className="group relative bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full cursor-pointer"
     >
       {/* Image / Header Area */}
-      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+      <div className="relative w-full aspect-[3/4] overflow-hidden bg-slate-100">
         {!imageError && product.image ? (
           <img 
             src={product.image} 

@@ -52,23 +52,93 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
     : 0;
 
-  // SEO: Update Title and Meta Description when product changes
+  // SEO: Update Title, Meta Description, Open Graph, and JSON-LD Schema
   useEffect(() => {
-    // Update Document Title
+    // 1. Update Document Title
     const title = product.seoTitle || product.name;
     document.title = title;
 
-    // Update Meta Description
+    // 2. Update Meta Description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
       metaDesc = document.createElement('meta');
       metaDesc.setAttribute('name', 'description');
       document.head.appendChild(metaDesc);
     }
-    
     const description = product.seoDescription || product.description?.substring(0, 160) || '';
     metaDesc.setAttribute('content', description);
-  }, [product]);
+
+    // 3. Update Open Graph Tags (Social Media)
+    const updateMeta = (property: string, content: string) => {
+        let tag = document.querySelector(`meta[property="${property}"]`);
+        if (!tag) {
+            tag = document.createElement('meta');
+            tag.setAttribute('property', property);
+            document.head.appendChild(tag);
+        }
+        tag.setAttribute('content', content);
+    };
+
+    updateMeta('og:title', title);
+    updateMeta('og:description', description);
+    updateMeta('og:image', product.image || '');
+    updateMeta('og:type', 'product');
+    updateMeta('og:url', window.location.href);
+
+    // 4. Inject JSON-LD Schema for Google Rich Snippets
+    const currencyCode = currencySymbol === '€' ? 'EUR' : currencySymbol === '£' ? 'GBP' : currencySymbol === 'DH' ? 'MAD' : 'USD';
+    const sku = `SKU-${product.id.split('_')[1]?.padStart(5, '0') || product.id}`;
+    
+    const schema = {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": product.name,
+      "image": product.image ? [product.image] : [],
+      "description": description,
+      "sku": sku,
+      "brand": {
+        "@type": "Brand",
+        "name": "DigiMarket" 
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": window.location.href,
+        "priceCurrency": currencyCode,
+        "price": finalPrice,
+        "availability": "https://schema.org/InStock",
+        "itemCondition": "https://schema.org/NewCondition"
+      }
+    };
+
+    // Add aggregate rating if reviews exist
+    if (reviews.length > 0) {
+      (schema as any).aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": averageRating.toFixed(1),
+        "reviewCount": reviews.length,
+        "bestRating": "5",
+        "worstRating": "1"
+      };
+    }
+
+    let script = document.getElementById('product-schema-jsonld') as HTMLScriptElement | null;
+    if (!script) {
+      const newScript = document.createElement('script');
+      newScript.id = 'product-schema-jsonld';
+      newScript.type = 'application/ld+json';
+      document.head.appendChild(newScript);
+      script = newScript;
+    }
+    script.textContent = JSON.stringify(schema);
+
+    return () => {
+        // Cleanup schema on unmount to prevent duplicates
+        const s = document.getElementById('product-schema-jsonld');
+        if (s) s.remove();
+        
+        // Note: We leave meta tags as they will be overwritten by the next view or are harmless
+    };
+  }, [product, finalPrice, reviews, averageRating, currencySymbol]);
 
   const handleAdd = () => {
     onAddToCart(product);
@@ -133,15 +203,15 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
           
           {/* Left Column: Image */}
           <div className="p-8 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col items-center justify-center gap-6">
-            <div className="relative w-full max-w-lg aspect-square lg:aspect-auto lg:h-[400px] flex items-center justify-center">
+            <div className="relative w-full max-w-md aspect-[3/4] flex items-center justify-center shadow-lg rounded-2xl overflow-hidden bg-white">
               {product.image ? (
                 <img 
                   src={product.image} 
                   alt={product.name} 
-                  className="w-full h-full object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
+                <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
                   No Image
                 </div>
               )}
