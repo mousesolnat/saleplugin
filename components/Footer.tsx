@@ -1,14 +1,16 @@
+
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin, Phone, ArrowRight, Package } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin, Phone, ArrowRight, Package, Lock } from 'lucide-react';
 import { StoreSettings, Page } from '../types';
 
 interface FooterProps {
   settings: StoreSettings;
   pages?: Page[];
   onChangeView: (view: string, id?: string) => void;
+  onOpenAdmin?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeView }) => {
+export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeView, onOpenAdmin }) => {
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,10 +33,10 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.facebook} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-800 p-2 rounded-full hover:bg-[#1877F2] hover:text-white transition-all duration-300 group"
+                  className="bg-[#1877F2] p-2 rounded-full text-white hover:brightness-110 transition-all duration-300 group shadow-md hover:shadow-lg hover:-translate-y-1"
                   aria-label="Facebook"
                 >
-                  <Facebook size={18} className="group-hover:scale-110 transition-transform" />
+                  <Facebook size={18} className="transition-transform group-hover:scale-110" />
                 </a>
               )}
               {settings.socials.twitter && (
@@ -42,10 +44,10 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.twitter} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-800 p-2 rounded-full hover:bg-[#1DA1F2] hover:text-white transition-all duration-300 group"
+                  className="bg-[#1DA1F2] p-2 rounded-full text-white hover:brightness-110 transition-all duration-300 group shadow-md hover:shadow-lg hover:-translate-y-1"
                   aria-label="Twitter"
                 >
-                  <Twitter size={18} className="group-hover:scale-110 transition-transform" />
+                  <Twitter size={18} className="transition-transform group-hover:scale-110" />
                 </a>
               )}
               {settings.socials.instagram && (
@@ -53,10 +55,10 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.instagram} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-800 p-2 rounded-full hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all duration-300 group"
+                  className="bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-2 rounded-full text-white hover:brightness-110 transition-all duration-300 group shadow-md hover:shadow-lg hover:-translate-y-1"
                   aria-label="Instagram"
                 >
-                  <Instagram size={18} className="group-hover:scale-110 transition-transform" />
+                  <Instagram size={18} className="transition-transform group-hover:scale-110" />
                 </a>
               )}
               {settings.socials.linkedin && (
@@ -64,10 +66,10 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.linkedin} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-800 p-2 rounded-full hover:bg-[#0077b5] hover:text-white transition-all duration-300 group"
+                  className="bg-[#0077b5] p-2 rounded-full text-white hover:brightness-110 transition-all duration-300 group shadow-md hover:shadow-lg hover:-translate-y-1"
                   aria-label="LinkedIn"
                 >
-                  <Linkedin size={18} className="group-hover:scale-110 transition-transform" />
+                  <Linkedin size={18} className="transition-transform group-hover:scale-110" />
                 </a>
               )}
             </div>
@@ -137,7 +139,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
           <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} {settings.storeName}. All rights reserved.
           </p>
-          <div className="flex flex-wrap gap-6 text-sm text-slate-500 justify-center">
+          <div className="flex flex-wrap gap-6 text-sm text-slate-500 justify-center items-center">
             {pages.map(page => (
               <button 
                 key={page.id} 
@@ -152,6 +154,11 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                  <span className="hover:text-white cursor-pointer">Privacy Policy</span>
                  <span className="hover:text-white cursor-pointer">Terms of Service</span>
               </>
+            )}
+            {onOpenAdmin && (
+              <button onClick={onOpenAdmin} className="hover:text-white cursor-pointer flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+                 <Lock size={12} /> Admin
+              </button>
             )}
           </div>
         </div>

@@ -11,10 +11,10 @@ import { CustomerDashboard } from './components/CustomerDashboard';
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
 import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost } from './types';
 import { 
-  Filter, SlidersHorizontal, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Star, Zap, Trophy,
-  ShieldCheck, Ban, RefreshCw, Headphones, ChevronDown, ChevronUp, HelpCircle,
-  LayoutGrid, ChevronLeft, ChevronRight, Key, CreditCard, Download, Users, Code, Lock, Heart, LifeBuoy, Search, CheckCircle, Smartphone, FileInput,
-  LayoutTemplate, BarChart3, ShoppingBag, Calendar, GraduationCap, Wrench, Layers, Package, AlertCircle, BookOpen, Clock, User
+  Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
+  ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
+  ShoppingBag, Heart, User, Clock, CreditCard, AlertCircle, ChevronDown, 
+  ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock
 } from 'lucide-react';
 
 const TESTIMONIALS = [
@@ -257,6 +257,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<string>('default');
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>(() => {
      const saved = localStorage.getItem('digimarket_history');
      return saved ? JSON.parse(saved) : [];
@@ -268,20 +269,10 @@ const App: React.FC = () => {
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  // Derived selected product
-  const selectedProduct = useMemo(() => 
-    products.find(p => p.id === selectedProductId) || null
-  , [products, selectedProductId]);
-
-  // Derived selected page
-  const selectedPage = useMemo(() => 
-    pages.find(p => p.id === selectedPageId) || null
-  , [pages, selectedPageId]);
-
-  // Derived selected post
-  const selectedPost = useMemo(() =>
-    blogPosts.find(p => p.id === selectedPostId) || null
-  , [blogPosts, selectedPostId]);
+  // Derived selected items
+  const selectedProduct = useMemo(() => products.find(p => p.id === selectedProductId) || null, [products, selectedProductId]);
+  const selectedPage = useMemo(() => pages.find(p => p.id === selectedPageId) || null, [pages, selectedPageId]);
+  const selectedPost = useMemo(() => blogPosts.find(p => p.id === selectedPostId) || null, [blogPosts, selectedPostId]);
 
   // Persistence Effects
   useEffect(() => { localStorage.setItem('digimarket_products', JSON.stringify(products)); }, [products]);
@@ -295,10 +286,11 @@ const App: React.FC = () => {
     else localStorage.removeItem('digimarket_current_user');
   }, [currentUser]);
 
-  // Save settings & SEO
+  // SEO Injection & Management
   useEffect(() => {
     localStorage.setItem('digimarket_settings', JSON.stringify(storeSettings));
     
+    // 1. Manage Title & Description
     let title = storeSettings.seoTitle || storeSettings.storeName;
     let description = storeSettings.seoDescription;
 
@@ -329,6 +321,33 @@ const App: React.FC = () => {
       document.head.appendChild(metaDesc);
     }
     metaDesc.setAttribute('content', description);
+
+    // 2. Manage Google Verification
+    let googleMeta = document.querySelector('meta[name="google-site-verification"]');
+    if (storeSettings.googleSearchConsoleCode) {
+      if (!googleMeta) {
+        googleMeta = document.createElement('meta');
+        googleMeta.setAttribute('name', 'google-site-verification');
+        document.head.appendChild(googleMeta);
+      }
+      googleMeta.setAttribute('content', storeSettings.googleSearchConsoleCode);
+    } else if (googleMeta) {
+      googleMeta.remove();
+    }
+
+    // 3. Manage Bing Verification
+    let bingMeta = document.querySelector('meta[name="msvalidate.01"]');
+    if (storeSettings.bingWebmasterCode) {
+      if (!bingMeta) {
+        bingMeta = document.createElement('meta');
+        bingMeta.setAttribute('name', 'msvalidate.01');
+        document.head.appendChild(bingMeta);
+      }
+      bingMeta.setAttribute('content', storeSettings.bingWebmasterCode);
+    } else if (bingMeta) {
+      bingMeta.remove();
+    }
+
   }, [storeSettings, currentView, selectedProduct, selectedPage, selectedPost]);
 
   // Auth Handlers
@@ -378,10 +397,17 @@ const App: React.FC = () => {
     setWishlist(prev => prev.find(p => p.id === product.id) ? prev.filter(p => p.id !== product.id) : [...prev, product]);
   };
 
-  const handleAddReview = (productId: string, review: Omit<Review, 'id' | 'productId' | 'date'>) => {
+  const handleAddReview = (productId: string, review: Omit<Review, 'id' | 'productId' | 'date' | 'status'>) => {
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
-        return { ...p, reviews: [{ id: `rev_${Date.now()}`, productId, date: new Date().toISOString(), ...review }, ...(p.reviews || [])] };
+        const newReview: Review = {
+          id: `rev_${Date.now()}`,
+          productId,
+          date: new Date().toISOString(),
+          status: 'pending', // Default status for new reviews
+          ...review
+        };
+        return { ...p, reviews: [newReview, ...(p.reviews || [])] };
       }
       return p;
     }));
@@ -416,32 +442,32 @@ const App: React.FC = () => {
   const HomeView = () => (
     <div className="space-y-24 pb-12">
       {/* Hero Section */}
-      <div className="relative overflow-hidden py-20 lg:py-32" style={{ backgroundColor: `var(--color-primary)` }}>
+      <div className="relative overflow-hidden py-20 lg:py-32 bg-white">
         <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl animate-float"></div>
-            <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-500 rounded-full blur-3xl animate-float-delayed"></div>
+            <div className="absolute top-10 left-10 w-32 h-32 bg-blue-100 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-100 rounded-full blur-3xl animate-float-delayed"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-8 animate-fade-in-up">
-            <Zap size={16} className="fill-current" /><span>Instant Digital Delivery</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-medium mb-8 animate-fade-in-up">
+            <Zap size={16} className="text-amber-500 fill-amber-500" /><span>Instant Digital Delivery</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 animate-fade-in-up delay-100 leading-tight">{storeSettings.heroHeadline || 'Premium WordPress Tools Without The Premium Price'}</h1>
-          <p className="max-w-2xl mx-auto text-lg text-white/90 mb-10 animate-fade-in-up delay-200 leading-relaxed">{storeSettings.heroSubheadline || "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly."}</p>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 leading-tight">{storeSettings.heroHeadline || 'Premium WordPress Tools Without The Premium Price'}</h1>
+          <p className="max-w-2xl mx-auto text-lg text-slate-500 mb-10 animate-fade-in-up delay-200 leading-relaxed">{storeSettings.heroSubheadline || "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly."}</p>
           <div className="max-w-2xl mx-auto mb-10 animate-fade-in-up delay-200 relative z-20">
             <div className="relative group">
-               <input type="text" placeholder="Search 5,000+ plugins & themes..." className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/70 rounded-2xl py-4 pl-14 pr-4 text-lg focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white transition-all shadow-xl" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && setCurrentView('shop')} />
-               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/70" size={24} />
+               <input type="text" placeholder="Search 5,000+ plugins & themes..." className="w-full bg-white border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl py-4 pl-14 pr-4 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xl shadow-slate-200/50 transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && setCurrentView('shop')} />
+               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={24} />
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
-            <button onClick={() => setCurrentView('shop')} className="px-8 py-4 bg-white hover:bg-slate-50 rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2" style={{ color: 'var(--color-primary)' }}>Browse Shop <ArrowRight size={20} /></button>
-            <button onClick={() => { const element = document.getElementById('how-it-works'); element?.scrollIntoView({ behavior: 'smooth' }); }} className="px-8 py-4 bg-black/20 hover:bg-black/30 text-white border border-white/20 rounded-xl font-bold text-lg transition-all backdrop-blur-sm">How It Works</button>
+            <button onClick={() => setCurrentView('shop')} className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2">Browse Shop <ArrowRight size={20} /></button>
+            <button onClick={() => { const element = document.getElementById('how-it-works'); element?.scrollIntoView({ behavior: 'smooth' }); }} className="px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold text-lg transition-all">How It Works</button>
           </div>
-          <div className="mt-16 pt-8 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in-up delay-500">
-             <div className="flex flex-col items-center gap-2"><ShieldCheck className="text-emerald-300 w-8 h-8 mb-1" /><span className="text-white font-bold">100% Original</span><span className="text-white/70 text-xs">Verified Licenses</span></div>
-             <div className="flex flex-col items-center gap-2"><Ban className="text-red-300 w-8 h-8 mb-1" /><span className="text-white font-bold">No GPL/Nulled</span><span className="text-white/70 text-xs">Safe & Secure</span></div>
-             <div className="flex flex-col items-center gap-2"><RefreshCw className="text-blue-300 w-8 h-8 mb-1" /><span className="text-white font-bold">Regular Updates</span><span className="text-white/70 text-xs">Via Dashboard</span></div>
-             <div className="flex flex-col items-center gap-2"><LifeBuoy className="text-amber-300 w-8 h-8 mb-1" /><span className="text-white font-bold">Quick Support</span><span className="text-white/70 text-xs">Expert Help</span></div>
+          <div className="mt-16 pt-8 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in-up delay-500">
+             <div className="flex flex-col items-center gap-2"><ShieldCheck className="text-emerald-500 w-8 h-8 mb-1" /><span className="text-slate-900 font-bold">100% Original</span><span className="text-slate-500 text-xs">Verified Licenses</span></div>
+             <div className="flex flex-col items-center gap-2"><Ban className="text-red-500 w-8 h-8 mb-1" /><span className="text-slate-900 font-bold">No GPL/Nulled</span><span className="text-slate-500 text-xs">Safe & Secure</span></div>
+             <div className="flex flex-col items-center gap-2"><RefreshCw className="text-blue-500 w-8 h-8 mb-1" /><span className="text-slate-900 font-bold">Regular Updates</span><span className="text-slate-500 text-xs">Via Dashboard</span></div>
+             <div className="flex flex-col items-center gap-2"><LifeBuoy className="text-amber-500 w-8 h-8 mb-1" /><span className="text-slate-900 font-bold">Quick Support</span><span className="text-slate-500 text-xs">Expert Help</span></div>
           </div>
         </div>
       </div>
@@ -574,26 +600,11 @@ const App: React.FC = () => {
              <p>Founded in 2023, {storeSettings.storeName} began with a simple mission: to make high-quality WordPress development tools accessible to everyone, from freelancers to large agencies.</p>
              <p>We understand the struggle of managing multiple licenses and skyrocketing costs. That's why we partner directly with developers and purchase agency licenses in bulk, passing the savings on to you.</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-             <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div className="text-4xl font-bold text-indigo-600 mb-2">5k+</div>
-                <div className="text-slate-600 font-medium">Products Available</div>
-             </div>
-             <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div className="text-4xl font-bold text-indigo-600 mb-2">15k+</div>
-                <div className="text-slate-600 font-medium">Happy Customers</div>
-             </div>
-             <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div className="text-4xl font-bold text-indigo-600 mb-2">99%</div>
-                <div className="text-slate-600 font-medium">Satisfaction Rate</div>
-             </div>
-          </div>
 
           <div className="bg-indigo-50 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
              <div className="flex-1">
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">Our Commitment to Quality</h3>
-                <ul className="space-y-3">
+                <ul className="space-y-3 text-slate-900 font-medium">
                    <li className="flex items-center gap-3"><CheckCircle className="text-indigo-600" /> <span>100% Original Files</span></li>
                    <li className="flex items-center gap-3"><CheckCircle className="text-indigo-600" /> <span>Malware Free Guarantee</span></li>
                    <li className="flex items-center gap-3"><CheckCircle className="text-indigo-600" /> <span>Automatic Updates</span></li>
@@ -622,10 +633,10 @@ const App: React.FC = () => {
                    <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-6">
-                   <div className="flex items-center gap-2 text-xs text-slate-500 mb-3 uppercase font-bold tracking-wide">
-                      <span className="text-indigo-600">{post.category}</span>
-                      <span>•</span>
-                      <span>{new Date(post.date).toLocaleDateString()}</span>
+                   <div className="mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                         {post.category}
+                      </span>
                    </div>
                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-2">{post.title}</h3>
                    <p className="text-slate-600 text-sm line-clamp-3 mb-4">{post.excerpt}</p>
@@ -646,19 +657,12 @@ const App: React.FC = () => {
        <div className="animate-fade-in">
           <div className="bg-slate-900 text-white py-20">
              <div className="max-w-3xl mx-auto px-4 text-center">
-                <div className="flex items-center justify-center gap-2 text-sm font-medium text-indigo-300 mb-4 uppercase tracking-wider">
-                   <span>{selectedPost.category}</span>
-                   <span>•</span>
-                   <span>{new Date(selectedPost.date).toLocaleDateString()}</span>
+                <div className="inline-block mb-4">
+                   <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 text-xs font-bold uppercase tracking-wider border border-indigo-500/30">
+                      {selectedPost.category}
+                   </span>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-bold mb-8 leading-tight">{selectedPost.title}</h1>
-                <div className="flex items-center justify-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold">A</div>
-                   <div className="text-left">
-                      <div className="font-bold text-sm">{selectedPost.author}</div>
-                      <div className="text-slate-400 text-xs">Author</div>
-                   </div>
-                </div>
+                <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">{selectedPost.title}</h1>
              </div>
           </div>
           
@@ -682,44 +686,228 @@ const App: React.FC = () => {
     );
   };
 
-  // Re-implementing basic views to ensure full file correctness
   const ShopView = () => {
-    // Logic for filtering products
-    const filtered = products.filter(p => (selectedCategory === 'All' || p.category === selectedCategory) && (p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description?.toLowerCase().includes(searchQuery.toLowerCase())));
-    const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-    const categoriesList = ['All', ...(Array.from(new Set(products.map(p => p.category))) as string[])];
+    let result = products.filter(p => (selectedCategory === 'All' || p.category === selectedCategory) && (p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description?.toLowerCase().includes(searchQuery.toLowerCase())));
+    
+    if (sortBy === 'price-asc') result.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price-desc') result.sort((a, b) => b.price - a.price);
+    else if (sortBy === 'name') result.sort((a, b) => a.name.localeCompare(b.name));
+
+    const paginated = result.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(result.length / ITEMS_PER_PAGE);
+    
+    const allCategories = ['All', ...(Array.from(new Set(products.map(p => p.category))) as string[])];
+    
+    const getCategoryCount = (cat: string) => {
+        if (cat === 'All') return products.length;
+        return products.filter(p => p.category === cat).length;
+    };
 
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-8 animate-fade-in">
-         <div className="mb-8"><h1 className="text-3xl font-bold text-slate-900">{selectedCategory}</h1><p className="text-slate-500 mt-1">Showing {paginated.length} results</p></div>
+         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+             <div>
+                <h1 className="text-3xl font-bold text-slate-900">{selectedCategory}</h1>
+                <p className="text-slate-500 mt-1">Showing {result.length} results</p>
+             </div>
+             
+             <div className="flex items-center gap-3">
+                <label className="text-slate-600 font-medium text-sm">Sort by:</label>
+                <div className="relative">
+                    <select 
+                      value={sortBy} 
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="appearance-none bg-white border border-slate-200 text-slate-700 py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm cursor-pointer shadow-sm"
+                    >
+                      <option value="default">Relevance</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                      <option value="name">Name: A-Z</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+             </div>
+         </div>
+
          <div className="flex flex-col lg:flex-row gap-8">
            <aside className="lg:w-64 shrink-0">
               <div className="sticky top-24 space-y-8">
-                 <div><h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Filter size={18}/> Categories</h3><div className="flex flex-col space-y-1">{categoriesList.map(cat => (<button key={cat} onClick={() => setSelectedCategory(cat)} className={`flex items-center justify-between w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === cat ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'}`} style={selectedCategory === cat ? { color: 'var(--color-primary)' } : {}}>{cat}</button>))}</div></div>
+                 <div>
+                    <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Filter size={18}/> Categories</h3>
+                    <div className="flex flex-col space-y-1">
+                        {allCategories.map(cat => (
+                            <button 
+                                key={cat} 
+                                onClick={() => { setSelectedCategory(cat); setCurrentPage(1); }} 
+                                className={`flex items-center justify-between w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${selectedCategory === cat ? 'bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-200' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                            >
+                                <span>{cat}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${selectedCategory === cat ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'}`}>
+                                    {getCategoryCount(cat)}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                 </div>
               </div>
            </aside>
            <div className="flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginated.map(product => (<ProductCard key={product.id} product={product} onAddToCart={addToCart} onViewDetails={() => handleViewProduct(product)} isWishlisted={wishlist.some(p => p.id === product.id)} onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} />))}
-              </div>
-              {totalPages > 1 && <div className="mt-12 flex justify-center gap-2">{Array.from({length: totalPages}, (_, i) => i + 1).map(page => <button key={page} onClick={() => setCurrentPage(page)} className={`w-10 h-10 rounded-lg font-bold ${currentPage === page ? 'bg-indigo-600 text-white' : 'text-slate-600'}`}>{page}</button>)}</div>}
+              {result.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginated.map(product => (
+                        <ProductCard 
+                            key={product.id} 
+                            product={product} 
+                            onAddToCart={addToCart} 
+                            onViewDetails={() => handleViewProduct(product)} 
+                            isWishlisted={wishlist.some(p => p.id === product.id)} 
+                            onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }} 
+                            priceMultiplier={selectedCurrency.rate} 
+                            currencySymbol={selectedCurrency.symbol} 
+                        />
+                    ))}
+                  </div>
+              ) : (
+                  <div className="text-center py-24 bg-white rounded-2xl border border-slate-200 border-dashed">
+                      <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
+                          <Search className="text-slate-300" size={32} />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900">No products found</h3>
+                      <p className="text-slate-500">Try adjusting your search or category.</p>
+                  </div>
+              )}
+              
+              {totalPages > 1 && (
+                  <div className="mt-12 flex justify-center gap-2">
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                     >
+                        <ChevronLeft size={18} />
+                     </button>
+                     {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                         <button 
+                            key={page} 
+                            onClick={() => setCurrentPage(page)} 
+                            className={`w-10 h-10 rounded-lg font-bold transition-all ${currentPage === page ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-slate-50 border border-transparent'}`}
+                         >
+                            {page}
+                         </button>
+                     ))}
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                     >
+                        <ChevronRight size={18} />
+                     </button>
+                  </div>
+              )}
            </div>
          </div>
       </div>
     );
   };
 
-  const ContactView = () => (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-       <div className="text-center mb-16"><h1 className="text-4xl font-extrabold text-slate-900 mb-4">Get in Touch</h1><p className="text-lg text-slate-500">Have questions about a license? Our team is here to help 24/7.</p></div>
-       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center"><Mail size={24} className="mx-auto mb-4 text-indigo-600"/><h3 className="font-bold mb-2">Email Support</h3><p className="text-sm text-slate-500">{storeSettings.supportEmail}</p></div>
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center"><Phone size={24} className="mx-auto mb-4 text-purple-600"/><h3 className="font-bold mb-2">Phone</h3><p className="text-sm text-slate-500">{storeSettings.contactPhone}</p></div>
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center"><MapPin size={24} className="mx-auto mb-4 text-emerald-600"/><h3 className="font-bold mb-2">Office</h3><p className="text-sm text-slate-500">{storeSettings.contactAddress}</p></div>
-       </div>
-    </div>
-  );
+  const ContactView = () => {
+    const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    const handleContactSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setSubmitStatus('success');
+        setContactForm({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setSubmitStatus('idle'), 3000);
+      }, 1500);
+    };
+
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+         <div className="text-center mb-16">
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Get in Touch</h1>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto">Have questions about a license, activation, or need technical support? Our team is here to help 24/7.</p>
+         </div>
+
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-1 space-y-6">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Mail size={24} />
+                    </div>
+                    <h3 className="font-bold text-slate-900 mb-1">Email Support</h3>
+                    <p className="text-sm text-slate-500 mb-3">Best for technical queries</p>
+                    <a href={`mailto:${storeSettings.supportEmail}`} className="text-indigo-600 font-bold hover:underline">{storeSettings.supportEmail}</a>
+                </div>
+
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                    <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Phone size={24} />
+                    </div>
+                    <h3 className="font-bold text-slate-900 mb-1">Phone Support</h3>
+                    <p className="text-sm text-slate-500 mb-3">Mon-Fri from 9am to 6pm</p>
+                    <a href={`tel:${storeSettings.contactPhone}`} className="text-slate-900 font-bold hover:underline">{storeSettings.contactPhone}</a>
+                </div>
+
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <MapPin size={24} />
+                    </div>
+                    <h3 className="font-bold text-slate-900 mb-1">Office</h3>
+                    <p className="text-sm text-slate-500 mb-3">Come say hello</p>
+                    <p className="text-slate-900 font-medium px-4">{storeSettings.contactAddress}</p>
+                </div>
+            </div>
+
+            <div className="lg:col-span-2">
+                <div className="bg-white p-8 md:p-10 rounded-3xl shadow-lg border border-slate-100 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-0 opacity-50"></div>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6 relative z-10">Send us a Message</h2>
+                    {submitStatus === 'success' && (
+                        <div className="mb-6 p-4 bg-green-50 border border-green-100 text-green-700 rounded-xl flex items-center gap-3 animate-fade-in">
+                            <CheckCircle size={20} />
+                            <div><p className="font-bold">Message Sent!</p><p className="text-sm">We'll get back to you shortly.</p></div>
+                        </div>
+                    )}
+                    <form onSubmit={handleContactSubmit} className="space-y-6 relative z-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">Your Name</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                    <input type="text" required className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="John Doe" value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">Email Address</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                    <input type="email" required className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="john@example.com" value={contactForm.email} onChange={e => setContactForm({...contactForm, email: e.target.value})} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">Subject</label>
+                            <input type="text" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="How can we help?" value={contactForm.subject} onChange={e => setContactForm({...contactForm, subject: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">Message</label>
+                            <textarea required rows={5} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none resize-none" placeholder="Tell us more about your inquiry..." value={contactForm.message} onChange={e => setContactForm({...contactForm, message: e.target.value})} />
+                        </div>
+                        <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                            {isSubmitting ? 'Processing...' : <><Send size={18} /> Send Message</>}
+                        </button>
+                    </form>
+                </div>
+            </div>
+         </div>
+      </div>
+    );
+  };
 
   const PageView = () => selectedPage ? (<div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in"><h1 className="text-4xl font-extrabold mb-8">{selectedPage.title}</h1><div className="prose prose-slate max-w-none">{selectedPage.content}</div></div>) : <div>Page not found</div>;
   
@@ -752,38 +940,164 @@ const App: React.FC = () => {
        }
     };
 
-    const getInputClass = (name: string) => `w-full px-4 py-3 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors[name] ? 'border-red-500 bg-red-50' : 'border-slate-200'}`;
+    const getInputClass = (name: string) => `w-full px-4 py-3 border rounded-xl focus:ring-2 focus:outline-none transition-all ${errors[name] ? 'border-red-500 bg-red-50 text-red-900' : 'border-slate-300 bg-white text-slate-900 focus:border-indigo-500'} placeholder:text-slate-400 shadow-sm`;
 
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
-        <h1 className="text-3xl font-bold mb-8">Secure Checkout</h1>
+        <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 bg-indigo-100 rounded-full text-indigo-600">
+                <Lock size={24} />
+            </div>
+            <h1 className="text-3xl font-extrabold text-slate-900">Secure Checkout</h1>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-           <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-              <h2 className="text-xl font-bold mb-6">Billing Details</h2>
-              {Object.keys(errors).length > 0 && <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl flex gap-2"><AlertCircle/> Please fix errors below.</div>}
-              <form className="space-y-6">
-                 <div className="grid grid-cols-2 gap-6">
-                   <div><label className="block text-sm font-bold mb-2">First Name</label><input type="text" className={getInputClass('firstName')} value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} /></div>
-                   <div><label className="block text-sm font-bold mb-2">Last Name</label><input type="text" className={getInputClass('lastName')} value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} /></div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-6">
-                   <div><label className="block text-sm font-bold mb-2">Email</label><input type="email" className={getInputClass('email')} value={form.email} onChange={e => setForm({...form, email: e.target.value})} /></div>
-                   <div><label className="block text-sm font-bold mb-2">Phone</label><input type="tel" className={getInputClass('phone')} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} /></div>
-                 </div>
-                 <div><label className="block text-sm font-bold mb-2">Address</label><input type="text" className={getInputClass('address')} value={form.address} onChange={e => setForm({...form, address: e.target.value})} /></div>
-                 <div className="grid grid-cols-2 gap-6">
-                   <div><label className="block text-sm font-bold mb-2">Country</label><select className={getInputClass('country')} value={form.country} onChange={e => setForm({...form, country: e.target.value})}><option value="">Select...</option><option value="US">United States</option><option value="MA">Morocco</option><option value="UK">United Kingdom</option></select></div>
-                   <div><label className="block text-sm font-bold mb-2">City</label><input type="text" className={getInputClass('city')} value={form.city} onChange={e => setForm({...form, city: e.target.value})} /></div>
-                 </div>
-                 <div><label className="block text-sm font-bold mb-2">ZIP / Postcode</label><input type="text" className={getInputClass('zip')} value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} /></div>
-              </form>
+           <div className="lg:col-span-2 space-y-8">
+              {/* Billing Details */}
+              <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                          <User size={20} className="text-indigo-600"/> Billing Details
+                      </h2>
+                  </div>
+                  
+                  {Object.keys(errors).length > 0 && (
+                      <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2 animate-pulse">
+                          <AlertCircle size={20} className="shrink-0"/> 
+                          <span className="font-medium">Please fill in the required fields marked in red.</span>
+                      </div>
+                  )}
+
+                  <form className="space-y-6">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">First Name <span className="text-red-500">*</span></label>
+                           <input type="text" className={getInputClass('firstName')} value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} placeholder="e.g. John" />
+                       </div>
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">Last Name <span className="text-red-500">*</span></label>
+                           <input type="text" className={getInputClass('lastName')} value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} placeholder="e.g. Doe" />
+                       </div>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">Email Address <span className="text-red-500">*</span></label>
+                           <input type="email" className={getInputClass('email')} value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="john@example.com" />
+                       </div>
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">Phone Number <span className="text-red-500">*</span></label>
+                           <input type="tel" className={getInputClass('phone')} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="+1 (555) 000-0000" />
+                       </div>
+                     </div>
+                     
+                     <div>
+                         <label className="block text-sm font-bold mb-2 text-slate-700">Street Address <span className="text-red-500">*</span></label>
+                         <input type="text" className={getInputClass('address')} value={form.address} onChange={e => setForm({...form, address: e.target.value})} placeholder="123 Main St, Apt 4B" />
+                     </div>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">Country <span className="text-red-500">*</span></label>
+                           <select className={getInputClass('country')} value={form.country} onChange={e => setForm({...form, country: e.target.value})}>
+                               <option value="">Select Country...</option>
+                               <option value="US">United States</option>
+                               <option value="MA">Morocco</option>
+                               <option value="UK">United Kingdom</option>
+                               <option value="CA">Canada</option>
+                               <option value="AU">Australia</option>
+                           </select>
+                       </div>
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">City <span className="text-red-500">*</span></label>
+                           <input type="text" className={getInputClass('city')} value={form.city} onChange={e => setForm({...form, city: e.target.value})} placeholder="New York" />
+                       </div>
+                       <div>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">ZIP Code <span className="text-red-500">*</span></label>
+                           <input type="text" className={getInputClass('zip')} value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} placeholder="10001" />
+                       </div>
+                     </div>
+                  </form>
+              </div>
+              
+              {/* Payment Method Placeholder */}
+              <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                   <h2 className="text-xl font-bold mb-6 text-slate-900 flex items-center gap-2">
+                      <CreditCard size={20} className="text-indigo-600"/> Payment Method
+                   </h2>
+                   <div className="flex gap-4 mb-6">
+                       <div className="flex-1 p-4 border-2 border-indigo-600 bg-indigo-50 rounded-xl cursor-pointer flex items-center justify-center gap-2 relative">
+                           <div className="absolute top-2 right-2 text-indigo-600"><CheckCircle size={16} fill="currentColor" className="text-white" /></div>
+                           <CreditCard size={24} className="text-indigo-600" />
+                           <span className="font-bold text-indigo-900">Credit Card</span>
+                       </div>
+                       <div className="flex-1 p-4 border border-slate-200 hover:bg-slate-50 rounded-xl cursor-pointer flex items-center justify-center gap-2 grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all">
+                           <span className="font-bold text-slate-700 text-lg italic">PayPal</span>
+                       </div>
+                   </div>
+                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                       <div className="flex items-center gap-3 text-slate-500 text-sm">
+                           <Lock size={16} />
+                           <span>Your payment information is encrypted and secure. We do not store your card details.</span>
+                       </div>
+                   </div>
+              </div>
            </div>
+           
+           {/* Sidebar */}
            <div className="lg:col-span-1">
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 sticky top-24">
-                 <h2 className="text-lg font-bold mb-6">Order Summary</h2>
-                 <div className="space-y-4 mb-6">{cartItems.map(item => (<div key={item.id} className="flex justify-between text-sm"><span>{item.name} x{item.quantity}</span><span className="font-bold">{selectedCurrency.symbol}{(item.price * item.quantity * selectedCurrency.rate).toFixed(2)}</span></div>))}</div>
-                 <div className="border-t border-slate-200 pt-4 flex justify-between font-bold text-xl mb-6"><span>Total</span><span>{selectedCurrency.symbol}{total.toFixed(2)}</span></div>
-                 <button onClick={handlePlaceOrder} disabled={isSubmitting || cartItems.length === 0} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-70">{isSubmitting ? 'Processing...' : 'Place Order'}</button>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg sticky top-24">
+                 <h2 className="text-lg font-bold mb-6 text-slate-900 flex items-center gap-2">
+                    <ShoppingBag size={18} /> Order Summary
+                 </h2>
+                 
+                 <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                     {cartItems.map(item => (
+                         <div key={item.id} className="flex gap-3 text-sm border-b border-slate-50 pb-3 last:border-0">
+                             <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                                {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : null}
+                             </div>
+                             <div className="flex-1">
+                                 <p className="font-bold text-slate-900 line-clamp-2">{item.name}</p>
+                                 <p className="text-slate-500">Qty: {item.quantity}</p>
+                             </div>
+                             <span className="font-bold text-slate-900">
+                                {selectedCurrency.symbol}{(item.price * item.quantity * selectedCurrency.rate).toFixed(2)}
+                             </span>
+                         </div>
+                     ))}
+                 </div>
+                 
+                 <div className="space-y-3 border-t border-slate-100 pt-4 mb-6">
+                     <div className="flex justify-between text-slate-600">
+                         <span>Subtotal</span>
+                         <span>{selectedCurrency.symbol}{total.toFixed(2)}</span>
+                     </div>
+                     <div className="flex justify-between text-slate-600">
+                         <span>Tax</span>
+                         <span>{selectedCurrency.symbol}0.00</span>
+                     </div>
+                     <div className="flex justify-between font-extrabold text-xl text-slate-900 pt-2 border-t border-slate-100">
+                         <span>Total</span>
+                         <span>{selectedCurrency.symbol}{total.toFixed(2)}</span>
+                     </div>
+                 </div>
+                 
+                 <button 
+                     onClick={handlePlaceOrder} 
+                     disabled={isSubmitting || cartItems.length === 0} 
+                     className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                 >
+                     {isSubmitting ? (
+                         <>Processing...</>
+                     ) : (
+                         <>Pay {selectedCurrency.symbol}{total.toFixed(2)} <ArrowRight size={18} /></>
+                     )}
+                 </button>
+                 
+                 <div className="mt-6 flex justify-center gap-4 text-slate-400">
+                     <Lock size={16} /> <span className="text-xs">256-bit SSL Secured</span>
+                 </div>
               </div>
            </div>
         </div>
@@ -831,7 +1145,12 @@ const App: React.FC = () => {
         {currentView === 'product' && selectedProduct && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><ProductDetail product={selectedProduct} onAddToCart={addToCart} onBack={() => setCurrentView('shop')} isWishlisted={wishlist.some(p => p.id === selectedProduct.id)} onToggleWishlist={() => handleToggleWishlist(selectedProduct)} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} recentlyViewed={recentlyViewed} onViewHistoryItem={handleViewProduct} currentUser={currentUser} onAddReview={handleAddReview} /></div>}
       </main>
 
-      <Footer settings={storeSettings} pages={pages} onChangeView={(view: string, id?: string) => { if(id) handleViewPage(id); else setCurrentView(view as any); window.scrollTo(0,0); }} />
+      <Footer 
+        settings={storeSettings} 
+        pages={pages} 
+        onChangeView={(view: string, id?: string) => { if(id) handleViewPage(id); else setCurrentView(view as any); window.scrollTo(0,0); }} 
+        onOpenAdmin={() => setIsAdminOpen(true)}
+      />
       
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cartItems} onRemoveItem={removeFromCart} onUpdateQuantity={updateQuantity} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} onCheckout={() => { setIsCartOpen(false); setCurrentView('checkout'); window.scrollTo(0,0); }} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />

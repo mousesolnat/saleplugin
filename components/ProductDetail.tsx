@@ -17,7 +17,7 @@ interface ProductDetailProps {
   recentlyViewed?: Product[];
   onViewHistoryItem?: (product: Product) => void;
   currentUser?: Customer | null;
-  onAddReview?: (productId: string, review: Omit<Review, 'id' | 'productId' | 'date'>) => void;
+  onAddReview?: (productId: string, review: Omit<Review, 'id' | 'productId' | 'date' | 'status'>) => void;
 }
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({ 
@@ -41,9 +41,13 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [comment, setComment] = useState('');
   const [guestName, setGuestName] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   const finalPrice = (product.price * priceMultiplier).toFixed(2);
-  const reviews = product.reviews || [];
+  
+  // Show reviews that are approved OR have no status (legacy compatibility)
+  const reviews = (product.reviews || []).filter(r => !r.status || r.status === 'approved');
+  
   const averageRating = reviews.length > 0 
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
     : 0;
@@ -97,6 +101,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
         setGuestName('');
         setRating(5);
         setIsSubmittingReview(false);
+        setReviewSubmitted(true);
     }, 800);
   };
 
@@ -337,6 +342,14 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                     {/* Review Form */}
                     <div className="lg:col-span-1">
                        <h3 className="text-lg font-bold text-slate-900 mb-4">Write a Review</h3>
+                       {reviewSubmitted ? (
+                          <div className="bg-green-50 border border-green-200 text-green-700 p-6 rounded-2xl text-center">
+                            <Check size={32} className="mx-auto mb-2" />
+                            <h4 className="font-bold mb-1">Review Submitted!</h4>
+                            <p className="text-sm">Your review is pending approval and will appear shortly.</p>
+                            <button onClick={() => setReviewSubmitted(false)} className="mt-4 text-sm font-bold underline">Write another</button>
+                          </div>
+                       ) : (
                        <form onSubmit={handleSubmitReview} className="space-y-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                           <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Your Rating</label>
@@ -391,6 +404,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                              {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                           </button>
                        </form>
+                       )}
                     </div>
 
                     {/* Review List */}

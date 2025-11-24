@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
-import { Product, StoreSettings, Order, Page, BlogPost } from '../types';
+import { Product, StoreSettings, Order, Page, BlogPost, Review } from '../types';
 import { CURRENCIES } from '../constants';
 import { 
   Plus, Edit, Trash2, X, Save, Search, Image as ImageIcon, 
   ArrowLeft, Lock, LogIn, LayoutGrid, Package, ShoppingCart, 
   Settings, TrendingUp, DollarSign, Users, ExternalLink, Globe, Share2,
   CheckCircle, AlertCircle, AlertTriangle, Sparkles, MapPin, FileText,
-  BarChart, Download, Palette, LayoutTemplate, BookOpen, Calendar, PenTool
+  BarChart, Download, Palette, LayoutTemplate, BookOpen, Calendar, PenTool,
+  CreditCard, Type, PaintBucket, MessageSquare, Star, Check
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -30,7 +31,39 @@ interface AdminDashboardProps {
   onDeletePost: (id: string) => void;
 }
 
-type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'blog' | 'settings';
+type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'blog' | 'reviews' | 'settings';
+type SettingsSubTab = 'general' | 'design' | 'payment' | 'seo';
+
+// Default constants for fallbacks
+const DEFAULT_DESIGN = {
+  primaryColor: '#4f46e5',
+  secondaryColor: '#f8fafc',
+  backgroundColor: '#ffffff',
+  headingColor: '#0f172a',
+  textColor: '#334155',
+  fontFamily: 'Inter',
+  borderRadius: 'rounded-xl'
+};
+
+const DEFAULT_PAYMENT = {
+  currencyCode: 'USD',
+  currencySymbol: '$',
+  stripeEnabled: true,
+  stripePublishableKey: '',
+  stripeSecretKey: '',
+  paypalEnabled: true,
+  paypalClientId: '',
+  paypalSecret: '',
+  testMode: true
+};
+
+const DEFAULT_SOCIALS = {
+  facebook: '',
+  twitter: '',
+  instagram: '',
+  linkedin: '',
+  youtube: ''
+};
 
 // Helper to generate a nice placeholder image
 const generatePlaceholder = (name: string, category: string) => {
@@ -62,11 +95,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Dashboard State
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [settingsSubTab, setSettingsSubTab] = useState<SettingsSubTab>('general');
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   
   // Feedback State
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [deleteType, setDeleteType] = useState<'product' | 'page' | 'post'>('product');
+  const [deleteType, setDeleteType] = useState<'product' | 'page' | 'post' | 'review'>('product');
+  const [reviewToDelete, setReviewToDelete] = useState<{productId: string, reviewId: string} | null>(null);
 
   // Product State
   const [searchTerm, setSearchTerm] = useState('');
@@ -104,6 +140,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   );
 
   const categories = Array.from(new Set(products.map(p => p.category)));
+
+  // Review Helpers
+  const allReviews = products.flatMap(p => (p.reviews || []).map(r => ({
+      ...r,
+      productName: p.name,
+      productImage: p.image
+  })));
+
+  const filteredReviews = allReviews.filter(r => {
+      if (reviewFilter === 'all') return true;
+      if (reviewFilter === 'pending') return r.status === 'pending';
+      if (reviewFilter === 'approved') return !r.status || r.status === 'approved'; // Legacy handled as approved
+      if (reviewFilter === 'rejected') return r.status === 'rejected';
+      return true;
+  });
 
   // --- Helpers ---
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -348,6 +399,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
      setPostForm({});
   };
 
+  // --- Review Handlers ---
+  const handleReviewStatus = (productId: string, reviewId: string, status: 'approved' | 'rejected') => {
+      const product = products.find(p => p.id === productId);
+      if (!product || !product.reviews) return;
+      const updatedReviews = product.reviews.map(r => r.id === reviewId ? { ...r, status } : r);
+      onUpdate({ ...product, reviews: updatedReviews });
+      showToast(`Review ${status}`);
+  };
+
+  const handleReviewDeleteRequest = (productId: string, reviewId: string) => {
+      setReviewToDelete({ productId, reviewId });
+      setDeleteConfirmId(reviewId); // Just a flag
+      setDeleteType('review');
+  };
+
+  const confirmDeleteReview = () => {
+      if (!reviewToDelete) return;
+      const product = products.find(p => p.id === reviewToDelete.productId);
+      if (product && product.reviews) {
+          const updatedReviews = product.reviews.filter(r => r.id !== reviewToDelete.reviewId);
+          onUpdate({ ...product, reviews: updatedReviews });
+          showToast('Review deleted');
+      }
+      setReviewToDelete(null);
+      setDeleteConfirmId(null);
+  };
+
   // --- Delete Handler (Shared) ---
   const handleDeleteRequest = (id: string, type: 'product' | 'page' | 'post') => {
     setDeleteConfirmId(id);
@@ -355,6 +433,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleConfirmDelete = () => {
+    if (deleteType === 'review') {
+        confirmDeleteReview();
+        return;
+    }
     if (deleteConfirmId) {
       if (deleteType === 'product') {
         onDelete(deleteConfirmId);
@@ -382,7 +464,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // --- Login Screen ---
   if (!isAuthenticated) {
     return (
-      <div className="fixed inset-0 bg-slate-50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center p-4">
         <div className="bg-white max-w-sm w-full rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           <div className="p-6 text-center border-b border-slate-100 bg-slate-50">
              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -424,7 +506,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // --- Main Dashboard Layout ---
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans relative">
+    <div className="flex h-screen bg-white overflow-hidden font-sans relative text-slate-900">
       
       {/* Toast Notification */}
       {toast && (
@@ -446,7 +528,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <h3 className="text-lg font-bold text-slate-900 mb-2">Delete Item?</h3>
               <p className="text-slate-500 text-sm mb-6">Are you sure you want to delete this? This action cannot be undone.</p>
               <div className="flex gap-3">
-                 <button onClick={() => setDeleteConfirmId(null)} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">Cancel</button>
+                 <button onClick={() => {setDeleteConfirmId(null); setReviewToDelete(null);}} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">Cancel</button>
                  <button onClick={handleConfirmDelete} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">Delete</button>
               </div>
            </div>
@@ -466,6 +548,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <SidebarItem icon={<TrendingUp size={18} />} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <SidebarItem icon={<Package size={18} />} label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} />
           <SidebarItem icon={<ShoppingCart size={18} />} label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} />
+          <SidebarItem icon={<MessageSquare size={18} />} label="Reviews" active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')} />
           <SidebarItem icon={<FileText size={18} />} label="Pages" active={activeTab === 'pages'} onClick={() => setActiveTab('pages')} />
           <SidebarItem icon={<BookOpen size={18} />} label="Blog" active={activeTab === 'blog'} onClick={() => setActiveTab('blog')} />
           <SidebarItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
@@ -479,15 +562,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden bg-white">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
            <div className="flex items-center gap-4">
              <button className="md:hidden text-slate-500" onClick={onClose}><ArrowLeft size={20}/></button>
-             <h1 className="text-xl font-bold text-slate-800 capitalize">{activeTab}</h1>
+             <h1 className="text-xl font-bold text-slate-900 capitalize">{activeTab}</h1>
            </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 bg-white text-slate-900">
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -495,7 +578,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <StatCard title="Total Revenue" value="$12,450" icon={<DollarSign className="text-green-500" />} change="+12%" />
                 <StatCard title="Total Products" value={products.length.toString()} icon={<Package className="text-blue-500" />} change="+4" />
                 <StatCard title="Total Pages" value={pages.length.toString()} icon={<FileText className="text-amber-500" />} change="+1" />
-                <StatCard title="Total Articles" value={blogPosts.length.toString()} icon={<BookOpen className="text-purple-500" />} change="+3" />
+                <StatCard title="Total Reviews" value={allReviews.length.toString()} icon={<MessageSquare className="text-purple-500" />} change={`+${allReviews.filter(r => r.status === 'pending').length} new`} />
               </div>
             </div>
           )}
@@ -576,6 +659,92 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  </div>
                )}
             </div>
+          )}
+
+          {/* REVIEWS TAB */}
+          {activeTab === 'reviews' && (
+             <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50">
+                    <div>
+                        <h2 className="font-bold text-slate-800 flex items-center gap-2"><MessageSquare size={18} /> Product Reviews</h2>
+                        <p className="text-xs text-slate-500 mt-1">Manage and moderate customer reviews</p>
+                    </div>
+                    <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+                        <button onClick={() => setReviewFilter('all')} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${reviewFilter === 'all' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>All</button>
+                        <button onClick={() => setReviewFilter('pending')} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${reviewFilter === 'pending' ? 'bg-amber-100 text-amber-700' : 'text-slate-600 hover:bg-slate-50'}`}>Pending</button>
+                        <button onClick={() => setReviewFilter('approved')} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${reviewFilter === 'approved' ? 'bg-green-100 text-green-700' : 'text-slate-600 hover:bg-slate-50'}`}>Approved</button>
+                        <button onClick={() => setReviewFilter('rejected')} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${reviewFilter === 'rejected' ? 'bg-red-100 text-red-700' : 'text-slate-600 hover:bg-slate-50'}`}>Rejected</button>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <tr>
+                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Product</th>
+                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Customer</th>
+                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Rating</th>
+                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Comment</th>
+                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {filteredReviews.map(review => (
+                                <tr key={review.id} className="hover:bg-slate-50">
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                                                {review.productImage ? <img src={review.productImage} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-full h-full p-1.5 text-slate-300" />}
+                                            </div>
+                                            <span className="font-medium text-sm text-slate-900 line-clamp-1 w-32">{review.productName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-sm font-medium text-slate-900">{review.customerName}</td>
+                                    <td className="p-4">
+                                        <div className="flex text-amber-400">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} size={12} className={i < review.rating ? "fill-current" : "text-slate-200"} />
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-sm text-slate-600 max-w-xs truncate" title={review.comment}>{review.comment}</td>
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                                            review.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                            review.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                            'bg-green-100 text-green-700'
+                                        }`}>
+                                            {review.status || 'Approved'}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            {(!review.status || review.status !== 'approved') && (
+                                                <button onClick={() => handleReviewStatus(review.productId, review.id, 'approved')} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Approve">
+                                                    <Check size={16} />
+                                                </button>
+                                            )}
+                                            {review.status !== 'rejected' && (
+                                                <button onClick={() => handleReviewStatus(review.productId, review.id, 'rejected')} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded" title="Reject">
+                                                    <X size={16} />
+                                                </button>
+                                            )}
+                                            <button onClick={() => handleReviewDeleteRequest(review.productId, review.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {filteredReviews.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="p-8 text-center text-slate-400">No reviews found matching this filter.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+             </div>
           )}
 
           {/* PAGES TAB */}
@@ -704,7 +873,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* ORDERS & SETTINGS TABS (unchanged logic) */}
+          {/* ORDERS & SETTINGS TABS */}
           {activeTab === 'orders' && (
              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                <div className="p-4 border-b border-slate-100 bg-slate-50"><h2 className="font-bold text-slate-800">Recent Orders</h2></div>
@@ -729,6 +898,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  <div className="space-y-4">
                    <div><label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Title</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.seoTitle || ''} onChange={e => setTempSettings({...tempSettings, seoTitle: e.target.value})} /></div>
                    <div><label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Description</label><textarea rows={3} className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.seoDescription || ''} onChange={e => setTempSettings({...tempSettings, seoDescription: e.target.value})} /></div>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 mt-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Google Search Console ID</label>
+                        <input type="text" placeholder="content='...'" className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.googleSearchConsoleCode || ''} onChange={e => setTempSettings({...tempSettings, googleSearchConsoleCode: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Bing Webmaster ID</label>
+                        <input type="text" placeholder="content='...'" className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.bingWebmasterCode || ''} onChange={e => setTempSettings({...tempSettings, bingWebmasterCode: e.target.value})} />
+                      </div>
+                   </div>
+
                    <div className="pt-4 border-t border-slate-100"><button onClick={handleDownloadSitemap} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium"><Download size={18} /> Generate & Download Sitemap.xml</button></div>
                  </div>
               </div>
@@ -751,7 +932,7 @@ const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; 
     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
       <div className="flex justify-between items-start mb-4">
         <div className="p-3 bg-slate-50 rounded-lg">{icon}</div>
-        <span className={`text-xs font-bold px-2 py-1 rounded ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{change}</span>
+        <span className={`text-xs font-bold px-2 py-1 rounded ${isPositive ? 'bg-green-100 text-green-700' : isPositive === false ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>{change}</span>
       </div>
       <h3 className="text-slate-500 text-sm font-medium">{title}</h3>
       <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>

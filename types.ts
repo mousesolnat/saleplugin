@@ -18,6 +18,7 @@ export interface Review {
   rating: number;
   comment: string;
   date: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 export interface CartItem extends Product {

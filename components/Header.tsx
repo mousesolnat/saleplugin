@@ -191,10 +191,11 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button 
               onClick={onOpenAdmin}
-              className="hidden xl:block p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              className="hidden md:flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all font-medium text-sm"
               title="Admin Dashboard"
             >
-              <LayoutDashboard size={22} />
+              <LayoutDashboard size={20} />
+              <span className="hidden lg:inline">Admin</span>
             </button>
 
             <button 
