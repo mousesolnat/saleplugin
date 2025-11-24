@@ -8,6 +8,7 @@ import { CartSidebar } from './components/CartSidebar';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
 import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket } from './types';
 import { 
@@ -984,7 +985,7 @@ const App: React.FC = () => {
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-1 space-y-6">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center hover:shadow-md transition-shadow">
                     <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <Mail size={24} />
                     </div>
@@ -993,7 +994,7 @@ const App: React.FC = () => {
                     <a href={`mailto:${storeSettings.supportEmail}`} className="text-indigo-600 font-bold hover:underline">{storeSettings.supportEmail}</a>
                 </div>
 
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center hover:shadow-md transition-shadow">
                     <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <Phone size={24} />
                     </div>
@@ -1002,7 +1003,7 @@ const App: React.FC = () => {
                     <a href={`tel:${storeSettings.contactPhone}`} className="text-slate-900 font-bold hover:underline">{storeSettings.contactPhone}</a>
                 </div>
 
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center hover:shadow-md transition-shadow">
                     <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <MapPin size={24} />
                     </div>
@@ -1013,7 +1014,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="lg:col-span-2">
-                <div className="bg-white p-8 md:p-10 rounded-3xl shadow-lg border border-slate-100 relative overflow-hidden">
+                <div className="bg-white p-8 md:p-10 rounded-3xl shadow-lg border border-slate-200 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-0 opacity-50"></div>
                     <h2 className="text-2xl font-bold text-slate-900 mb-6 relative z-10">Send us a Message</h2>
                     {submitStatus === 'success' && (
@@ -1275,7 +1276,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white pb-20 md:pb-0">
       {generateThemeStyles()}
       
       <Header 
@@ -1326,6 +1327,15 @@ const App: React.FC = () => {
         }}
       />
       
+      <MobileBottomNav
+        currentView={currentView}
+        onChangeView={(view) => { setCurrentView(view as any); window.scrollTo(0,0); }}
+        cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+        onOpenCart={() => setIsCartOpen(true)}
+        wishlistCount={wishlist.length}
+        onOpenWishlist={() => setCurrentView('wishlist')}
+      />
+
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cartItems} onRemoveItem={removeFromCart} onUpdateQuantity={updateQuantity} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} onCheckout={() => { setIsCartOpen(false); setCurrentView('checkout'); window.scrollTo(0,0); }} />
       <AuthModal 
         isOpen={isAuthModalOpen} 

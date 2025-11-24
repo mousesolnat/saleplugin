@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Check, Tag, ImageOff, Heart, ShieldCheck } from 'lucide-react';
 import { Product } from '../types';
 
@@ -24,6 +24,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isAdded, setIsAdded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  
+  // Lazy Loading State
+  const [isInView, setIsInView] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: '100px' } // Start loading when image is 100px away from viewport
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, []);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering details view when adding to cart
@@ -47,19 +74,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div 
+      ref={cardRef}
       onClick={onViewDetails}
       className="group relative bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full cursor-pointer"
     >
       {/* Image / Header Area */}
       <div className="relative w-full aspect-[3/4] overflow-hidden bg-slate-100">
         {!imageError && product.image ? (
-          <img 
-            src={product.image} 
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            onError={() => setImageError(true)}
-            loading="lazy"
-          />
+          <>
+             {/* Loading Placeholder */}
+             {(!isLoaded || !isInView) && (
+               <div className="absolute inset-0 bg-slate-100 animate-pulse z-0" />
+             )}
+             
+             {/* Lazy Loaded Image */}
+             {isInView && (
+               <img 
+                 src={product.image} 
+                 alt={product.name}
+                 className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                 onError={() => setImageError(true)}
+                 onLoad={() => setIsLoaded(true)}
+               />
+             )}
+          </>
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${getGradient(product.category)} flex items-center justify-center`}>
             <ImageOff className="text-white/50" size={48} />
