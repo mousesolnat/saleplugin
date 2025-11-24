@@ -111,6 +111,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [settingsSubTab, setSettingsSubTab] = useState<SettingsSubTab>('general');
   const [reviewFilter, setReviewFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [ticketFilter, setTicketFilter] = useState<'all' | 'open' | 'closed'>('all');
   
   // Feedback State
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -157,6 +158,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (reviewFilter === 'approved') return !r.status || r.status === 'approved'; // Legacy handled as approved
       if (reviewFilter === 'rejected') return r.status === 'rejected';
       return true;
+  });
+
+  // Ticket Helpers
+  const filteredTickets = tickets.filter(t => {
+      if (ticketFilter === 'all') return true;
+      return t.status === ticketFilter;
   });
 
   // Calculate Notification Counts
@@ -714,9 +721,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {activeTab === 'support' && (
              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center">
-                   <h2 className="font-bold text-slate-900">Support Tickets</h2>
+                   <div className="flex items-center gap-4">
+                      <h2 className="font-bold text-slate-900">Support Tickets</h2>
+                      <div className="flex bg-slate-100 rounded-lg p-1">
+                          {(['all', 'open', 'closed'] as const).map(f => (
+                             <button 
+                                key={f}
+                                onClick={() => setTicketFilter(f)}
+                                className={`px-3 py-1 text-xs font-bold uppercase rounded-md transition-all ${ticketFilter === f ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}
+                             >
+                                {f}
+                             </button>
+                          ))}
+                      </div>
+                   </div>
                    <div className="text-xs text-slate-500">
-                      Showing all {tickets.length} tickets
+                      Showing {filteredTickets.length} tickets
                    </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -732,7 +752,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                          </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                         {tickets.map(ticket => (
+                         {filteredTickets.map(ticket => (
                             <tr key={ticket.id} className="hover:bg-slate-50">
                                <td className="p-4 font-bold text-indigo-600">{ticket.id}</td>
                                <td className="p-4">
@@ -740,8 +760,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   <div className="text-xs text-slate-500">{ticket.email}</div>
                                </td>
                                <td className="p-4">
-                                  <div className="font-medium text-slate-900">{ticket.subject}</div>
+                                  <div className="font-medium text-slate-900 flex items-center gap-2">
+                                     {ticket.subject}
+                                     {ticket.image && <ImageIcon size={14} className="text-indigo-500" title="Has attachment" />}
+                                  </div>
                                   <div className="text-xs text-slate-500 truncate max-w-xs">{ticket.message}</div>
+                                  {ticket.image && (
+                                     <a href={ticket.image} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-600 hover:underline">View Image</a>
+                                  )}
                                </td>
                                <td className="p-4">
                                   <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${ticket.priority === 'high' ? 'bg-red-100 text-red-700' : ticket.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -772,9 +798,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                </td>
                             </tr>
                          ))}
-                         {tickets.length === 0 && (
+                         {filteredTickets.length === 0 && (
                             <tr>
-                               <td colSpan={6} className="p-8 text-center text-slate-400">No support tickets found.</td>
+                               <td colSpan={6} className="p-8 text-center text-slate-400">No support tickets found in this view.</td>
                             </tr>
                          )}
                       </tbody>

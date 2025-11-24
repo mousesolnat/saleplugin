@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Customer, Order, SupportTicket } from '../types';
-import { User, Package, LogOut, ShoppingBag, MapPin, CreditCard, Settings, Download, Save, Lock, Mail, MessageCircle, Plus, Send } from 'lucide-react';
+import { User, Package, LogOut, ShoppingBag, MapPin, CreditCard, Settings, Download, Save, Lock, Mail, MessageCircle, Plus, Send, Image as ImageIcon } from 'lucide-react';
 
 interface CustomerDashboardProps {
   customer: Customer;
@@ -25,7 +25,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
   });
 
   // Ticket Form State
-  const [ticketForm, setTicketForm] = useState({ subject: '', message: '', priority: 'medium' as 'low' | 'medium' | 'high' });
+  const [ticketForm, setTicketForm] = useState({ subject: '', message: '', priority: 'medium' as 'low' | 'medium' | 'high', image: '' });
   const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
   
   const [isSaving, setIsSaving] = useState(false);
@@ -107,9 +107,10 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                   email: customer.email,
                   subject: ticketForm.subject,
                   message: ticketForm.message,
-                  priority: ticketForm.priority
+                  priority: ticketForm.priority,
+                  image: ticketForm.image
               });
-              setTicketForm({ subject: '', message: '', priority: 'medium' });
+              setTicketForm({ subject: '', message: '', priority: 'medium', image: '' });
               setMessage({ type: 'success', text: 'Ticket opened successfully!' });
           }
           setIsSubmittingTicket(false);
@@ -252,6 +253,21 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                              </select>
                           </div>
                        </div>
+                       
+                       <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase">Attachment (Optional)</label>
+                          <div className="relative">
+                            <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input 
+                                type="text" 
+                                className="w-full mt-1 pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 placeholder:text-slate-400" 
+                                placeholder="Image URL (e.g., screenshot link)" 
+                                value={ticketForm.image} 
+                                onChange={e => setTicketForm({...ticketForm, image: e.target.value})} 
+                             />
+                          </div>
+                       </div>
+
                        <div>
                           <label className="text-xs font-bold text-slate-500 uppercase">Message</label>
                           <textarea 
@@ -291,7 +307,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                                    </div>
                                    <span className="text-xs text-slate-500">{new Date(ticket.date).toLocaleDateString()}</span>
                                 </div>
-                                <p className="text-slate-600 text-sm">{ticket.message}</p>
+                                <p className="text-slate-600 text-sm whitespace-pre-line">{ticket.message}</p>
+                                {ticket.image && (
+                                   <div className="mt-3">
+                                     <a href={ticket.image} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-xs font-bold bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                                       <ImageIcon size={14} /> View Attachment
+                                     </a>
+                                   </div>
+                                )}
                              </div>
                           ))}
                        </div>

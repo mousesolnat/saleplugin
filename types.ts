@@ -52,6 +52,7 @@ export interface SupportTicket {
   priority: 'low' | 'medium' | 'high';
   status: 'open' | 'closed';
   date: string;
+  image?: string;
 }
 
 export interface Page {
