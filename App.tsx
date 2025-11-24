@@ -424,6 +424,13 @@ const App: React.FC = () => {
      return true;
   };
 
+  const handleUpdateProfile = (updatedData: Partial<Customer>) => {
+    if (!currentUser) return;
+    const updatedUser = { ...currentUser, ...updatedData };
+    setCurrentUser(updatedUser);
+    setUsers(users.map(u => u.id === currentUser.id ? updatedUser : u));
+  };
+
   const handleLogout = () => {
     setCurrentUser(null);
     setCurrentView('home');
@@ -1281,7 +1288,7 @@ const App: React.FC = () => {
         {currentView === 'wishlist' && <WishlistView />}
         {currentView === 'page' && <PageView />}
         {currentView === 'checkout' && <CheckoutView />}
-        {currentView === 'profile' && currentUser && <CustomerDashboard customer={currentUser} onLogout={handleLogout} currencySymbol={selectedCurrency.symbol} />}
+        {currentView === 'profile' && currentUser && <CustomerDashboard customer={currentUser} onLogout={handleLogout} currencySymbol={selectedCurrency.symbol} onUpdateProfile={handleUpdateProfile} />}
         {currentView === 'product' && selectedProduct && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><ProductDetail product={selectedProduct} onAddToCart={addToCart} onBack={() => setCurrentView('shop')} isWishlisted={wishlist.some(p => p.id === selectedProduct.id)} onToggleWishlist={() => handleToggleWishlist(selectedProduct)} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} recentlyViewed={recentlyViewed} onViewHistoryItem={handleViewProduct} currentUser={currentUser} onAddReview={handleAddReview} /></div>}
       </main>
 
