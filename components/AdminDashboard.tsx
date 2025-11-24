@@ -8,7 +8,7 @@ import {
   Settings, TrendingUp, DollarSign, Users, ExternalLink, Globe, Share2,
   CheckCircle, AlertCircle, AlertTriangle, Sparkles, MapPin, FileText,
   BarChart, Download, Palette, LayoutTemplate, BookOpen, Calendar, PenTool,
-  CreditCard, Type, PaintBucket, MessageSquare, Star, Check, Shield
+  CreditCard, Type, PaintBucket, MessageSquare, Star, Check, Shield, Anchor
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -35,7 +35,7 @@ interface AdminDashboardProps {
 }
 
 type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'blog' | 'reviews' | 'settings';
-type SettingsSubTab = 'general' | 'design' | 'payment' | 'checkout' | 'seo' | 'social' | 'security';
+type SettingsSubTab = 'general' | 'design' | 'payment' | 'checkout' | 'footer' | 'seo' | 'social' | 'security';
 
 // Helper to generate a nice placeholder image
 const generatePlaceholder = (name: string, category: string) => {
@@ -887,6 +887,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    <button onClick={() => setSettingsSubTab('design')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'design' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>Design & Branding</button>
                    <button onClick={() => setSettingsSubTab('payment')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'payment' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>Payment Gateways</button>
                    <button onClick={() => setSettingsSubTab('checkout')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'checkout' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>Checkout Settings</button>
+                   <button onClick={() => setSettingsSubTab('footer')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'footer' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>Footer Content</button>
                    <button onClick={() => setSettingsSubTab('seo')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'seo' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>SEO & Analytics</button>
                    <button onClick={() => setSettingsSubTab('social')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'social' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>Social Media</button>
                    <button onClick={() => setSettingsSubTab('security')} className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settingsSubTab === 'security' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}>Security</button>
@@ -901,7 +902,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                          <div><label className="block text-sm font-bold text-slate-700 mb-1">Support Email</label><input type="email" className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.supportEmail} onChange={e => setTempSettings({...tempSettings, supportEmail: e.target.value})} /></div>
                          <div><label className="block text-sm font-bold text-slate-700 mb-1">Contact Phone</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.contactPhone} onChange={e => setTempSettings({...tempSettings, contactPhone: e.target.value})} /></div>
                          <div><label className="block text-sm font-bold text-slate-700 mb-1">Address</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.contactAddress} onChange={e => setTempSettings({...tempSettings, contactAddress: e.target.value})} /></div>
-                         <div><label className="block text-sm font-bold text-slate-700 mb-1">Footer Description</label><textarea rows={3} className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.footerDescription} onChange={e => setTempSettings({...tempSettings, footerDescription: e.target.value})} /></div>
                       </div>
                    )}
 
@@ -947,7 +947,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                          <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">Store Currency</label>
                             <div className="flex gap-4">
-                               <select className="flex-1 px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.payment.currencyCode} onChange={e => {const curr = CURRENCIES.find(c => c.code === e.target.value); if(curr) setTempSettings({...tempSettings, payment: {...tempSettings.payment, currencyCode: curr.code, currencySymbol: curr.symbol}});}}>
+                                <select className="flex-1 px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.payment.currencyCode} onChange={e => {const curr = CURRENCIES.find(c => c.code === e.target.value); if(curr) setTempSettings({...tempSettings, payment: {...tempSettings.payment, currencyCode: curr.code, currencySymbol: curr.symbol}});}}>
                                   {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} ({c.symbol}) - {c.name}</option>)}
                                </select>
                             </div>
@@ -1002,6 +1002,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <span className="font-medium text-slate-700">Enable Coupons</span>
                             <input type="checkbox" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.checkout.enableCoupons} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, enableCoupons: e.target.checked}})} />
                          </label>
+                      </div>
+                   )}
+
+                   {settingsSubTab === 'footer' && (
+                      <div className="space-y-6 max-w-2xl">
+                         <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Footer Description</label>
+                            <textarea rows={3} className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white" value={tempSettings.footerDescription} onChange={e => setTempSettings({...tempSettings, footerDescription: e.target.value})} />
+                            <p className="text-xs text-slate-500 mt-1">Appears below the logo in the footer.</p>
+                         </div>
+                         
+                         <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Popular Categories Links</label>
+                            <textarea 
+                              rows={6} 
+                              className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white font-mono text-sm" 
+                              value={tempSettings.popularCategories?.join('\n')} 
+                              onChange={e => setTempSettings({...tempSettings, popularCategories: e.target.value.split('\n').filter(line => line.trim() !== '')})} 
+                              placeholder="One category per line"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Enter one category per line. These will appear in the "Popular Categories" column.</p>
+                         </div>
                       </div>
                    )}
 

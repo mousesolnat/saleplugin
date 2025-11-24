@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
-import { Customer } from '../types';
+import { X, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle, Zap } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogin: (email: string, pass: string) => Promise<boolean>;
   onRegister: (name: string, email: string, pass: string) => Promise<boolean>;
+  onDemoLogin?: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, onRegister }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, onRegister, onDemoLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
@@ -148,6 +148,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
               )}
             </button>
           </form>
+
+          {onDemoLogin && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+               <button 
+                  type="button"
+                  onClick={onDemoLogin}
+                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+               >
+                  <Zap size={18} className="text-amber-500 fill-amber-500" /> Login as Demo Customer
+               </button>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-slate-500 text-sm">

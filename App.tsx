@@ -429,6 +429,22 @@ const App: React.FC = () => {
     setCurrentView('home');
   };
 
+  const handleDemoLogin = () => {
+    const demoUser: Customer = {
+      id: 'demo_user',
+      name: 'Demo Customer',
+      email: 'demo@example.com',
+      joinDate: new Date().toISOString()
+    };
+    // Ensure demo user is in users list so login persists better if needed
+    if (!users.some(u => u.id === 'demo_user')) {
+        setUsers([...users, demoUser]);
+    }
+    setCurrentUser(demoUser);
+    setIsAuthModalOpen(false);
+    setCurrentView('profile');
+  };
+
   // Cart & Wishlist Handlers
   const addToCart = (product: Product) => {
     setCartItems(prev => {
@@ -1274,10 +1290,21 @@ const App: React.FC = () => {
         pages={pages} 
         onChangeView={(view: string, id?: string) => { if(id) handleViewPage(id); else setCurrentView(view as any); window.scrollTo(0,0); }} 
         onOpenAdmin={() => setIsAdminOpen(true)}
+        onCategoryClick={(cat) => {
+          setSelectedCategory(cat);
+          setCurrentView('shop');
+          window.scrollTo(0, 0);
+        }}
       />
       
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cartItems} onRemoveItem={removeFromCart} onUpdateQuantity={updateQuantity} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} onCheckout={() => { setIsCartOpen(false); setCurrentView('checkout'); window.scrollTo(0,0); }} />
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        onLogin={handleLogin} 
+        onRegister={handleRegister} 
+        onDemoLogin={handleDemoLogin}
+      />
       
       {isAdminOpen && (
         <div className="fixed inset-0 z-50 bg-white animate-fade-in">

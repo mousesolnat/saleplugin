@@ -8,9 +8,10 @@ interface FooterProps {
   pages?: Page[];
   onChangeView: (view: string, id?: string) => void;
   onOpenAdmin?: () => void;
+  onCategoryClick: (category: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeView, onOpenAdmin }) => {
+export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeView, onOpenAdmin, onCategoryClick }) => {
   return (
     <footer className="bg-white text-slate-600 pt-16 pb-8 border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -103,13 +104,19 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
             <ul className="space-y-3">
               {settings.popularCategories && settings.popularCategories.length > 0 ? (
                 settings.popularCategories.map((cat, idx) => (
-                   <li key={idx} className="hover:text-indigo-600 cursor-pointer transition-colors">{cat.trim()}</li>
+                   <li 
+                    key={idx} 
+                    onClick={() => onCategoryClick(cat.trim())}
+                    className="hover:text-indigo-600 cursor-pointer transition-colors"
+                   >
+                     {cat.trim()}
+                   </li>
                 ))
               ) : (
                 <>
-                  <li className="hover:text-indigo-600 cursor-pointer transition-colors">WordPress Plugins</li>
-                  <li className="hover:text-indigo-600 cursor-pointer transition-colors">Page Builders</li>
-                  <li className="hover:text-indigo-600 cursor-pointer transition-colors">SEO Tools</li>
+                  <li onClick={() => onCategoryClick('WordPress Plugins')} className="hover:text-indigo-600 cursor-pointer transition-colors">WordPress Plugins</li>
+                  <li onClick={() => onCategoryClick('Page Builders')} className="hover:text-indigo-600 cursor-pointer transition-colors">Page Builders</li>
+                  <li onClick={() => onCategoryClick('SEO Tools')} className="hover:text-indigo-600 cursor-pointer transition-colors">SEO Tools</li>
                 </>
               )}
             </ul>
