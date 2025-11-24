@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ShoppingCart, Search, Package, LayoutDashboard, Menu, X, Heart, ChevronDown, User, LogOut, Settings } from 'lucide-react';
+import { ShoppingCart, Search, Package, LayoutDashboard, Menu, X, Heart, ChevronDown, User, LogOut, Settings, BookOpen, Info } from 'lucide-react';
 import { CartItem, Currency, Customer } from '../types';
 import { CURRENCIES } from '../constants';
 
@@ -60,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const NavLink = ({ view, label }: { view: 'home' | 'shop' | 'contact', label: string }) => (
+  const NavLink = ({ view, label }: { view: string, label: string }) => (
     <button
       onClick={() => {
         onChangeView(view);
@@ -95,17 +96,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden lg:flex items-center gap-1">
             <NavLink view="home" label="Home" />
             <NavLink view="shop" label="Shop" />
+            <NavLink view="about" label="About" />
+            <NavLink view="blog" label="Blog" />
             <NavLink view="contact" label="Contact" />
           </nav>
 
           {/* Search */}
-          <div className="hidden lg:block flex-1 max-w-md mx-4 relative group">
+          <div className="hidden md:block flex-1 max-w-xs lg:max-w-sm mx-4 relative group">
             <input 
               type="text"
-              placeholder="Search plugins, themes..."
+              placeholder="Search..."
               className="w-full bg-slate-100 border-none rounded-2xl py-2.5 pl-12 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all shadow-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -145,17 +148,17 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             
             {/* Currency Selector */}
             {selectedCurrency && onCurrencyChange && (
-              <div className="relative">
+              <div className="relative hidden sm:block">
                 <button 
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-slate-100 text-sm font-bold text-slate-700 transition-all border border-transparent hover:border-slate-200"
                 >
                   <span className="text-lg leading-none">{selectedCurrency.flag}</span>
-                  <span className="hidden sm:inline">{selectedCurrency.code}</span>
+                  <span className="hidden lg:inline">{selectedCurrency.code}</span>
                   <ChevronDown size={14} className={`text-slate-400 transition-transform ${isCurrencyOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
@@ -188,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button 
               onClick={onOpenAdmin}
-              className="hidden md:block p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              className="hidden xl:block p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
               title="Admin Dashboard"
             >
               <LayoutDashboard size={22} />
@@ -220,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Auth / Profile Button */}
             {currentUser ? (
-              <div className="relative">
+              <div className="relative hidden sm:block">
                 <button 
                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all bg-white shadow-sm"
@@ -268,7 +271,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
 
             <button 
-              className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -277,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="pb-4 lg:hidden relative z-30">
+        <div className="pb-4 md:hidden relative z-30">
             <div className="relative">
               <input 
                 type="text"
@@ -324,10 +327,12 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 absolute w-full left-0 z-20 shadow-lg animate-fade-in-up">
+        <div className="lg:hidden bg-white border-t border-slate-100 absolute w-full left-0 z-20 shadow-lg animate-fade-in-up">
           <div className="px-4 py-6 space-y-4">
             <button onClick={() => { onChangeView('home'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">Home</button>
             <button onClick={() => { onChangeView('shop'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">Shop</button>
+            <button onClick={() => { onChangeView('about'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">About Us</button>
+            <button onClick={() => { onChangeView('blog'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">Blog</button>
             <button onClick={() => { onChangeView('contact'); setIsMobileMenuOpen(false); }} className="block w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 font-medium text-slate-700">Contact</button>
             
             {!currentUser && (

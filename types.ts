@@ -48,6 +48,20 @@ export interface Page {
   content: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  date: string;
+  image?: string;
+  category: string;
+  seoTitle?: string;
+  seoDescription?: string;
+}
+
 export interface Currency {
   code: string;
   symbol: string;

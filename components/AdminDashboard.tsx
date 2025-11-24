@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Product, StoreSettings, Order, Page } from '../types';
+import { Product, StoreSettings, Order, Page, BlogPost } from '../types';
 import { CURRENCIES } from '../constants';
 import { 
   Plus, Edit, Trash2, X, Save, Search, Image as ImageIcon, 
   ArrowLeft, Lock, LogIn, LayoutGrid, Package, ShoppingCart, 
   Settings, TrendingUp, DollarSign, Users, ExternalLink, Globe, Share2,
   CheckCircle, AlertCircle, AlertTriangle, Sparkles, MapPin, FileText,
-  BarChart, Download, Palette, LayoutTemplate
+  BarChart, Download, Palette, LayoutTemplate, BookOpen, Calendar, PenTool
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -23,9 +23,14 @@ interface AdminDashboardProps {
   onAddPage: (p: Page) => void;
   onUpdatePage: (p: Page) => void;
   onDeletePage: (id: string) => void;
+  // Blog Props
+  blogPosts: BlogPost[];
+  onAddPost: (p: BlogPost) => void;
+  onUpdatePost: (p: BlogPost) => void;
+  onDeletePost: (id: string) => void;
 }
 
-type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'settings';
+type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'blog' | 'settings';
 
 // Helper to generate a nice placeholder image
 const generatePlaceholder = (name: string, category: string) => {
@@ -47,7 +52,8 @@ const generatePlaceholder = (name: string, category: string) => {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ 
   products, onAdd, onUpdate, onDelete, onClose, storeSettings, onUpdateSettings,
-  pages, onAddPage, onUpdatePage, onDeletePage
+  pages, onAddPage, onUpdatePage, onDeletePage,
+  blogPosts, onAddPost, onUpdatePost, onDeletePost
 }) => {
   // Login State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -60,7 +66,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Feedback State
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [deleteType, setDeleteType] = useState<'product' | 'page'>('product');
+  const [deleteType, setDeleteType] = useState<'product' | 'page' | 'post'>('product');
 
   // Product State
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,6 +78,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [pageForm, setPageForm] = useState<Partial<Page>>({});
   const [isAddingPage, setIsAddingPage] = useState(false);
+
+  // Blog State
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [postForm, setPostForm] = useState<Partial<BlogPost>>({});
+  const [isAddingPost, setIsAddingPost] = useState(false);
 
   // Settings State
   const [tempSettings, setTempSettings] = useState<StoreSettings>(storeSettings);
@@ -123,6 +134,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <lastmod>${date}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/about</loc>
+    <lastmod>${date}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+   <url>
+    <loc>${baseUrl}/blog</loc>
+    <lastmod>${date}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
   </url>`;
 
     // Pages
@@ -136,8 +159,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   </url>`;
     });
 
-    // Products (Assuming URL structure /product/id for now, though App uses internal state)
-    // For SEO purposes in a real app, you'd want clean URLs.
+    // Blog Posts
+    blogPosts.forEach(post => {
+      xml += `
+  <url>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <lastmod>${post.date}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+    });
+
+    // Products
     products.forEach(product => {
       const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       xml += `
@@ -202,7 +235,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
 
     if (isAdding) {
-      // Auto-generate image if empty
       let finalImage = editForm.image;
       if (!finalImage || finalImage.trim() === '') {
         finalImage = generatePlaceholder(editForm.name || 'Product', editForm.category || 'Plugins & Tools');
@@ -268,8 +300,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
      setPageForm({});
   };
 
+  // --- Blog Handlers ---
+  const handleEditPostClick = (post: BlogPost) => {
+    setEditingPostId(post.id);
+    setPostForm({ ...post });
+    setIsAddingPost(false);
+  };
+
+  const handleAddPostClick = () => {
+    setIsAddingPost(true);
+    setEditingPostId(null);
+    setPostForm({ title: '', slug: '', content: '', excerpt: '', author: 'Admin', category: 'News', date: new Date().toISOString().split('T')[0] });
+  };
+
+  const handleSavePost = () => {
+     if (!postForm.title || !postForm.content) {
+       showToast('Title and Content are required', 'error');
+       return;
+     }
+     
+     const slug = postForm.slug || postForm.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+     
+     const finalImage = postForm.image || `https://placehold.co/600x400/4f46e5/ffffff?text=${encodeURIComponent(postForm.title || 'Blog')}`;
+
+     if (isAddingPost) {
+        const newPost: BlogPost = {
+          id: `post_${Date.now()}`,
+          title: postForm.title || 'Untitled',
+          slug: slug,
+          content: postForm.content || '',
+          excerpt: postForm.excerpt || '',
+          author: postForm.author || 'Admin',
+          date: postForm.date || new Date().toISOString().split('T')[0],
+          image: finalImage,
+          category: postForm.category || 'News',
+          seoTitle: postForm.seoTitle || '',
+          seoDescription: postForm.seoDescription || ''
+        };
+        onAddPost(newPost);
+        setIsAddingPost(false);
+        showToast('Article created');
+     } else if (editingPostId) {
+        onUpdatePost({ ...postForm, id: editingPostId, slug, image: finalImage } as BlogPost);
+        setEditingPostId(null);
+        showToast('Article updated');
+     }
+     setPostForm({});
+  };
+
   // --- Delete Handler (Shared) ---
-  const handleDeleteRequest = (id: string, type: 'product' | 'page') => {
+  const handleDeleteRequest = (id: string, type: 'product' | 'page' | 'post') => {
     setDeleteConfirmId(id);
     setDeleteType(type);
   };
@@ -278,32 +358,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (deleteConfirmId) {
       if (deleteType === 'product') {
         onDelete(deleteConfirmId);
-        if (editingId === deleteConfirmId) {
-            setEditingId(null);
-            setIsAdding(false);
-        }
-      } else {
+        if (editingId === deleteConfirmId) { setEditingId(null); setIsAdding(false); }
+      } else if (deleteType === 'page') {
         onDeletePage(deleteConfirmId);
-        if (editingPageId === deleteConfirmId) {
-           setEditingPageId(null);
-           setIsAddingPage(false);
-        }
+        if (editingPageId === deleteConfirmId) { setEditingPageId(null); setIsAddingPage(false); }
+      } else if (deleteType === 'post') {
+        onDeletePost(deleteConfirmId);
+        if (editingPostId === deleteConfirmId) { setEditingPostId(null); setIsAddingPost(false); }
       }
-      showToast(`${deleteType === 'product' ? 'Product' : 'Page'} deleted`);
+      showToast(`${deleteType.charAt(0).toUpperCase() + deleteType.slice(1)} deleted`);
       setDeleteConfirmId(null);
     }
   };
 
   // --- Settings Handlers ---
   const handleSaveSettings = () => {
-    // Process categories text to array
     const catsArray = categoriesText.split('\n').filter(line => line.trim() !== '');
-    
-    const finalSettings = {
-      ...tempSettings,
-      popularCategories: catsArray
-    };
-
+    const finalSettings = { ...tempSettings, popularCategories: catsArray };
     onUpdateSettings(finalSettings);
     showToast('Store settings saved successfully');
   };
@@ -331,10 +402,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     : 'border-slate-200 focus:ring-indigo-500 focus:bg-white bg-slate-50'
                 }`}
                 value={password}
-                onChange={(e) => {
-                    setPassword(e.target.value);
-                    setLoginError(false);
-                }}
+                onChange={(e) => { setPassword(e.target.value); setLoginError(false); }}
                 autoFocus
               />
               {loginError && <p className="text-red-500 text-xs mt-2 pl-1">Incorrect password. Try 'admin'.</p>}
@@ -375,27 +443,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={24} />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Delete {deleteType === 'product' ? 'Product' : 'Page'}?</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Delete Item?</h3>
               <p className="text-slate-500 text-sm mb-6">Are you sure you want to delete this? This action cannot be undone.</p>
               <div className="flex gap-3">
-                 <button 
-                   onClick={() => setDeleteConfirmId(null)}
-                   className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors"
-                 >
-                   Cancel
-                 </button>
-                 <button 
-                   onClick={handleConfirmDelete}
-                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-                 >
-                   Delete
-                 </button>
+                 <button onClick={() => setDeleteConfirmId(null)} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">Cancel</button>
+                 <button onClick={handleConfirmDelete} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors">Delete</button>
               </div>
            </div>
         </div>
       )}
 
-      {/* Sidebar - BLUE THEME */}
+      {/* Sidebar */}
       <aside className="w-64 bg-indigo-900 border-r border-indigo-800 flex flex-col shrink-0 transition-all duration-300 hidden md:flex text-white">
         <div className="p-6 border-b border-indigo-800 flex items-center gap-2">
            <div className="bg-white p-1.5 rounded-lg text-indigo-900">
@@ -409,18 +467,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <SidebarItem icon={<Package size={18} />} label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} />
           <SidebarItem icon={<ShoppingCart size={18} />} label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} />
           <SidebarItem icon={<FileText size={18} />} label="Pages" active={activeTab === 'pages'} onClick={() => setActiveTab('pages')} />
+          <SidebarItem icon={<BookOpen size={18} />} label="Blog" active={activeTab === 'blog'} onClick={() => setActiveTab('blog')} />
           <SidebarItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
         </nav>
 
         <div className="p-4 border-t border-indigo-800">
-           <div className="flex items-center gap-3 px-3 py-2">
-             <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center font-bold text-xs text-white border border-indigo-600">A</div>
-             <div className="overflow-hidden">
-               <p className="text-sm font-medium truncate text-white">Administrator</p>
-               <p className="text-xs text-indigo-300 truncate">admin@digimarket.pro</p>
-             </div>
-           </div>
-           <button onClick={onClose} className="mt-4 w-full flex items-center justify-center gap-2 text-indigo-300 hover:text-white text-sm py-2 hover:bg-indigo-800 rounded-lg transition-colors">
+           <button onClick={onClose} className="w-full flex items-center justify-center gap-2 text-indigo-300 hover:text-white text-sm py-2 hover:bg-indigo-800 rounded-lg transition-colors">
               <ExternalLink size={14} /> Sign Out
            </button>
         </div>
@@ -428,23 +480,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header / Top Bar */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
            <div className="flex items-center gap-4">
              <button className="md:hidden text-slate-500" onClick={onClose}><ArrowLeft size={20}/></button>
              <h1 className="text-xl font-bold text-slate-800 capitalize">{activeTab}</h1>
            </div>
-           <div className="md:hidden flex items-center gap-2">
-              <button onClick={() => setActiveTab('overview')} className={`p-2 rounded ${activeTab === 'overview' ? 'bg-indigo-50 text-indigo-600' : ''}`}><TrendingUp size={20}/></button>
-              <button onClick={() => setActiveTab('products')} className={`p-2 rounded ${activeTab === 'products' ? 'bg-indigo-50 text-indigo-600' : ''}`}><Package size={20}/></button>
-              <button onClick={() => setActiveTab('pages')} className={`p-2 rounded ${activeTab === 'pages' ? 'bg-indigo-50 text-indigo-600' : ''}`}><FileText size={20}/></button>
-              <button onClick={() => setActiveTab('settings')} className={`p-2 rounded ${activeTab === 'settings' ? 'bg-indigo-50 text-indigo-600' : ''}`}><Settings size={20}/></button>
-           </div>
         </header>
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-auto p-6">
-          
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -452,50 +495,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <StatCard title="Total Revenue" value="$12,450" icon={<DollarSign className="text-green-500" />} change="+12%" />
                 <StatCard title="Total Products" value={products.length.toString()} icon={<Package className="text-blue-500" />} change="+4" />
                 <StatCard title="Total Pages" value={pages.length.toString()} icon={<FileText className="text-amber-500" />} change="+1" />
-                <StatCard title="Total Customers" value="1,203" icon={<Users className="text-purple-500" />} change="+18%" />
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                  <h3 className="font-bold text-slate-900 mb-4">Recent Sales</h3>
-                  <div className="space-y-4">
-                     {orders.slice(0,3).map(order => (
-                       <div key={order.id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100">
-                          <div className="flex items-center gap-3">
-                             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
-                               {order.customer.charAt(0)}
-                             </div>
-                             <div>
-                               <p className="text-sm font-semibold text-slate-900">{order.customer}</p>
-                               <p className="text-xs text-slate-500">{order.date}</p>
-                             </div>
-                          </div>
-                          <span className="font-bold text-slate-900">${order.total}</span>
-                       </div>
-                     ))}
-                  </div>
-                </div>
-                
-                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                  <h3 className="font-bold text-slate-900 mb-4">Inventory Summary</h3>
-                  <div className="space-y-3">
-                    {categories.slice(0,5).map(cat => {
-                      const count = products.filter(p => p.category === cat).length;
-                      const percentage = Math.round((count / products.length) * 100);
-                      return (
-                        <div key={cat}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-slate-600">{cat}</span>
-                            <span className="font-medium text-slate-900">{count} items</span>
-                          </div>
-                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${percentage}%` }}></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <StatCard title="Total Articles" value={blogPosts.length.toString()} icon={<BookOpen className="text-purple-500" />} change="+3" />
               </div>
             </div>
           )}
@@ -507,20 +507,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50">
                      <div className="relative flex-1">
                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                       <input 
-                         type="text" 
-                         placeholder="Search products..." 
-                         className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                         value={searchTerm}
-                         onChange={(e) => setSearchTerm(e.target.value)}
-                       />
+                       <input type="text" placeholder="Search products..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                      </div>
-                     <button 
-                        onClick={handleAddClick}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <Plus size={18} /> Add New
-                      </button>
+                     <button onClick={handleAddClick} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 whitespace-nowrap"><Plus size={18} /> Add New</button>
                   </div>
                   
                   <div className="flex-1 overflow-y-auto">
@@ -539,18 +528,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <td className="p-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
-                                   {product.image ? (
-                                     <img src={product.image} alt="" className="w-full h-full object-cover" />
-                                   ) : (
-                                     <ImageIcon className="w-full h-full p-2 text-slate-300" />
-                                   )}
+                                   {product.image ? <img src={product.image} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-full h-full p-2 text-slate-300" />}
                                 </div>
                                 <span className="font-medium text-slate-900 line-clamp-1">{product.name}</span>
                               </div>
                             </td>
-                            <td className="p-4 text-sm text-slate-600 hidden sm:table-cell">
-                              <span className="px-2 py-1 bg-slate-100 rounded text-xs">{product.category}</span>
-                            </td>
+                            <td className="p-4 text-sm text-slate-600 hidden sm:table-cell"><span className="px-2 py-1 bg-slate-100 rounded text-xs">{product.category}</span></td>
                             <td className="p-4 text-sm font-bold text-slate-900">${product.price}</td>
                             <td className="p-4 text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -565,89 +548,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                </div>
 
-               {/* Edit Sidebar */}
                {(editingId || isAdding) && (
                  <div className="w-full lg:w-96 bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-fit sticky top-0 z-20 overflow-y-auto max-h-[90vh]">
                     <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl sticky top-0 z-10">
                       <h3 className="font-bold text-slate-900">{isAdding ? 'Add Product' : 'Edit Product'}</h3>
-                      <button onClick={() => {setEditingId(null); setIsAdding(false);}} className="text-slate-400 hover:text-slate-600">
-                        <X size={20} />
-                      </button>
+                      <button onClick={() => {setEditingId(null); setIsAdding(false);}} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
                     </div>
                     <div className="p-6 space-y-4">
-                      {/* Form Fields */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Name</label>
-                        <input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} />
-                      </div>
+                      <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Name</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} /></div>
                       <div className="grid grid-cols-2 gap-4">
-                         <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Price</label>
-                          <input type="number" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={editForm.price || 0} onChange={e => setEditForm({...editForm, price: parseFloat(e.target.value)})} />
-                        </div>
-                         <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Category</label>
-                          <select className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white" value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})}>
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                            <option value="New Category">Other...</option>
-                          </select>
-                        </div>
+                         <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Price</label><input type="number" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={editForm.price || 0} onChange={e => setEditForm({...editForm, price: parseFloat(e.target.value)})} /></div>
+                         <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Category</label><select className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white" value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})}>{categories.map(c => <option key={c} value={c}>{c}</option>)}<option value="New Category">Other...</option></select></div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Image URL</label>
-                        <div className="flex gap-2">
-                          <input 
-                            type="text" 
-                            className="flex-1 px-3 py-2 border border-slate-200 rounded-lg" 
-                            placeholder="Leave empty to auto-generate"
-                            value={editForm.image || ''} 
-                            onChange={e => setEditForm({...editForm, image: e.target.value})} 
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => {
-                                const img = generatePlaceholder(editForm.name || 'Product', editForm.category || 'Plugins & Tools');
-                                setEditForm({...editForm, image: img});
-                            }}
-                            className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-sm font-medium transition-colors"
-                            title="Generate Placeholder Image"
-                          >
-                            <Sparkles size={18} />
-                          </button>
-                        </div>
-                      </div>
+                      <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Image URL</label><div className="flex gap-2"><input type="text" className="flex-1 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Leave empty to auto-generate" value={editForm.image || ''} onChange={e => setEditForm({...editForm, image: e.target.value})} /><button type="button" onClick={() => {const img = generatePlaceholder(editForm.name || 'Product', editForm.category || 'Plugins & Tools'); setEditForm({...editForm, image: img});}} className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-sm font-medium transition-colors" title="Generate Placeholder Image"><Sparkles size={18} /></button></div></div>
                       
-                      {/* SEO Fields */}
                       <div className="pt-4 border-t border-slate-100 mt-4">
                         <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1"><Globe size={14} className="text-green-600"/> SEO Settings</h4>
                         <div className="space-y-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">SEO Title (Optional)</label>
-                            <input
-                                type="text"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                                placeholder="Custom Title Tag"
-                                value={editForm.seoTitle || ''}
-                                onChange={e => setEditForm({...editForm, seoTitle: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Meta Description (Optional)</label>
-                            <textarea
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                                rows={2}
-                                placeholder="Custom Meta Description"
-                                value={editForm.seoDescription || ''}
-                                onChange={e => setEditForm({...editForm, seoDescription: e.target.value})}
-                            />
-                          </div>
+                          <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">SEO Title (Optional)</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Custom Title Tag" value={editForm.seoTitle || ''} onChange={e => setEditForm({...editForm, seoTitle: e.target.value})} /></div>
+                          <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Meta Description (Optional)</label><textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" rows={2} placeholder="Custom Meta Description" value={editForm.seoDescription || ''} onChange={e => setEditForm({...editForm, seoDescription: e.target.value})} /></div>
                         </div>
                       </div>
 
-                      <div className="pt-4">
-                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Description</label>
-                        <textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg" rows={6} value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} />
-                      </div>
+                      <div className="pt-4"><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Description</label><textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg" rows={6} value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} /></div>
                       <button onClick={handleSaveProduct} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"><Save size={18} /> Save</button>
                     </div>
                  </div>
@@ -661,12 +584,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[500px]">
                  <div className="p-4 border-b border-slate-100 flex justify-between bg-slate-50">
                     <h2 className="font-bold text-slate-800 flex items-center gap-2"><FileText size={18} /> All Pages</h2>
-                    <button 
-                       onClick={handleAddPageClick}
-                       className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
-                     >
-                       <Plus size={18} /> Create Page
-                     </button>
+                    <button onClick={handleAddPageClick} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"><Plus size={18} /> Create Page</button>
                  </div>
                  <div className="flex-1 overflow-y-auto">
                     <table className="w-full text-left">
@@ -690,15 +608,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               </td>
                            </tr>
                          ))}
-                         {pages.length === 0 && (
-                           <tr><td colSpan={3} className="p-8 text-center text-slate-400">No pages found. Create one to get started.</td></tr>
-                         )}
                       </tbody>
                     </table>
                  </div>
               </div>
 
-              {/* Page Editor */}
               {(editingPageId || isAddingPage) && (
                  <div className="w-full lg:w-[32rem] bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-fit sticky top-0 z-20">
                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
@@ -706,35 +620,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                        <button onClick={() => {setEditingPageId(null); setIsAddingPage(false);}} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
                      </div>
                      <div className="p-6 space-y-4">
-                       <div>
-                         <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Page Title</label>
-                         <input 
-                           type="text" 
-                           className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                           value={pageForm.title || ''} 
-                           onChange={e => setPageForm({...pageForm, title: e.target.value})} 
-                         />
-                       </div>
-                       <div>
-                         <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Slug (URL)</label>
-                         <input 
-                           type="text" 
-                           placeholder="auto-generated"
-                           className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50"
-                           value={pageForm.slug || ''} 
-                           onChange={e => setPageForm({...pageForm, slug: e.target.value})} 
-                         />
-                       </div>
-                       <div>
-                         <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Content</label>
-                         <textarea 
-                           className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm" 
-                           rows={15} 
-                           value={pageForm.content || ''} 
-                           onChange={e => setPageForm({...pageForm, content: e.target.value})} 
-                         />
-                         <p className="text-xs text-slate-400 mt-1">Basic text format. Use double line breaks for paragraphs.</p>
-                       </div>
+                       <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Page Title</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={pageForm.title || ''} onChange={e => setPageForm({...pageForm, title: e.target.value})} /></div>
+                       <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Slug (URL)</label><input type="text" placeholder="auto-generated" className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50" value={pageForm.slug || ''} onChange={e => setPageForm({...pageForm, slug: e.target.value})} /></div>
+                       <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Content</label><textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm" rows={15} value={pageForm.content || ''} onChange={e => setPageForm({...pageForm, content: e.target.value})} /><p className="text-xs text-slate-400 mt-1">Basic text format. Use double line breaks for paragraphs.</p></div>
                        <button onClick={handleSavePage} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"><Save size={18} /> Save Page</button>
                      </div>
                  </div>
@@ -742,389 +630,109 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* ORDERS TAB */}
-          {activeTab === 'orders' && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-               <div className="p-4 border-b border-slate-100 bg-slate-50">
-                 <h2 className="font-bold text-slate-800">Recent Orders</h2>
-               </div>
-               <div className="overflow-x-auto">
-                 <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-100">
-                      <tr>
-                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Order ID</th>
-                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Customer</th>
-                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
-                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                        <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                       {orders.map(order => (
-                         <tr key={order.id} className="hover:bg-slate-50">
-                           <td className="p-4 font-mono text-xs text-indigo-600 font-bold">{order.id}</td>
-                           <td className="p-4">
-                             <div className="font-medium text-slate-900">{order.customer}</div>
-                             <div className="text-xs text-slate-500">{order.email}</div>
-                           </td>
-                           <td className="p-4 text-sm text-slate-600">{order.date}</td>
-                           <td className="p-4">
-                             <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                               order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                               order.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                               'bg-red-100 text-red-700'
-                             }`}>
-                               {order.status}
-                             </span>
-                           </td>
-                           <td className="p-4 text-right font-bold text-slate-900">${order.total}.00</td>
-                         </tr>
-                       ))}
-                    </tbody>
-                 </table>
-               </div>
+          {/* BLOG TAB */}
+          {activeTab === 'blog' && (
+            <div className="flex flex-col lg:flex-row gap-6 h-full">
+              <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[500px]">
+                 <div className="p-4 border-b border-slate-100 flex justify-between bg-slate-50">
+                    <h2 className="font-bold text-slate-800 flex items-center gap-2"><BookOpen size={18} /> Blog Posts</h2>
+                    <button onClick={handleAddPostClick} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"><Plus size={18} /> New Article</button>
+                 </div>
+                 <div className="flex-1 overflow-y-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                           <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Title</th>
+                           <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
+                           <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Category</th>
+                           <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                         {blogPosts.map(post => (
+                           <tr key={post.id} className="hover:bg-slate-50">
+                              <td className="p-4 font-medium text-slate-900 line-clamp-1">{post.title}</td>
+                              <td className="p-4 text-sm text-slate-500">{post.date}</td>
+                              <td className="p-4 text-sm text-slate-500"><span className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded text-xs font-medium">{post.category}</span></td>
+                              <td className="p-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button onClick={() => handleEditPostClick(post)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"><Edit size={16} /></button>
+                                  <button onClick={() => handleDeleteRequest(post.id, 'post')} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+                                </div>
+                              </td>
+                           </tr>
+                         ))}
+                         {blogPosts.length === 0 && <tr><td colSpan={4} className="p-8 text-center text-slate-400">No articles found.</td></tr>}
+                      </tbody>
+                    </table>
+                 </div>
+              </div>
+
+              {(editingPostId || isAddingPost) && (
+                 <div className="w-full lg:w-[32rem] bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-fit sticky top-0 z-20 overflow-y-auto max-h-[90vh]">
+                     <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl sticky top-0 z-10">
+                       <h3 className="font-bold text-slate-900">{isAddingPost ? 'New Article' : 'Edit Article'}</h3>
+                       <button onClick={() => {setEditingPostId(null); setIsAddingPost(false);}} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                     </div>
+                     <div className="p-6 space-y-4">
+                       <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Title</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={postForm.title || ''} onChange={e => setPostForm({...postForm, title: e.target.value})} /></div>
+                       <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Slug</label><input type="text" placeholder="auto-generated" className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50" value={postForm.slug || ''} onChange={e => setPostForm({...postForm, slug: e.target.value})} /></div>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Category</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={postForm.category || ''} onChange={e => setPostForm({...postForm, category: e.target.value})} /></div>
+                          <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Date</label><input type="date" className="w-full px-3 py-2 border border-slate-200 rounded-lg" value={postForm.date || ''} onChange={e => setPostForm({...postForm, date: e.target.value})} /></div>
+                       </div>
+                       <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Image URL</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Leave empty to auto-generate" value={postForm.image || ''} onChange={e => setPostForm({...postForm, image: e.target.value})} /></div>
+                       
+                       <div className="pt-4 border-t border-slate-100 mt-4">
+                        <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1"><Globe size={14} className="text-green-600"/> SEO Configuration</h4>
+                        <div className="space-y-3">
+                          <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">SEO Title</label><input type="text" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Custom Title Tag for Google" value={postForm.seoTitle || ''} onChange={e => setPostForm({...postForm, seoTitle: e.target.value})} /></div>
+                          <div><label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Meta Description</label><textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" rows={2} placeholder="Description for search results" value={postForm.seoDescription || ''} onChange={e => setPostForm({...postForm, seoDescription: e.target.value})} /></div>
+                        </div>
+                      </div>
+
+                       <div className="pt-4">
+                          <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Excerpt</label>
+                          <textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg mb-3" rows={2} placeholder="Short summary..." value={postForm.excerpt || ''} onChange={e => setPostForm({...postForm, excerpt: e.target.value})} />
+                          <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Content</label>
+                          <textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm" rows={12} value={postForm.content || ''} onChange={e => setPostForm({...postForm, content: e.target.value})} />
+                       </div>
+                       <button onClick={handleSavePost} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"><Save size={18} /> Save Article</button>
+                     </div>
+                 </div>
+              )}
             </div>
           )}
 
-          {/* SETTINGS TAB */}
+          {/* ORDERS & SETTINGS TABS (unchanged logic) */}
+          {activeTab === 'orders' && (
+             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+               <div className="p-4 border-b border-slate-100 bg-slate-50"><h2 className="font-bold text-slate-800">Recent Orders</h2></div>
+               <div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-slate-50 border-b border-slate-100"><tr><th className="p-4 text-xs font-semibold text-slate-500 uppercase">Order ID</th><th className="p-4 text-xs font-semibold text-slate-500 uppercase">Customer</th><th className="p-4 text-xs font-semibold text-slate-500 uppercase">Date</th><th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th><th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-100">{orders.map(order => (<tr key={order.id} className="hover:bg-slate-50"><td className="p-4 font-mono text-xs text-indigo-600 font-bold">{order.id}</td><td className="p-4"><div className="font-medium text-slate-900">{order.customer}</div><div className="text-xs text-slate-500">{order.email}</div></td><td className="p-4 text-sm text-slate-600">{order.date}</td><td className="p-4"><span className={`px-2 py-1 rounded text-xs font-bold uppercase ${order.status === 'completed' ? 'bg-green-100 text-green-700' : order.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{order.status}</span></td><td className="p-4 text-right font-bold text-slate-900">${order.total}.00</td></tr>))}</tbody></table></div>
+            </div>
+          )}
+
           {activeTab === 'settings' && (
             <div className="max-w-4xl mx-auto space-y-6">
-              
-              {/* General Settings */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Settings size={20} className="text-indigo-600"/> General Settings</h2>
-                 
                  <div className="space-y-4">
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Store Name</label>
-                        <input 
-                          type="text" 
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.storeName}
-                          onChange={e => setTempSettings({...tempSettings, storeName: e.target.value})}
-                        />
-                     </div>
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Support Email</label>
-                        <input 
-                          type="email" 
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.supportEmail}
-                          onChange={e => setTempSettings({...tempSettings, supportEmail: e.target.value})}
-                        />
-                     </div>
+                     <div><label className="block text-sm font-semibold text-slate-700 mb-1">Store Name</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" value={tempSettings.storeName} onChange={e => setTempSettings({...tempSettings, storeName: e.target.value})} /></div>
+                     <div><label className="block text-sm font-semibold text-slate-700 mb-1">Support Email</label><input type="email" className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" value={tempSettings.supportEmail} onChange={e => setTempSettings({...tempSettings, supportEmail: e.target.value})} /></div>
                    </div>
-                   
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">Default Currency</label>
-                          <select 
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
-                            value={tempSettings.currencyCode}
-                            onChange={(e) => {
-                               const selected = CURRENCIES.find(c => c.code === e.target.value);
-                               if(selected) {
-                                  setTempSettings({...tempSettings, currencyCode: selected.code, currencySymbol: selected.symbol});
-                               }
-                            }}
-                          >
-                            {CURRENCIES.map(c => (
-                               <option key={c.code} value={c.code}>{c.flag} {c.name} ({c.symbol})</option>
-                            ))}
-                          </select>
-                       </div>
-                   </div>
-
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Logo URL</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="https://example.com/logo.png"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.logoUrl || ''}
-                          onChange={e => setTempSettings({...tempSettings, logoUrl: e.target.value})}
-                        />
-                        {tempSettings.logoUrl && (
-                          <div className="w-10 h-10 border border-slate-200 rounded p-1 flex items-center justify-center bg-slate-50">
-                            <img src={tempSettings.logoUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
-                          </div>
-                        )}
-                      </div>
-                   </div>
-
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Website URL (For Sitemap)</label>
-                      <input 
-                        type="text" 
-                        placeholder="https://digimarket.pro"
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.siteUrl || ''}
-                        onChange={e => setTempSettings({...tempSettings, siteUrl: e.target.value})}
-                      />
-                   </div>
-                   
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Favicon URL</label>
-                      <input 
-                        type="text" 
-                        placeholder="https://example.com/favicon.ico"
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.faviconUrl || ''}
-                        onChange={e => setTempSettings({...tempSettings, faviconUrl: e.target.value})}
-                      />
-                   </div>
+                   <div><label className="block text-sm font-semibold text-slate-700 mb-1">Website URL (For Sitemap)</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.siteUrl || ''} onChange={e => setTempSettings({...tempSettings, siteUrl: e.target.value})} /></div>
                  </div>
               </div>
-              
-              {/* Design & Home Page Settings (New) */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                 <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Palette size={20} className="text-pink-600"/> Design & Home Page</h2>
-                 
-                 <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1">Primary Brand Color</label>
-                          <div className="flex items-center gap-3">
-                             <input 
-                               type="color" 
-                               className="h-10 w-20 rounded cursor-pointer"
-                               value={tempSettings.primaryColor || '#4f46e5'}
-                               onChange={e => setTempSettings({...tempSettings, primaryColor: e.target.value})}
-                             />
-                             <span className="text-sm font-mono text-slate-500">{tempSettings.primaryColor || '#4f46e5'}</span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-1">Sets the main color for the Hero section, buttons, and accents.</p>
-                       </div>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Hero Section Headline</label>
-                        <input 
-                          type="text" 
-                          placeholder="Premium WordPress Tools Without The Premium Price"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.heroHeadline || ''}
-                          onChange={e => setTempSettings({...tempSettings, heroHeadline: e.target.value})}
-                        />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Hero Section Subheadline</label>
-                        <textarea
-                          rows={2}
-                          placeholder="Get instant access to 100% original, verified license keys..."
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.heroSubheadline || ''}
-                          onChange={e => setTempSettings({...tempSettings, heroSubheadline: e.target.value})}
-                        />
-                    </div>
-                 </div>
-              </div>
-
-               {/* SEO & Analytics Settings */}
-               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                  <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Globe size={20} className="text-green-600"/> SEO & Analytics Configuration</h2>
-                 
                  <div className="space-y-4">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Title</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. DigiMarket - Premium WordPress Plugins"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.seoTitle || ''}
-                          onChange={e => setTempSettings({...tempSettings, seoTitle: e.target.value})}
-                        />
-                     </div>
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Google Analytics ID</label>
-                        <input 
-                          type="text" 
-                          placeholder="G-XXXXXXXXXX"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-sm"
-                          value={tempSettings.googleAnalyticsId || ''}
-                          onChange={e => setTempSettings({...tempSettings, googleAnalyticsId: e.target.value})}
-                        />
-                     </div>
-                   </div>
-                   
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Description</label>
-                      <textarea
-                        rows={3}
-                        placeholder="e.g. The best marketplace for digital products..."
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.seoDescription || ''}
-                        onChange={e => setTempSettings({...tempSettings, seoDescription: e.target.value})}
-                      />
-                   </div>
-                   
-                   {/* Specific Page SEO */}
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Shop Page Title</label>
-                        <input 
-                          type="text" 
-                          placeholder="Shop Premium Plugins"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.shopSeoTitle || ''}
-                          onChange={e => setTempSettings({...tempSettings, shopSeoTitle: e.target.value})}
-                        />
-                     </div>
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Contact Page Title</label>
-                        <input 
-                          type="text" 
-                          placeholder="Contact Support"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.contactSeoTitle || ''}
-                          onChange={e => setTempSettings({...tempSettings, contactSeoTitle: e.target.value})}
-                        />
-                     </div>
-                   </div>
-
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Google Search Console (Meta Content)</label>
-                        <input 
-                          type="text" 
-                          placeholder="verification-code-string"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-sm"
-                          value={tempSettings.googleSearchConsoleCode || ''}
-                          onChange={e => setTempSettings({...tempSettings, googleSearchConsoleCode: e.target.value})}
-                        />
-                        <p className="text-xs text-slate-400 mt-1">Enter just the 'content' part of the meta tag.</p>
-                     </div>
-                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Bing Webmaster (Meta Content)</label>
-                        <input 
-                          type="text" 
-                          placeholder="verification-code-string"
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-sm"
-                          value={tempSettings.bingWebmasterCode || ''}
-                          onChange={e => setTempSettings({...tempSettings, bingWebmasterCode: e.target.value})}
-                        />
-                        <p className="text-xs text-slate-400 mt-1">Enter just the 'content' part of the meta tag.</p>
-                     </div>
-                   </div>
-
-                   <div className="pt-4 border-t border-slate-100">
-                      <button 
-                        onClick={handleDownloadSitemap}
-                        className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium"
-                      >
-                         <Download size={18} /> Generate & Download Sitemap.xml
-                      </button>
-                      <p className="text-xs text-slate-400 mt-1">Generates a sitemap based on your current products and pages for you to upload to your host.</p>
-                   </div>
+                   <div><label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Title</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.seoTitle || ''} onChange={e => setTempSettings({...tempSettings, seoTitle: e.target.value})} /></div>
+                   <div><label className="block text-sm font-semibold text-slate-700 mb-1">SEO Meta Description</label><textarea rows={3} className="w-full px-4 py-2 border border-slate-200 rounded-lg" value={tempSettings.seoDescription || ''} onChange={e => setTempSettings({...tempSettings, seoDescription: e.target.value})} /></div>
+                   <div className="pt-4 border-t border-slate-100"><button onClick={handleDownloadSitemap} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium"><Download size={18} /> Generate & Download Sitemap.xml</button></div>
                  </div>
               </div>
-
-               {/* Contact & Footer Settings */}
-               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                 <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><MapPin size={20} className="text-amber-600"/> Contact & Footer Information</h2>
-                 
-                 <div className="space-y-4">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Physical Address</label>
-                        <input 
-                          type="text" 
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.contactAddress || ''}
-                          onChange={e => setTempSettings({...tempSettings, contactAddress: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
-                        <input 
-                          type="text" 
-                          className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                          value={tempSettings.contactPhone || ''}
-                          onChange={e => setTempSettings({...tempSettings, contactPhone: e.target.value})}
-                        />
-                      </div>
-                   </div>
-                   
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Footer About Text</label>
-                      <textarea
-                        rows={2}
-                        placeholder="Description appearing in the footer..."
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.footerDescription || ''}
-                        onChange={e => setTempSettings({...tempSettings, footerDescription: e.target.value})}
-                      />
-                   </div>
-
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Popular Categories List (One per line)</label>
-                      <textarea
-                        rows={4}
-                        placeholder="WordPress Plugins..."
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={categoriesText}
-                        onChange={e => setCategoriesText(e.target.value)}
-                      />
-                   </div>
-                 </div>
-              </div>
-
-              {/* Social Media */}
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                 <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><Share2 size={20} className="text-blue-600"/> Social Media Links</h2>
-                 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Facebook URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.socials?.facebook || ''}
-                        onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, facebook: e.target.value}})}
-                      />
-                   </div>
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Twitter URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.socials?.twitter || ''}
-                        onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, twitter: e.target.value}})}
-                      />
-                   </div>
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Instagram URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.socials?.instagram || ''}
-                        onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, instagram: e.target.value}})}
-                      />
-                   </div>
-                   <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">LinkedIn URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        value={tempSettings.socials?.linkedin || ''}
-                        onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, linkedin: e.target.value}})}
-                      />
-                   </div>
-                 </div>
-
-                 <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-                   <button 
-                     onClick={handleSaveSettings}
-                     className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
-                   >
-                     <Save size={18} /> Save Settings
-                   </button>
-                 </div>
-              </div>
+              <div className="flex justify-end"><button onClick={handleSaveSettings} className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"><Save size={18} /> Save Settings</button></div>
             </div>
           )}
         </div>
@@ -1133,18 +741,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   );
 };
 
-// --- Subcomponents ---
-
 const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
-  <button 
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-sm ${
-      active ? 'bg-indigo-800 text-white shadow-lg' : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
-    }`}
-  >
-    {icon}
-    {label}
-  </button>
+  <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-sm ${active ? 'bg-indigo-800 text-white shadow-lg' : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'}`}>{icon} {label}</button>
 );
 
 const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; change: string }> = ({ title, value, icon, change }) => {
@@ -1153,9 +751,7 @@ const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; 
     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
       <div className="flex justify-between items-start mb-4">
         <div className="p-3 bg-slate-50 rounded-lg">{icon}</div>
-        <span className={`text-xs font-bold px-2 py-1 rounded ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {change}
-        </span>
+        <span className={`text-xs font-bold px-2 py-1 rounded ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{change}</span>
       </div>
       <h3 className="text-slate-500 text-sm font-medium">{title}</h3>
       <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>

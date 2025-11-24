@@ -251,21 +251,24 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               <div className="flex gap-2">
                 <span className="font-bold text-slate-900 w-24">Share:</span> 
                 <div className="flex gap-2">
-                  <Facebook 
-                    size={16} 
-                    className="text-slate-400 hover:text-[#1877F2] cursor-pointer transition-colors hover:scale-110" 
+                  <button 
                     title="Share on Facebook"
-                  />
-                  <Twitter 
-                    size={16} 
-                    className="text-slate-400 hover:text-[#1DA1F2] cursor-pointer transition-colors hover:scale-110" 
+                    className="text-slate-400 hover:text-[#1877F2] cursor-pointer transition-colors hover:scale-110"
+                  >
+                    <Facebook size={16} />
+                  </button>
+                  <button 
                     title="Share on Twitter"
-                  />
-                  <Linkedin 
-                    size={16} 
-                    className="text-slate-400 hover:text-[#0077b5] cursor-pointer transition-colors hover:scale-110" 
+                    className="text-slate-400 hover:text-[#1DA1F2] cursor-pointer transition-colors hover:scale-110"
+                  >
+                    <Twitter size={16} />
+                  </button>
+                  <button 
                     title="Share on LinkedIn"
-                  />
+                    className="text-slate-400 hover:text-[#0077b5] cursor-pointer transition-colors hover:scale-110"
+                  >
+                    <Linkedin size={16} />
+                  </button>
                 </div>
               </div>
             </div>

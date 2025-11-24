@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Check, Tag, ImageOff, Heart } from 'lucide-react';
+import { Plus, Check, Tag, ImageOff, Heart, ShieldCheck } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductCardProps {
@@ -67,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
         
         {/* Category Badge Overlay */}
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md text-slate-800 text-xs font-bold shadow-sm flex items-center gap-1">
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md text-slate-800 text-xs font-bold shadow-sm flex items-center gap-1 z-10">
             <Tag size={12} className="text-indigo-600" />
             {product.category}
          </div>
@@ -86,8 +86,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
            </button>
          )}
 
+         {/* Verified License Badge */}
+         <div className="absolute bottom-3 left-3 bg-emerald-500/90 backdrop-blur-md text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-sm flex items-center gap-1 uppercase tracking-wide z-10">
+            <ShieldCheck size={12} strokeWidth={3} />
+            <span>Verified</span>
+         </div>
+
          {/* Price Badge Overlay */}
-         <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-md text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+         <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-md text-white px-3 py-1 rounded-full text-sm font-bold shadow-md z-10">
            {currencySymbol}{displayPrice}
          </div>
       </div>
