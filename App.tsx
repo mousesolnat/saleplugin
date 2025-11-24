@@ -15,7 +15,7 @@ import {
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
   ShoppingBag, Heart, User, Clock, CreditCard, AlertCircle, ChevronDown, 
-  ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock, Download
+  ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock, Download, UserPlus, Key
 } from 'lucide-react';
 
 const TESTIMONIALS = [
@@ -331,6 +331,8 @@ const App: React.FC = () => {
   
   // New Order State for Thank You Page
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+  // State to hold temporary credentials for new accounts created during checkout
+  const [newAccountDetails, setNewAccountDetails] = useState<{email: string, password: string} | null>(null);
 
   // Derived selected items
   const selectedProduct = useMemo(() => products.find(p => p.id === selectedProductId) || null, [products, selectedProductId]);
@@ -1079,6 +1081,34 @@ const App: React.FC = () => {
         <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Thank You!</h1>
         <p className="text-xl text-slate-600 mb-8">Your order has been placed successfully.</p>
         
+        {newAccountDetails && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-3xl p-8 mb-8 text-left max-w-lg mx-auto shadow-sm animate-fade-in-up">
+                <div className="flex items-start gap-4 mb-4">
+                    <div className="bg-indigo-600 p-2 rounded-lg text-white">
+                        <UserPlus size={24} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg text-indigo-900">Account Created Successfully</h3>
+                        <p className="text-sm text-indigo-700">We've automatically created an account for you to manage your downloads.</p>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-indigo-100 space-y-3">
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Email</p>
+                        <p className="font-bold text-slate-900">{newAccountDetails.email}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Temporary Password</p>
+                        <div className="flex items-center gap-2">
+                             <Key size={16} className="text-indigo-500" />
+                             <p className="font-mono font-bold text-slate-900 text-lg bg-slate-100 px-2 py-1 rounded border border-slate-200 select-all">{newAccountDetails.password}</p>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">A confirmation email has been sent. Please change this password after logging in.</p>
+                    </div>
+                </div>
+            </div>
+        )}
+
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-lg mb-8 text-left max-w-lg mx-auto relative overflow-hidden">
            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
@@ -1164,6 +1194,31 @@ const App: React.FC = () => {
               };
               setOrders(prev => [newOrder, ...prev]);
               setLastOrder(newOrder);
+
+              // CHECK AND CREATE ACCOUNT IF DOES NOT EXIST
+              const existingUser = users.find(u => u.email === form.email);
+              if (!existingUser) {
+                  const generatedPassword = Math.random().toString(36).slice(-8); // Generate 8 char random password
+                  const newUser: Customer = {
+                      id: `cust_${Date.now()}`,
+                      name: `${form.firstName} ${form.lastName}`,
+                      email: form.email,
+                      password: generatedPassword,
+                      joinDate: new Date().toISOString()
+                  };
+                  
+                  // Add to users list
+                  setUsers(prevUsers => [...prevUsers, newUser]);
+                  
+                  // Auto Login the new user
+                  setCurrentUser(newUser);
+
+                  // Set credentials to show on Thank You page
+                  setNewAccountDetails({ email: newUser.email, password: generatedPassword });
+              } else {
+                  setNewAccountDetails(null);
+              }
+
               setIsSubmitting(false); 
               setCartItems([]); 
               setCurrentView('thank-you'); 
