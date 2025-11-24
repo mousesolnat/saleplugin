@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Customer, Order } from '../types';
 import { User, Package, LogOut, ShoppingBag, MapPin, CreditCard, Settings, Download } from 'lucide-react';
@@ -9,14 +10,26 @@ interface CustomerDashboardProps {
 }
 
 export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, onLogout, currencySymbol = '$' }) => {
-  // Mock orders for demo
+  // Mock orders for demo if none passed (in real app, these would come from props/state)
   const mockOrders: Order[] = [
     { id: '#ORD-9921', customer: customer.name, email: customer.email, total: 45, status: 'completed', date: '2024-03-15', items: 2 },
-    { id: '#ORD-9925', customer: customer.name, email: customer.email, total: 20, status: 'completed', date: '2024-03-10', items: 1 }
+    { id: '#ORD-9925', customer: customer.name, email: customer.email, total: 20, status: 'processing', date: '2024-03-10', items: 1 }
   ];
 
+  const getStatusColor = (status: string) => {
+    switch(status) {
+        case 'completed': return 'bg-green-100 text-green-700';
+        case 'processing': return 'bg-blue-100 text-blue-700';
+        case 'pending': return 'bg-amber-100 text-amber-700';
+        case 'on-hold': return 'bg-orange-100 text-orange-700';
+        case 'cancelled': return 'bg-slate-100 text-slate-700';
+        case 'refunded': return 'bg-red-100 text-red-700';
+        default: return 'bg-slate-100 text-slate-700';
+    }
+  };
+
   return (
-    <div className="max-w-6xl mx-auto pb-12 animate-fade-in-up">
+    <div className="max-w-6xl mx-auto pb-12 animate-fade-in-up px-4 sm:px-6">
       <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">My Account</h1>
@@ -34,7 +47,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
-              <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold border-4 border-white shadow-sm">
                 {customer.name.charAt(0)}
               </div>
               <h2 className="font-bold text-slate-900 text-lg">{customer.name}</h2>
@@ -80,7 +93,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                         <td className="p-4 font-bold text-indigo-600">{order.id}</td>
                         <td className="p-4 text-sm text-slate-600">{order.date}</td>
                         <td className="p-4">
-                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold uppercase">
+                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${getStatusColor(order.status)}`}>
                             {order.status}
                           </span>
                         </td>

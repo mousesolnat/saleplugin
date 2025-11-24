@@ -37,7 +37,7 @@ export interface Order {
   customer: string;
   email: string;
   total: number;
-  status: 'completed' | 'pending' | 'refunded';
+  status: 'pending' | 'processing' | 'completed' | 'on-hold' | 'cancelled' | 'refunded';
   date: string;
   items: number;
 }
@@ -81,40 +81,74 @@ export interface Customer {
 
 export interface StoreSettings {
   storeName: string;
-  siteUrl: string; // New: Needed for Sitemap
+  siteUrl: string;
   supportEmail: string;
-  currencySymbol: string; // Base currency symbol (usually USD)
-  currencyCode: string;   // Base currency code
-  seoTitle: string;
-  seoDescription: string;
-  // SEO & Analytics Integration
-  googleAnalyticsId: string;
-  googleSearchConsoleCode: string; // The content of the meta tag
-  bingWebmasterCode: string; // The content of the meta tag
-  // Contact & Content
   contactAddress: string;
   contactPhone: string;
   footerDescription: string;
   logoUrl?: string;
-  popularCategories: string[];
+  faviconUrl?: string;
+  
+  // Design & Branding
+  design: {
+    primaryColor: string;
+    heroHeadline: string;
+    heroSubheadline: string;
+    fontFamily: string;
+    borderRadius: string;
+  };
+
+  // Payment Configuration
+  payment: {
+    currencySymbol: string;
+    currencyCode: string;
+    stripeEnabled: boolean;
+    stripePublishableKey: string;
+    stripeSecretKey: string;
+    paypalEnabled: boolean;
+    paypalClientId: string;
+    paypalSecret: string;
+    testMode: boolean;
+  };
+
+  // Checkout Configuration
+  checkout: {
+    guestCheckout: boolean;
+    requirePhone: boolean;
+    enableCoupons: boolean;
+    termsUrl: string;
+    privacyUrl: string;
+  };
+
+  // SEO & Analytics
+  seo: {
+    title: string;
+    description: string;
+    googleAnalyticsId: string;
+    googleSearchConsoleCode: string;
+    bingWebmasterCode: string;
+    shopTitle?: string;
+    shopDescription?: string;
+    contactTitle?: string;
+    contactDescription?: string;
+  };
+
+  // Social Media
   socials: {
     facebook: string;
     twitter: string;
     instagram: string;
     linkedin: string;
+    youtube: string;
   };
-  // Design & Home Page Config
-  primaryColor?: string;
-  heroHeadline?: string;
-  heroSubheadline?: string;
-  
+
+  // Categorization
+  popularCategories: string[];
+
   // AI Config
   aiSystemInstruction?: string;
   aiApiKey?: string;
-  // Page Specific SEO
-  shopSeoTitle?: string;
-  shopSeoDescription?: string;
-  contactSeoTitle?: string;
-  contactSeoDescription?: string;
-  faviconUrl?: string;
+  
+  // Admin Security
+  adminPassword?: string;
 }

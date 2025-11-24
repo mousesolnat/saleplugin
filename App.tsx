@@ -9,7 +9,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
-import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost } from './types';
+import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order } from './types';
 import { 
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
@@ -72,9 +72,9 @@ const FAQSection = () => {
         <p className="text-slate-500 mt-4 text-lg">Everything you need to know before you buy.</p>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden max-w-5xl mx-auto">
+      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden max-w-5xl mx-auto">
         {/* Tabs */}
-        <div className="flex flex-col sm:flex-row border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row border-b border-slate-200">
           {(Object.keys(FAQ_DATA) as Array<keyof typeof FAQ_DATA>).map((tab) => (
             <button
               key={tab}
@@ -82,7 +82,7 @@ const FAQSection = () => {
               className={`flex-1 py-5 px-6 text-sm font-bold tracking-wide transition-all ${
                 activeTab === tab
                   ? 'bg-indigo-600 text-white shadow-inner'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border-r border-slate-100 last:border-0'
               }`}
             >
               {tab}
@@ -98,8 +98,8 @@ const FAQSection = () => {
                 key={index} 
                 className={`border rounded-xl overflow-hidden transition-all duration-300 ${
                   openIndex === index 
-                    ? 'border-indigo-200 shadow-md ring-1 ring-indigo-50 bg-indigo-50/10' 
-                    : 'border-slate-100 hover:border-slate-200'
+                    ? 'border-indigo-200 shadow-md ring-1 ring-indigo-50 bg-white' 
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
                 <button
@@ -178,6 +178,12 @@ const DEFAULT_BLOG_POSTS: BlogPost[] = [
   }
 ];
 
+const MOCK_ORDERS: Order[] = [
+    { id: '#ORD-7829', customer: 'Alex Johnson', email: 'alex@example.com', total: 65, status: 'completed', date: '2024-03-10', items: 3 },
+    { id: '#ORD-7830', customer: 'Sarah Smith', email: 'sarah@design.co', total: 20, status: 'completed', date: '2024-03-11', items: 1 },
+    { id: '#ORD-7831', customer: 'Mike Brown', email: 'mike@agency.net', total: 125, status: 'pending', date: '2024-03-12', items: 5 },
+];
+
 const ITEMS_PER_PAGE = 30;
 
 const App: React.FC = () => {
@@ -197,6 +203,12 @@ const App: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => {
     const saved = localStorage.getItem('digimarket_posts');
     return saved ? JSON.parse(saved) : DEFAULT_BLOG_POSTS;
+  });
+
+  // Orders State
+  const [orders, setOrders] = useState<Order[]>(() => {
+      const saved = localStorage.getItem('digimarket_orders');
+      return saved ? JSON.parse(saved) : MOCK_ORDERS;
   });
 
   // Wishlist State
@@ -223,28 +235,69 @@ const App: React.FC = () => {
       storeName: STORE_NAME,
       siteUrl: 'https://digimarket.pro',
       supportEmail: 'support@digimarket.pro',
-      currencySymbol: '$',
-      currencyCode: 'USD',
-      seoTitle: 'DigiMarket Pro - Premium WordPress Tools',
-      seoDescription: 'The best marketplace for WordPress plugins, themes, and builder integrations. Instant delivery and verified licenses.',
-      googleAnalyticsId: '',
-      googleSearchConsoleCode: '',
-      bingWebmasterCode: '',
       contactAddress: '123 Digital Avenue, Tech City, Cloud State, 90210',
       contactPhone: '+1 (555) 123-4567',
       footerDescription: 'The #1 marketplace for premium digital products, plugins, and themes. Instant delivery and verified quality.',
+      
+      design: {
+        primaryColor: '#4f46e5',
+        heroHeadline: 'Premium WordPress Tools Without The Premium Price',
+        heroSubheadline: "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly.",
+        fontFamily: 'Inter',
+        borderRadius: 'xl'
+      },
+
+      payment: {
+        currencySymbol: '$',
+        currencyCode: 'USD',
+        stripeEnabled: true,
+        stripePublishableKey: '',
+        stripeSecretKey: '',
+        paypalEnabled: true,
+        paypalClientId: '',
+        paypalSecret: '',
+        testMode: true
+      },
+
+      checkout: {
+        guestCheckout: true,
+        requirePhone: true,
+        enableCoupons: true,
+        termsUrl: '/page/terms-of-service',
+        privacyUrl: '/page/privacy-policy'
+      },
+
+      seo: {
+        title: 'DigiMarket Pro - Premium WordPress Tools',
+        description: 'The best marketplace for WordPress plugins, themes, and builder integrations. Instant delivery and verified licenses.',
+        googleAnalyticsId: '',
+        googleSearchConsoleCode: '',
+        bingWebmasterCode: '',
+      },
+      
       popularCategories: ['WordPress Plugins', 'Page Builders', 'SEO Tools', 'eCommerce'],
+      
       socials: {
         facebook: 'https://facebook.com',
         twitter: 'https://twitter.com',
         instagram: 'https://instagram.com',
-        linkedin: 'https://linkedin.com'
+        linkedin: 'https://linkedin.com',
+        youtube: ''
       },
-      primaryColor: '#4f46e5',
-      heroHeadline: 'Premium WordPress Tools Without The Premium Price',
-      heroSubheadline: 'Get instant access to 100% original, verified license keys for the world\'s best plugins and themes. Secure, affordable, and developer-friendly.'
+      
+      adminPassword: 'admin'
     };
-    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+    
+    // Migration helper: check if saved settings have old structure and merge correctly
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // If payment object is missing (old structure), merge default payment
+      if (!parsed.payment) {
+        return { ...defaultSettings, ...parsed, payment: defaultSettings.payment, checkout: defaultSettings.checkout, design: { ...defaultSettings.design, heroHeadline: parsed.heroHeadline || defaultSettings.design.heroHeadline, primaryColor: parsed.primaryColor || defaultSettings.design.primaryColor }, seo: { ...defaultSettings.seo, title: parsed.seoTitle || defaultSettings.seo.title, description: parsed.seoDescription || defaultSettings.seo.description } };
+      }
+      return { ...defaultSettings, ...parsed };
+    }
+    return defaultSettings;
   });
 
   // Selected Currency for User View
@@ -278,6 +331,7 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('digimarket_products', JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem('digimarket_pages', JSON.stringify(pages)); }, [pages]);
   useEffect(() => { localStorage.setItem('digimarket_posts', JSON.stringify(blogPosts)); }, [blogPosts]);
+  useEffect(() => { localStorage.setItem('digimarket_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('digimarket_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
   useEffect(() => { localStorage.setItem('digimarket_history', JSON.stringify(recentlyViewed)); }, [recentlyViewed]);
   useEffect(() => { localStorage.setItem('digimarket_users', JSON.stringify(users)); }, [users]);
@@ -291,13 +345,13 @@ const App: React.FC = () => {
     localStorage.setItem('digimarket_settings', JSON.stringify(storeSettings));
     
     // 1. Manage Title & Description
-    let title = storeSettings.seoTitle || storeSettings.storeName;
-    let description = storeSettings.seoDescription;
+    let title = storeSettings.seo.title || storeSettings.storeName;
+    let description = storeSettings.seo.description;
 
     if (currentView === 'shop') {
-      title = storeSettings.shopSeoTitle || `Shop | ${storeSettings.storeName}`;
+      title = storeSettings.seo.shopTitle || `Shop | ${storeSettings.storeName}`;
     } else if (currentView === 'contact') {
-      title = storeSettings.contactSeoTitle || `Contact | ${storeSettings.storeName}`;
+      title = storeSettings.seo.contactTitle || `Contact | ${storeSettings.storeName}`;
     } else if (currentView === 'about') {
       title = `About Us | ${storeSettings.storeName}`;
     } else if (currentView === 'blog') {
@@ -307,7 +361,7 @@ const App: React.FC = () => {
       description = selectedPost.seoDescription || selectedPost.excerpt || description;
     } else if (currentView === 'product' && selectedProduct) {
        title = selectedProduct.seoTitle || `${selectedProduct.name} | ${storeSettings.storeName}`;
-       description = selectedProduct.seoDescription || selectedProduct.description?.substring(0, 160) || storeSettings.seoDescription;
+       description = selectedProduct.seoDescription || selectedProduct.description?.substring(0, 160) || description;
     } else if (currentView === 'page' && selectedPage) {
        title = `${selectedPage.title} | ${storeSettings.storeName}`;
     }
@@ -324,26 +378,26 @@ const App: React.FC = () => {
 
     // 2. Manage Google Verification
     let googleMeta = document.querySelector('meta[name="google-site-verification"]');
-    if (storeSettings.googleSearchConsoleCode) {
+    if (storeSettings.seo.googleSearchConsoleCode) {
       if (!googleMeta) {
         googleMeta = document.createElement('meta');
         googleMeta.setAttribute('name', 'google-site-verification');
         document.head.appendChild(googleMeta);
       }
-      googleMeta.setAttribute('content', storeSettings.googleSearchConsoleCode);
+      googleMeta.setAttribute('content', storeSettings.seo.googleSearchConsoleCode);
     } else if (googleMeta) {
       googleMeta.remove();
     }
 
     // 3. Manage Bing Verification
     let bingMeta = document.querySelector('meta[name="msvalidate.01"]');
-    if (storeSettings.bingWebmasterCode) {
+    if (storeSettings.seo.bingWebmasterCode) {
       if (!bingMeta) {
         bingMeta = document.createElement('meta');
         bingMeta.setAttribute('name', 'msvalidate.01');
         document.head.appendChild(bingMeta);
       }
-      bingMeta.setAttribute('content', storeSettings.bingWebmasterCode);
+      bingMeta.setAttribute('content', storeSettings.seo.bingWebmasterCode);
     } else if (bingMeta) {
       bingMeta.remove();
     }
@@ -413,6 +467,10 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleUpdateOrder = (order: Order) => {
+      setOrders(prev => prev.map(o => o.id === order.id ? order : o));
+  };
+
   const handleViewProduct = (product: Product) => {
     setRecentlyViewed(prev => [product, ...prev.filter(p => p.id !== product.id)].slice(0, 4));
     setSelectedProductId(product.id);
@@ -434,8 +492,54 @@ const App: React.FC = () => {
 
   // Theme Generator
   const generateThemeStyles = () => {
-     const primary = storeSettings.primaryColor || '#4f46e5';
-     return <style>{`:root { --color-primary: ${primary}; }`}</style>;
+     const primary = storeSettings.design.primaryColor || '#4f46e5';
+     const font = storeSettings.design.fontFamily || 'Inter';
+     const radiusKey = storeSettings.design.borderRadius || 'xl';
+
+     const radiusMap: Record<string, string> = {
+        'none': '0px',
+        'sm': '0.25rem', // 4px
+        'md': '0.5rem',  // 8px
+        'lg': '0.75rem', // 12px
+        'xl': '1rem',    // 16px
+        '2xl': '1.5rem', // 24px
+        '3xl': '2rem'    // 32px
+     };
+     
+     // Default to 1rem (xl) if not found or if it's the legacy 'rounded-xl' string
+     let radiusVal = radiusMap[radiusKey];
+     if (!radiusVal) {
+        // handle legacy values like 'rounded-xl' by extracting suffix or defaulting
+        if (radiusKey.startsWith('rounded-')) {
+             const suffix = radiusKey.replace('rounded-', '');
+             radiusVal = radiusMap[suffix] || '1rem';
+        } else {
+             radiusVal = '1rem';
+        }
+     }
+
+     return (
+       <>
+         <link href={`https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700&display=swap`} rel="stylesheet" />
+         <style>{`
+           :root { 
+             --color-primary: ${primary}; 
+             --font-main: '${font}', sans-serif;
+             --radius-theme: ${radiusVal};
+           }
+           body { font-family: var(--font-main); }
+           
+           /* Override Tailwind Utilities for Global Theme Control */
+           .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl {
+             border-radius: var(--radius-theme) !important;
+           }
+           /* Adjust input/button specific radius if needed, but the utility overrides above should catch most */
+           button, input, select, textarea {
+             border-radius: var(--radius-theme);
+           }
+         `}</style>
+       </>
+     );
   };
 
   // --- Views ---
@@ -448,11 +552,11 @@ const App: React.FC = () => {
             <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-100 rounded-full blur-3xl animate-float-delayed"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-medium mb-8 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium mb-8 animate-fade-in-up">
             <Zap size={16} className="text-amber-500 fill-amber-500" /><span>Instant Digital Delivery</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 leading-tight">{storeSettings.heroHeadline || 'Premium WordPress Tools Without The Premium Price'}</h1>
-          <p className="max-w-2xl mx-auto text-lg text-slate-500 mb-10 animate-fade-in-up delay-200 leading-relaxed">{storeSettings.heroSubheadline || "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly."}</p>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 leading-tight">{storeSettings.design.heroHeadline || 'Premium WordPress Tools Without The Premium Price'}</h1>
+          <p className="max-w-2xl mx-auto text-lg text-slate-500 mb-10 animate-fade-in-up delay-200 leading-relaxed">{storeSettings.design.heroSubheadline || "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly."}</p>
           <div className="max-w-2xl mx-auto mb-10 animate-fade-in-up delay-200 relative z-20">
             <div className="relative group">
                <input type="text" placeholder="Search 5,000+ plugins & themes..." className="w-full bg-white border border-slate-200 text-slate-900 placeholder-slate-400 rounded-2xl py-4 pl-14 pr-4 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xl shadow-slate-200/50 transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && setCurrentView('shop')} />
@@ -591,9 +695,9 @@ const App: React.FC = () => {
 
   const AboutView = () => (
     <div className="animate-fade-in">
-       <div className="bg-slate-900 py-20 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">About {storeSettings.storeName}</h1>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto px-4">Empowering developers and agencies with premium tools at accessible prices.</p>
+       <div className="bg-white py-20 text-center border-b border-slate-200">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">About {storeSettings.storeName}</h1>
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto px-4">Empowering developers and agencies with premium tools at accessible prices.</p>
        </div>
        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
           <div className="prose prose-lg prose-slate mx-auto text-slate-600">
@@ -601,7 +705,7 @@ const App: React.FC = () => {
              <p>We understand the struggle of managing multiple licenses and skyrocketing costs. That's why we partner directly with developers and purchase agency licenses in bulk, passing the savings on to you.</p>
           </div>
 
-          <div className="bg-indigo-50 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 shadow-sm">
              <div className="flex-1">
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">Our Commitment to Quality</h3>
                 <ul className="space-y-3 text-slate-900 font-medium">
@@ -655,10 +759,10 @@ const App: React.FC = () => {
     if (!selectedPost) return <div>Post not found</div>;
     return (
        <div className="animate-fade-in">
-          <div className="bg-slate-900 text-white py-20">
+          <div className="bg-white text-slate-900 py-20 border-b border-slate-200">
              <div className="max-w-3xl mx-auto px-4 text-center">
                 <div className="inline-block mb-4">
-                   <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 text-xs font-bold uppercase tracking-wider border border-indigo-500/30">
+                   <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border border-indigo-100">
                       {selectedPost.category}
                    </span>
                 </div>
@@ -879,24 +983,24 @@ const App: React.FC = () => {
                                 <label className="text-sm font-bold text-slate-700">Your Name</label>
                                 <div className="relative">
                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input type="text" required className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="John Doe" value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} />
+                                    <input type="text" required className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="John Doe" value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input type="email" required className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="john@example.com" value={contactForm.email} onChange={e => setContactForm({...contactForm, email: e.target.value})} />
+                                    <input type="email" required className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="john@example.com" value={contactForm.email} onChange={e => setContactForm({...contactForm, email: e.target.value})} />
                                 </div>
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">Subject</label>
-                            <input type="text" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="How can we help?" value={contactForm.subject} onChange={e => setContactForm({...contactForm, subject: e.target.value})} />
+                            <input type="text" required className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none" placeholder="How can we help?" value={contactForm.subject} onChange={e => setContactForm({...contactForm, subject: e.target.value})} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700">Message</label>
-                            <textarea required rows={5} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none resize-none" placeholder="Tell us more about your inquiry..." value={contactForm.message} onChange={e => setContactForm({...contactForm, message: e.target.value})} />
+                            <textarea required rows={5} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none resize-none" placeholder="Tell us more about your inquiry..." value={contactForm.message} onChange={e => setContactForm({...contactForm, message: e.target.value})} />
                         </div>
                         <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
                             {isSubmitting ? 'Processing...' : <><Send size={18} /> Send Message</>}
@@ -926,7 +1030,7 @@ const App: React.FC = () => {
        if (!form.firstName) newErrors.firstName = "Required";
        if (!form.lastName) newErrors.lastName = "Required";
        if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Valid email required";
-       if (!form.phone) newErrors.phone = "Required";
+       if (storeSettings.checkout.requirePhone && !form.phone) newErrors.phone = "Required";
        if (!form.country) newErrors.country = "Required";
        if (!form.city) newErrors.city = "Required";
        if (!form.zip) newErrors.zip = "Required";
@@ -934,7 +1038,23 @@ const App: React.FC = () => {
 
        if (Object.keys(newErrors).length === 0) {
           setIsSubmitting(true);
-          setTimeout(() => { setIsSubmitting(false); setCartItems([]); setCurrentView('home'); alert('Order placed!'); }, 2000);
+          setTimeout(() => { 
+              // Create new order
+              const newOrder: Order = {
+                  id: `#ORD-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+                  customer: `${form.firstName} ${form.lastName}`,
+                  email: form.email,
+                  total: Number(total.toFixed(2)),
+                  status: 'pending',
+                  date: new Date().toISOString().split('T')[0],
+                  items: cartItems.reduce((acc, i) => acc + i.quantity, 0)
+              };
+              setOrders(prev => [newOrder, ...prev]);
+              setIsSubmitting(false); 
+              setCartItems([]); 
+              setCurrentView('home'); 
+              alert('Order placed successfully! You can track it in your account.'); 
+          }, 2000);
        } else {
           window.scrollTo({top: 0, behavior: 'smooth'});
        }
@@ -986,7 +1106,7 @@ const App: React.FC = () => {
                            <input type="email" className={getInputClass('email')} value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="john@example.com" />
                        </div>
                        <div>
-                           <label className="block text-sm font-bold mb-2 text-slate-700">Phone Number <span className="text-red-500">*</span></label>
+                           <label className="block text-sm font-bold mb-2 text-slate-700">Phone Number {storeSettings.checkout.requirePhone && <span className="text-red-500">*</span>}</label>
                            <input type="tel" className={getInputClass('phone')} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="+1 (555) 000-0000" />
                        </div>
                      </div>
@@ -1025,15 +1145,19 @@ const App: React.FC = () => {
                    <h2 className="text-xl font-bold mb-6 text-slate-900 flex items-center gap-2">
                       <CreditCard size={20} className="text-indigo-600"/> Payment Method
                    </h2>
-                   <div className="flex gap-4 mb-6">
-                       <div className="flex-1 p-4 border-2 border-indigo-600 bg-indigo-50 rounded-xl cursor-pointer flex items-center justify-center gap-2 relative">
-                           <div className="absolute top-2 right-2 text-indigo-600"><CheckCircle size={16} fill="currentColor" className="text-white" /></div>
-                           <CreditCard size={24} className="text-indigo-600" />
-                           <span className="font-bold text-indigo-900">Credit Card</span>
-                       </div>
-                       <div className="flex-1 p-4 border border-slate-200 hover:bg-slate-50 rounded-xl cursor-pointer flex items-center justify-center gap-2 grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all">
-                           <span className="font-bold text-slate-700 text-lg italic">PayPal</span>
-                       </div>
+                   <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                       {storeSettings.payment.stripeEnabled && (
+                         <div className="flex-1 p-4 border-2 border-indigo-600 bg-white rounded-xl cursor-pointer flex items-center justify-center gap-2 relative shadow-sm">
+                             <div className="absolute top-2 right-2 text-indigo-600"><CheckCircle size={16} fill="currentColor" className="text-white" /></div>
+                             <CreditCard size={24} className="text-indigo-600" />
+                             <span className="font-bold text-indigo-900">Credit Card</span>
+                         </div>
+                       )}
+                       {storeSettings.payment.paypalEnabled && (
+                         <div className="flex-1 p-4 border border-slate-200 hover:bg-slate-50 rounded-xl cursor-pointer flex items-center justify-center gap-2 grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all bg-white">
+                             <span className="font-bold text-slate-700 text-lg italic">PayPal</span>
+                         </div>
+                       )}
                    </div>
                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                        <div className="flex items-center gap-3 text-slate-500 text-sm">
@@ -1054,7 +1178,7 @@ const App: React.FC = () => {
                  <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                      {cartItems.map(item => (
                          <div key={item.id} className="flex gap-3 text-sm border-b border-slate-50 pb-3 last:border-0">
-                             <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                             <div className="w-12 h-12 bg-white rounded-lg overflow-hidden shrink-0 border border-slate-100">
                                 {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : null}
                              </div>
                              <div className="flex-1">
@@ -1106,7 +1230,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/50">
+    <div className="min-h-screen flex flex-col bg-white">
       {generateThemeStyles()}
       
       <Header 
@@ -1173,6 +1297,8 @@ const App: React.FC = () => {
             onAddPost={(p) => setBlogPosts([...blogPosts, p])}
             onUpdatePost={(p) => setBlogPosts(blogPosts.map(post => post.id === p.id ? p : post))}
             onDeletePost={(id) => setBlogPosts(blogPosts.filter(p => p.id !== id))}
+            orders={orders}
+            onUpdateOrder={handleUpdateOrder}
           />
         </div>
       )}
