@@ -42,6 +42,18 @@ export interface Order {
   items: number;
 }
 
+export interface SupportTicket {
+  id: string;
+  customerId: string;
+  customerName: string;
+  email: string;
+  subject: string;
+  message: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'open' | 'closed';
+  date: string;
+}
+
 export interface Page {
   id: string;
   title: string;

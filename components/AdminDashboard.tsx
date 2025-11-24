@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Product, StoreSettings, Order, Page, BlogPost, Review } from '../types';
+import { Product, StoreSettings, Order, Page, BlogPost, Review, SupportTicket } from '../types';
 import { CURRENCIES } from '../constants';
 import { 
   Plus, Edit, Trash2, X, Save, Search, Image as ImageIcon, 
@@ -8,7 +8,8 @@ import {
   Settings, TrendingUp, DollarSign, Users, ExternalLink, Globe, Share2,
   CheckCircle, AlertCircle, AlertTriangle, Sparkles, MapPin, FileText,
   BarChart, Download, Palette, LayoutTemplate, BookOpen, Calendar, PenTool,
-  CreditCard, Type, PaintBucket, MessageSquare, Star, Check, Shield, Anchor
+  CreditCard, Type, PaintBucket, MessageSquare, Star, Check, Shield, Anchor,
+  MessageCircle
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -32,9 +33,12 @@ interface AdminDashboardProps {
   // Orders Props
   orders: Order[];
   onUpdateOrder: (order: Order) => void;
+  // Tickets Props
+  tickets?: SupportTicket[];
+  onUpdateTicket?: (ticket: SupportTicket) => void;
 }
 
-type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'blog' | 'reviews' | 'settings';
+type Tab = 'overview' | 'products' | 'orders' | 'pages' | 'blog' | 'reviews' | 'support' | 'settings';
 type SettingsSubTab = 'general' | 'design' | 'payment' | 'checkout' | 'footer' | 'seo' | 'social' | 'security';
 
 // Helper to generate a nice placeholder image
@@ -95,7 +99,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   products, onAdd, onUpdate, onDelete, onClose, storeSettings, onUpdateSettings,
   pages, onAddPage, onUpdatePage, onDeletePage,
   blogPosts, onAddPost, onUpdatePost, onDeletePost,
-  orders, onUpdateOrder
+  orders, onUpdateOrder,
+  tickets = [], onUpdateTicket
 }) => {
   // Login State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -157,6 +162,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Calculate Notification Counts
   const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
   const pendingReviewsCount = allReviews.filter(r => r.status === 'pending').length;
+  const openTicketsCount = tickets.filter(t => t.status === 'open').length;
 
   // --- Helpers ---
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -542,6 +548,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <SidebarItem icon={<Package size={18} />} label="Products" active={activeTab === 'products'} onClick={() => setActiveTab('products')} />
           <SidebarItem icon={<ShoppingCart size={18} />} label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} badgeCount={pendingOrdersCount} />
           <SidebarItem icon={<MessageSquare size={18} />} label="Reviews" active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')} badgeCount={pendingReviewsCount} />
+          <SidebarItem icon={<MessageCircle size={18} />} label="Support" active={activeTab === 'support'} onClick={() => setActiveTab('support')} badgeCount={openTicketsCount} />
           <SidebarItem icon={<FileText size={18} />} label="Pages" active={activeTab === 'pages'} onClick={() => setActiveTab('pages')} />
           <SidebarItem icon={<BookOpen size={18} />} label="Blog" active={activeTab === 'blog'} onClick={() => setActiveTab('blog')} />
           <SidebarItem icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
@@ -701,6 +708,79 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                  </table>
                </div>
             </div>
+          )}
+
+          {/* SUPPORT TICKETS TAB */}
+          {activeTab === 'support' && (
+             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center">
+                   <h2 className="font-bold text-slate-900">Support Tickets</h2>
+                   <div className="text-xs text-slate-500">
+                      Showing all {tickets.length} tickets
+                   </div>
+                </div>
+                <div className="overflow-x-auto">
+                   <table className="w-full text-left">
+                      <thead className="bg-white border-b border-slate-200">
+                         <tr>
+                            <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Ticket ID</th>
+                            <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Customer</th>
+                            <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Subject</th>
+                            <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Priority</th>
+                            <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                            <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Action</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                         {tickets.map(ticket => (
+                            <tr key={ticket.id} className="hover:bg-slate-50">
+                               <td className="p-4 font-bold text-indigo-600">{ticket.id}</td>
+                               <td className="p-4">
+                                  <div className="font-medium text-slate-900">{ticket.customerName}</div>
+                                  <div className="text-xs text-slate-500">{ticket.email}</div>
+                               </td>
+                               <td className="p-4">
+                                  <div className="font-medium text-slate-900">{ticket.subject}</div>
+                                  <div className="text-xs text-slate-500 truncate max-w-xs">{ticket.message}</div>
+                               </td>
+                               <td className="p-4">
+                                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${ticket.priority === 'high' ? 'bg-red-100 text-red-700' : ticket.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                                     {ticket.priority}
+                                  </span>
+                               </td>
+                               <td className="p-4">
+                                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${ticket.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                                     {ticket.status}
+                                  </span>
+                               </td>
+                               <td className="p-4 text-right">
+                                  {ticket.status === 'open' ? (
+                                     <button 
+                                        onClick={() => onUpdateTicket && onUpdateTicket({...ticket, status: 'closed'})} 
+                                        className="text-xs font-bold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded border border-red-200 transition-colors"
+                                     >
+                                        Close Ticket
+                                     </button>
+                                  ) : (
+                                     <button 
+                                        onClick={() => onUpdateTicket && onUpdateTicket({...ticket, status: 'open'})} 
+                                        className="text-xs font-bold text-green-600 hover:bg-green-50 px-3 py-1.5 rounded border border-green-200 transition-colors"
+                                     >
+                                        Re-open
+                                     </button>
+                                  )}
+                               </td>
+                            </tr>
+                         ))}
+                         {tickets.length === 0 && (
+                            <tr>
+                               <td colSpan={6} className="p-8 text-center text-slate-400">No support tickets found.</td>
+                            </tr>
+                         )}
+                      </tbody>
+                   </table>
+                </div>
+             </div>
           )}
 
           {/* PAGES TAB */}

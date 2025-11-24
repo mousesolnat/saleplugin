@@ -9,7 +9,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
-import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order } from './types';
+import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket } from './types';
 import { 
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
@@ -211,6 +211,12 @@ const App: React.FC = () => {
       return saved ? JSON.parse(saved) : MOCK_ORDERS;
   });
 
+  // Tickets State
+  const [tickets, setTickets] = useState<SupportTicket[]>(() => {
+    const saved = localStorage.getItem('digimarket_tickets');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // Wishlist State
   const [wishlist, setWishlist] = useState<Product[]>(() => {
     const saved = localStorage.getItem('digimarket_wishlist');
@@ -332,6 +338,7 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('digimarket_pages', JSON.stringify(pages)); }, [pages]);
   useEffect(() => { localStorage.setItem('digimarket_posts', JSON.stringify(blogPosts)); }, [blogPosts]);
   useEffect(() => { localStorage.setItem('digimarket_orders', JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem('digimarket_tickets', JSON.stringify(tickets)); }, [tickets]);
   useEffect(() => { localStorage.setItem('digimarket_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
   useEffect(() => { localStorage.setItem('digimarket_history', JSON.stringify(recentlyViewed)); }, [recentlyViewed]);
   useEffect(() => { localStorage.setItem('digimarket_users', JSON.stringify(users)); }, [users]);
@@ -492,6 +499,21 @@ const App: React.FC = () => {
 
   const handleUpdateOrder = (order: Order) => {
       setOrders(prev => prev.map(o => o.id === order.id ? order : o));
+  };
+
+  // Ticket Handlers
+  const handleAddTicket = (ticketData: Omit<SupportTicket, 'id' | 'date' | 'status'>) => {
+      const newTicket: SupportTicket = {
+          id: `#TKT-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+          date: new Date().toISOString(),
+          status: 'open',
+          ...ticketData
+      };
+      setTickets(prev => [newTicket, ...prev]);
+  };
+
+  const handleUpdateTicket = (ticket: SupportTicket) => {
+      setTickets(prev => prev.map(t => t.id === ticket.id ? ticket : t));
   };
 
   const handleViewProduct = (product: Product) => {
@@ -1288,7 +1310,7 @@ const App: React.FC = () => {
         {currentView === 'wishlist' && <WishlistView />}
         {currentView === 'page' && <PageView />}
         {currentView === 'checkout' && <CheckoutView />}
-        {currentView === 'profile' && currentUser && <CustomerDashboard customer={currentUser} onLogout={handleLogout} currencySymbol={selectedCurrency.symbol} onUpdateProfile={handleUpdateProfile} />}
+        {currentView === 'profile' && currentUser && <CustomerDashboard customer={currentUser} onLogout={handleLogout} currencySymbol={selectedCurrency.symbol} onUpdateProfile={handleUpdateProfile} tickets={tickets} onOpenTicket={handleAddTicket} />}
         {currentView === 'product' && selectedProduct && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><ProductDetail product={selectedProduct} onAddToCart={addToCart} onBack={() => setCurrentView('shop')} isWishlisted={wishlist.some(p => p.id === selectedProduct.id)} onToggleWishlist={() => handleToggleWishlist(selectedProduct)} priceMultiplier={selectedCurrency.rate} currencySymbol={selectedCurrency.symbol} recentlyViewed={recentlyViewed} onViewHistoryItem={handleViewProduct} currentUser={currentUser} onAddReview={handleAddReview} /></div>}
       </main>
 
@@ -1333,6 +1355,8 @@ const App: React.FC = () => {
             onDeletePost={(id) => setBlogPosts(blogPosts.filter(p => p.id !== id))}
             orders={orders}
             onUpdateOrder={handleUpdateOrder}
+            tickets={tickets}
+            onUpdateTicket={handleUpdateTicket}
           />
         </div>
       )}

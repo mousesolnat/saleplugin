@@ -1,17 +1,19 @@
 
 import React, { useState } from 'react';
-import { Customer, Order } from '../types';
-import { User, Package, LogOut, ShoppingBag, MapPin, CreditCard, Settings, Download, Save, Lock, Mail } from 'lucide-react';
+import { Customer, Order, SupportTicket } from '../types';
+import { User, Package, LogOut, ShoppingBag, MapPin, CreditCard, Settings, Download, Save, Lock, Mail, MessageCircle, Plus, Send } from 'lucide-react';
 
 interface CustomerDashboardProps {
   customer: Customer;
   onLogout: () => void;
   currencySymbol?: string;
   onUpdateProfile?: (data: Partial<Customer>) => void;
+  tickets?: SupportTicket[];
+  onOpenTicket?: (ticket: Omit<SupportTicket, 'id' | 'date' | 'status'>) => void;
 }
 
-export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, onLogout, currencySymbol = '$', onUpdateProfile }) => {
-  const [activeTab, setActiveTab] = useState<'orders' | 'details'>('orders');
+export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, onLogout, currencySymbol = '$', onUpdateProfile, tickets = [], onOpenTicket }) => {
+  const [activeTab, setActiveTab] = useState<'orders' | 'details' | 'tickets'>('orders');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -21,9 +23,16 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
     newPassword: '',
     confirmPassword: ''
   });
+
+  // Ticket Form State
+  const [ticketForm, setTicketForm] = useState({ subject: '', message: '', priority: 'medium' as 'low' | 'medium' | 'high' });
+  const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
   
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  // Filter tickets for current customer
+  const myTickets = tickets.filter(t => t.customerId === customer.id);
 
   // Mock orders for demo if none passed (in real app, these would come from props/state)
   const mockOrders: Order[] = [
@@ -85,6 +94,28 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
       }, 1000);
   };
 
+  const handleSubmitTicket = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!ticketForm.subject || !ticketForm.message) return;
+      
+      setIsSubmittingTicket(true);
+      setTimeout(() => {
+          if (onOpenTicket) {
+              onOpenTicket({
+                  customerId: customer.id,
+                  customerName: customer.name,
+                  email: customer.email,
+                  subject: ticketForm.subject,
+                  message: ticketForm.message,
+                  priority: ticketForm.priority
+              });
+              setTicketForm({ subject: '', message: '', priority: 'medium' });
+              setMessage({ type: 'success', text: 'Ticket opened successfully!' });
+          }
+          setIsSubmittingTicket(false);
+      }, 1000);
+  };
+
   return (
     <div className="max-w-6xl mx-auto pb-12 animate-fade-in-up px-4 sm:px-6">
       <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
@@ -120,6 +151,12 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'orders' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white hover:shadow-sm'}`}
              >
                <Package size={20} /> Orders & Downloads
+             </button>
+             <button 
+                onClick={() => setActiveTab('tickets')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === 'tickets' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-slate-600 hover:bg-white hover:shadow-sm'}`}
+             >
+               <MessageCircle size={20} /> Support Tickets
              </button>
              <button 
                 onClick={() => setActiveTab('details')}
@@ -174,6 +211,75 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
                   </table>
                 </div>
              </div>
+           )}
+
+           {/* TICKETS VIEW */}
+           {activeTab === 'tickets' && (
+              <div className="space-y-8 animate-fade-in">
+                 {/* Create Ticket */}
+                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <div className="flex items-center gap-2 mb-4 text-slate-900 font-bold text-lg">
+                       <Plus className="bg-indigo-100 text-indigo-600 p-1 rounded-full" size={24} /> Open New Ticket
+                    </div>
+                    {message && message.type === 'success' && (
+                        <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm font-bold rounded-lg border border-green-100">
+                            {message.text}
+                        </div>
+                    )}
+                    <form onSubmit={handleSubmitTicket} className="space-y-4">
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="md:col-span-2">
+                             <label className="text-xs font-bold text-slate-500 uppercase">Subject</label>
+                             <input type="text" required className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Brief summary of issue" value={ticketForm.subject} onChange={e => setTicketForm({...ticketForm, subject: e.target.value})} />
+                          </div>
+                          <div>
+                             <label className="text-xs font-bold text-slate-500 uppercase">Priority</label>
+                             <select className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" value={ticketForm.priority} onChange={e => setTicketForm({...ticketForm, priority: e.target.value as any})}>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                             </select>
+                          </div>
+                       </div>
+                       <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase">Message</label>
+                          <textarea required rows={4} className="w-full mt-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Describe your issue in detail..." value={ticketForm.message} onChange={e => setTicketForm({...ticketForm, message: e.target.value})} />
+                       </div>
+                       <button type="submit" disabled={isSubmittingTicket} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-70">
+                          {isSubmittingTicket ? 'Sending...' : <><Send size={16}/> Submit Ticket</>}
+                       </button>
+                    </form>
+                 </div>
+
+                 {/* History */}
+                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50">
+                       <h3 className="font-bold text-slate-900 flex items-center gap-2"><MessageCircle size={20} className="text-indigo-600"/> Ticket History</h3>
+                    </div>
+                    {myTickets.length === 0 ? (
+                       <div className="p-8 text-center text-slate-500">You haven't opened any support tickets yet.</div>
+                    ) : (
+                       <div className="divide-y divide-slate-100">
+                          {myTickets.map(ticket => (
+                             <div key={ticket.id} className="p-6 hover:bg-slate-50 transition-colors">
+                                <div className="flex justify-between items-start mb-2">
+                                   <div>
+                                      <div className="flex items-center gap-3 mb-1">
+                                         <span className="font-bold text-slate-900">{ticket.id}</span>
+                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${ticket.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{ticket.status}</span>
+                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${ticket.priority === 'high' ? 'bg-red-100 text-red-700' : ticket.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>{ticket.priority}</span>
+                                      </div>
+                                      <h4 className="font-bold text-lg text-slate-800">{ticket.subject}</h4>
+                                   </div>
+                                   <span className="text-xs text-slate-500">{new Date(ticket.date).toLocaleDateString()}</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">{ticket.message}</p>
+                             </div>
+                          ))}
+                       </div>
+                    )}
+                 </div>
+              </div>
            )}
 
            {/* ACCOUNT DETAILS VIEW */}
