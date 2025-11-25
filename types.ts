@@ -1,5 +1,4 @@
 
-
 export interface Product {
   id: string;
   name: string;
@@ -10,6 +9,13 @@ export interface Product {
   seoTitle?: string;
   seoDescription?: string;
   reviews?: Review[];
+}
+
+export interface CategoryData {
+  id: string;
+  name: string;
+  icon?: string; // URL or Base64 string
+  slug: string;
 }
 
 export interface Review {
@@ -26,13 +32,6 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-  isThinking?: boolean;
-}
-
 export interface Order {
   id: string;
   customer: string;
@@ -41,6 +40,21 @@ export interface Order {
   status: 'pending' | 'processing' | 'completed' | 'on-hold' | 'cancelled' | 'refunded';
   date: string;
   items: number;
+  products?: CartItem[];
+  billingDetails?: {
+    address: string;
+    city: string;
+    country: string;
+    zip: string;
+    phone: string;
+  };
+}
+
+export interface TicketReply {
+  id: string;
+  sender: 'customer' | 'admin';
+  message: string;
+  date: string;
 }
 
 export interface SupportTicket {
@@ -51,9 +65,10 @@ export interface SupportTicket {
   subject: string;
   message: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'open' | 'closed';
+  status: 'open' | 'closed' | 'in-progress';
   date: string;
   image?: string;
+  replies?: TicketReply[];
 }
 
 export interface Page {
@@ -162,10 +177,6 @@ export interface StoreSettings {
 
   // Categorization
   popularCategories: string[];
-
-  // AI Config
-  aiSystemInstruction?: string;
-  aiApiKey?: string;
   
   // Admin Security
   adminPassword?: string;
