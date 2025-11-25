@@ -223,9 +223,46 @@ const DEFAULT_BLOG_POSTS: BlogPost[] = [
 ];
 
 const MOCK_ORDERS: Order[] = [
-    { id: '#ORD-7829', customer: 'Alex Johnson', email: 'alex@example.com', total: 65, status: 'completed', date: '2024-03-10', items: 3 },
-    { id: '#ORD-7830', customer: 'Sarah Smith', email: 'sarah@design.co', total: 20, status: 'completed', date: '2024-03-11', items: 1 },
-    { id: '#ORD-7831', customer: 'Mike Brown', email: 'mike@agency.net', total: 125, status: 'pending', date: '2024-03-12', items: 5 },
+    { 
+      id: '#ORD-7829', 
+      customer: 'Alex Johnson', 
+      email: 'alex@example.com', 
+      total: 65, 
+      status: 'completed', 
+      date: '2024-03-10', 
+      items: 3,
+      products: [
+        { id: 'prod_1', name: 'Elementor Pro', price: 20, category: 'Page Builders', quantity: 1 },
+        { id: 'prod_2', name: 'CartFlows', price: 45, category: 'eCommerce', quantity: 1 }
+      ],
+      billingDetails: { address: '123 Main St', city: 'New York', country: 'United States', zip: '10001', state: 'NY' }
+    },
+    { 
+      id: '#ORD-7830', 
+      customer: 'Sarah Smith', 
+      email: 'sarah@design.co', 
+      total: 20, 
+      status: 'completed', 
+      date: '2024-03-11', 
+      items: 1,
+      products: [
+        { id: 'prod_1', name: 'Elementor Pro', price: 20, category: 'Page Builders', quantity: 1 }
+      ],
+      billingDetails: { address: '456 Design Ave', city: 'San Francisco', country: 'United States', zip: '94103', state: 'CA' }
+    },
+    { 
+      id: '#ORD-7831', 
+      customer: 'Mike Brown', 
+      email: 'mike@agency.net', 
+      total: 125, 
+      status: 'pending', 
+      date: '2024-03-12', 
+      items: 5,
+      products: [
+        { id: 'prod_3', name: 'WP Rocket', price: 25, category: 'Performance', quantity: 5 }
+      ],
+      billingDetails: { address: '789 Tech Blvd', city: 'Austin', country: 'United States', zip: '73301', state: 'TX' }
+    },
 ];
 
 const ITEMS_PER_PAGE = 30;
@@ -595,7 +632,17 @@ const App: React.FC = () => {
         total: total,
         status: 'processing',
         date: new Date().toISOString().split('T')[0],
-        items: cartItems.length
+        items: cartItems.length,
+        // Added for Receipt functionality
+        products: [...cartItems],
+        billingDetails: {
+           address: orderDetails.address,
+           city: orderDetails.city,
+           country: orderDetails.country,
+           zip: orderDetails.zip,
+           state: orderDetails.state,
+           phone: orderDetails.phone
+        }
     };
     setOrders([newOrder, ...orders]);
     setLastOrder(newOrder);
@@ -686,7 +733,7 @@ const App: React.FC = () => {
              onUpdatePost={handleUpdatePost}
              onDeletePost={handleDeletePost}
              orders={orders}
-             onUpdateOrder={(order) => setOrders(prev => prev.map(o => o.id === order.id ? order : o))}
+             onUpdateOrder={(order: Order) => setOrders(prev => prev.map(o => o.id === order.id ? order : o))}
              tickets={tickets}
              onUpdateTicket={handleUpdateTicket}
              users={users}

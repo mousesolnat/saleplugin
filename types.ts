@@ -34,6 +34,16 @@ export interface Order {
   status: 'pending' | 'processing' | 'completed' | 'on-hold' | 'cancelled' | 'refunded';
   date: string;
   items: number;
+  // Added for Receipt functionality
+  products?: CartItem[];
+  billingDetails?: {
+    address: string;
+    city: string;
+    country: string;
+    zip: string;
+    state?: string;
+    phone?: string;
+  };
 }
 
 export interface TicketReply {
