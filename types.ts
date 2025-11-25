@@ -1,4 +1,5 @@
 
+
 export interface Product {
   id: string;
   name: string;
@@ -131,6 +132,10 @@ export interface StoreSettings {
     enableCoupons: boolean;
     termsUrl: string;
     privacyUrl: string;
+    checkoutTitle: string;
+    checkoutSubtitle: string;
+    thankYouTitle: string;
+    thankYouMessage: string;
   };
 
   // SEO & Analytics

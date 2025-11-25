@@ -68,11 +68,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             currentView === 'wishlist' ? 'bg-indigo-50 -translate-y-1' : 'bg-transparent'
           }`}>
             <Heart size={24} strokeWidth={currentView === 'wishlist' ? 2.5 : 2} className="transition-transform duration-300" />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-white animate-bounce shadow-sm">
-                {wishlistCount}
-              </span>
-            )}
+            <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-white shadow-sm">
+              {wishlistCount}
+            </span>
           </div>
           <span className={`text-[10px] transition-all duration-300 ${
             currentView === 'wishlist' ? 'font-extrabold scale-105' : 'font-medium'
@@ -83,20 +81,13 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
         <button
           onClick={onOpenCart}
-          className={`flex flex-col items-center gap-1 flex-1 p-1 transition-all duration-300 group ${
-             // Cart doesn't technically have a 'view' in the main area usually (it's a sidebar), 
-             // but we style it active if needed, or just keep it neutral. 
-             // Assuming cart might be overlay, keeping neutral unless specified.
-             false ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
-          }`}
+          className={`flex flex-col items-center gap-1 flex-1 p-1 transition-all duration-300 group text-slate-400 hover:text-slate-600`}
         >
           <div className="relative p-1.5 rounded-xl transition-all duration-300 group-active:scale-95">
             <ShoppingCart size={24} strokeWidth={2} className="transition-transform duration-300" />
-            {cartItemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-white animate-bounce shadow-sm">
-                {cartItemCount}
-              </span>
-            )}
+            <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-white shadow-sm">
+              {cartItemCount}
+            </span>
           </div>
           <span className="text-[10px] font-medium transition-all duration-300">
             Cart

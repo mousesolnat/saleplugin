@@ -5,9 +5,10 @@ import {
   Settings, ShoppingBag, FileText, MessageSquare, Users, 
   BarChart2, Shield, Lock, AlertTriangle, CheckCircle,
   Layout, CreditCard, Globe, Share2, HelpCircle, LogOut, Package,
-  Star, Filter, Check, Ban, ExternalLink, ChevronDown
+  Star, Filter, Check, Ban, ExternalLink, ChevronDown, Bot, Key
 } from 'lucide-react';
 import { Product, StoreSettings, Page, BlogPost, Order, SupportTicket, Review } from '../types';
+import { CURRENCIES } from '../constants';
 
 interface AdminDashboardProps {
   products: Product[];
@@ -50,7 +51,7 @@ const SidebarItem = ({
     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${
       active 
         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50' 
-        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
     }`}
   >
     <div className="flex items-center gap-3">
@@ -73,6 +74,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   orders, onUpdateOrder,
   tickets, onUpdateTicket
 }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   const [activeTab, setActiveTab] = useState('products');
   const [settingsSubTab, setSettingsSubTab] = useState('general');
   const [tempSettings, setTempSettings] = useState<StoreSettings>(storeSettings);
@@ -93,6 +98,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Calculate pending reviews across all products
   const allReviews = products.flatMap(p => (p.reviews || []).map(r => ({ ...r, productName: p.name, productId: p.id })));
   const pendingReviewsCount = allReviews.filter(r => r.status === 'pending').length;
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === (storeSettings.adminPassword || 'admin')) {
+      setIsAuthenticated(true);
+      setLoginError('');
+    } else {
+      setLoginError('Incorrect password. Please try again.');
+    }
+  };
 
   const handleSaveSettings = () => {
     onUpdateSettings(tempSettings);
@@ -120,18 +135,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
      return t.status === ticketFilter;
   });
 
+  // Login Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-indigo-600 p-8 text-center">
+             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                <Shield size={32} className="text-white" />
+             </div>
+             <h2 className="text-2xl font-bold text-white">Admin Access</h2>
+             <p className="text-indigo-100 mt-2">Please verify your identity to continue.</p>
+          </div>
+          <div className="p-8">
+             <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                   <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
+                   <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input 
+                        type="password" 
+                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+                        placeholder="Enter admin password"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        autoFocus
+                      />
+                   </div>
+                </div>
+                {loginError && (
+                   <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-xl text-sm font-medium">
+                      <AlertTriangle size={16} /> {loginError}
+                   </div>
+                )}
+                <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                   <Key size={18} /> Access Dashboard
+                </button>
+             </form>
+             <button onClick={onClose} className="w-full mt-4 text-slate-500 hover:text-slate-700 text-sm font-medium">
+                Return to Store
+             </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-white font-sans text-slate-900">
        {/* Sidebar */}
-       <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 transition-all">
-          <div className="p-6 flex items-center justify-between border-b border-slate-800">
+       <aside className="w-64 bg-indigo-900 text-white flex flex-col shrink-0 transition-all">
+          <div className="p-6 flex items-center justify-between border-b border-indigo-800">
              <div className="font-bold text-xl flex items-center gap-2">
-               <div className="bg-indigo-600 p-1.5 rounded-lg">
-                 <Shield size={20} className="text-white" />
+               <div className="bg-white p-1.5 rounded-lg">
+                 <Shield size={20} className="text-indigo-900" />
                </div>
                Admin
              </div>
-             <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
+             {/* Return to website */}
+             <button onClick={onClose} className="text-indigo-300 hover:text-white transition-colors" title="Return to Store"><LogOut size={20} /></button>
           </div>
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
              <SidebarItem active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={Package} label="Products" />
@@ -142,14 +204,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
              <SidebarItem active={activeTab === 'blog'} onClick={() => setActiveTab('blog')} icon={Edit} label="Blog" />
              <SidebarItem active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="Settings" />
           </nav>
-          <div className="p-4 border-t border-slate-800">
-             <button onClick={onClose} className="w-full flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-xl transition-all font-medium">
-                <LogOut size={18} /> Exit Dashboard
+          <div className="p-4 border-t border-indigo-800">
+             <button onClick={() => setIsAuthenticated(false)} className="w-full flex items-center gap-2 px-4 py-3 text-indigo-300 hover:text-white hover:bg-indigo-800 rounded-xl transition-all font-medium mb-2">
+                <Lock size={18} /> Lock Dashboard
              </button>
+             <div className="text-center text-xs text-indigo-400">
+                v2.4.0 • Logged in
+             </div>
           </div>
        </aside>
 
-       <main className="flex-1 overflow-y-auto bg-white">
+       <main className="flex-1 overflow-y-auto bg-slate-50">
           <div className="p-8 max-w-7xl mx-auto">
              
              {/* PRODUCTS TAB */}
@@ -484,7 +549,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    </div>
                    
                    <div className="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-xl w-fit border border-slate-200">
-                      {['general', 'design', 'payment', 'checkout', 'seo', 'footer', 'security'].map(tab => (
+                      {['general', 'design', 'payment', 'checkout', 'seo', 'footer', 'ai', 'security'].map(tab => (
                          <button
                             key={tab}
                             onClick={() => setSettingsSubTab(tab)}
@@ -501,6 +566,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <>
                              <h3 className="text-lg font-bold text-slate-900">General Information</h3>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Store Name</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.storeName} onChange={e => setTempSettings({...tempSettings, storeName: e.target.value})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Default Currency</label><select className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.payment.currencyCode} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, currencyCode: e.target.value, currencySymbol: CURRENCIES.find(c => c.code === e.target.value)?.symbol || '$'}})}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name} ({c.symbol})</option>)}</select></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Support Email</label><input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.supportEmail} onChange={e => setTempSettings({...tempSettings, supportEmail: e.target.value})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Contact Address</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.contactAddress} onChange={e => setTempSettings({...tempSettings, contactAddress: e.target.value})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Contact Phone</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.contactPhone} onChange={e => setTempSettings({...tempSettings, contactPhone: e.target.value})} /></div>
@@ -512,6 +578,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                              <h3 className="text-lg font-bold text-slate-900">Design & Branding</h3>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Primary Color</label><div className="flex gap-2"><input type="color" className="h-10 w-20 rounded cursor-pointer" value={tempSettings.design.primaryColor} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, primaryColor: e.target.value}})} /><input type="text" className="w-full px-4 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.design.primaryColor} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, primaryColor: e.target.value}})} /></div></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Hero Headline</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.design.heroHeadline} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, heroHeadline: e.target.value}})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Hero Subheadline</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white resize-none" value={tempSettings.design.heroSubheadline} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, heroSubheadline: e.target.value}})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Font Family</label><select className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.design.fontFamily} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, fontFamily: e.target.value}})}><option value="Inter">Inter (Clean)</option><option value="Roboto">Roboto (Modern)</option><option value="Open Sans">Open Sans (Friendly)</option><option value="Lato">Lato (Balanced)</option><option value="Montserrat">Montserrat (Bold)</option></select></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Border Radius</label><select className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.design.borderRadius} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, borderRadius: e.target.value}})}><option value="none">Square (0px)</option><option value="sm">Small (4px)</option><option value="md">Medium (8px)</option><option value="lg">Large (12px)</option><option value="xl">Extra Large (16px)</option><option value="2xl">2XL (24px)</option><option value="3xl">3XL (32px)</option></select></div>
                           </>
@@ -523,6 +590,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                              <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 mb-4"><div className="flex items-center justify-between mb-2"><span className="font-bold">Stripe</span><input type="checkbox" className="toggle" checked={tempSettings.payment.stripeEnabled} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripeEnabled: e.target.checked}})} /></div><input type="text" placeholder="Publishable Key" className="w-full mb-2 px-3 py-2 rounded border border-slate-300 bg-white" value={tempSettings.payment.stripePublishableKey} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripePublishableKey: e.target.value}})} /><input type="text" placeholder="Secret Key" className="w-full px-3 py-2 rounded border border-slate-300 bg-white" value={tempSettings.payment.stripeSecretKey} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripeSecretKey: e.target.value}})} /></div>
                              <div className="p-4 border border-slate-200 rounded-xl bg-slate-50"><div className="flex items-center justify-between mb-2"><span className="font-bold">PayPal</span><input type="checkbox" checked={tempSettings.payment.paypalEnabled} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalEnabled: e.target.checked}})} /></div><input type="text" placeholder="Client ID" className="w-full mb-2 px-3 py-2 rounded border border-slate-300 bg-white" value={tempSettings.payment.paypalClientId} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalClientId: e.target.value}})} /><input type="text" placeholder="Secret" className="w-full px-3 py-2 rounded border border-slate-300 bg-white" value={tempSettings.payment.paypalSecret} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalSecret: e.target.value}})} /></div>
                           </>
+                       )}
+                       
+                       {settingsSubTab === 'checkout' && (
+                         <>
+                             <h3 className="text-lg font-bold text-slate-900">Checkout &amp; Thank You Pages</h3>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Checkout Page Title</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.checkout.checkoutTitle} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, checkoutTitle: e.target.value}})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Checkout Page Subtitle</label><textarea rows={2} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none resize-none bg-white" value={tempSettings.checkout.checkoutSubtitle} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, checkoutSubtitle: e.target.value}})} /></div>
+                             <div className="pt-4 border-t border-slate-100"></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Thank You Page Title</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.checkout.thankYouTitle} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, thankYouTitle: e.target.value}})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Thank You Page Message</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none resize-none bg-white" value={tempSettings.checkout.thankYouMessage} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, thankYouMessage: e.target.value}})} /></div>
+                         </>
                        )}
 
                        {settingsSubTab === 'footer' && (
@@ -548,14 +626,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                        )}
 
+                       {settingsSubTab === 'ai' && (
+                         <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Bot size={20} /> AI Assistant Configuration</h3>
+                             <div className="p-4 border-l-4 border-indigo-500 bg-indigo-50 text-indigo-800 rounded-r-lg">
+                               <p className="font-bold">Connect your AI Assistant</p>
+                               <p className="text-sm">Enter your Gemini API key to enable the AI-powered product assistant. You can get a key from Google AI Studio.</p>
+                             </div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Gemini API Key</label><input type="password" placeholder="Enter your API key" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono" value={tempSettings.aiApiKey} onChange={e => setTempSettings({...tempSettings, aiApiKey: e.target.value})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">AI System Instruction (Personality)</label><textarea rows={8} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none resize-none bg-white font-mono text-sm" placeholder="e.g., You are a helpful sales assistant for a digital store..." value={tempSettings.aiSystemInstruction} onChange={e => setTempSettings({...tempSettings, aiSystemInstruction: e.target.value})} /></div>
+                         </>
+                       )}
+
                        {settingsSubTab === 'seo' && (
                           <>
                              <h3 className="text-lg font-bold text-slate-900">SEO Configuration</h3>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Global Meta Title</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.seo.title} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, title: e.target.value}})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Global Meta Description</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" value={tempSettings.seo.description} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, description: e.target.value}})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Favicon URL</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" placeholder="https://..." value={tempSettings.faviconUrl || ''} onChange={e => setTempSettings({...tempSettings, faviconUrl: e.target.value})} /></div>
                              <div className="grid grid-cols-2 gap-4">
-                               <div><label className="block text-sm font-bold text-slate-700 mb-2">Google Search Console ID</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" placeholder="content value only" value={tempSettings.seo.googleSearchConsoleCode} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, googleSearchConsoleCode: e.target.value}})} /></div>
-                               <div><label className="block text-sm font-bold text-slate-700 mb-2">Bing Webmaster ID</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" placeholder="content value only" value={tempSettings.seo.bingWebmasterCode} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, bingWebmasterCode: e.target.value}})} /></div>
+                               <div><label className="block text-sm font-bold text-slate-700 mb-2">Google Analytics ID</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" placeholder="G-XXXXXXXXXX" value={tempSettings.seo.googleAnalyticsId} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, googleAnalyticsId: e.target.value}})} /></div>
+                               <div><label className="block text-sm font-bold text-slate-700 mb-2">Google Search Console</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" placeholder="content value" value={tempSettings.seo.googleSearchConsoleCode} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, googleSearchConsoleCode: e.target.value}})} /></div>
+                               <div><label className="block text-sm font-bold text-slate-700 mb-2">Bing Webmaster</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none bg-white" placeholder="content value" value={tempSettings.seo.bingWebmasterCode} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, bingWebmasterCode: e.target.value}})} /></div>
                              </div>
                           </>
                        )}
@@ -587,6 +679,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    </div>
                    <div><label className="block text-sm font-bold text-slate-700 mb-1">Image URL</label><input type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.image || ''} onChange={e => setProductForm({...productForm, image: e.target.value})} /></div>
                    <div><label className="block text-sm font-bold text-slate-700 mb-1">Description</label><textarea rows={3} className="w-full border border-slate-200 p-3 rounded-xl outline-none resize-none bg-white" value={productForm.description || ''} onChange={e => setProductForm({...productForm, description: e.target.value})} /></div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-sm font-bold text-slate-700 mb-1">SEO Title (Optional)</label><input type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.seoTitle || ''} onChange={e => setProductForm({...productForm, seoTitle: e.target.value})} /></div>
+                      <div><label className="block text-sm font-bold text-slate-700 mb-1">Meta Description</label><input type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.seoDescription || ''} onChange={e => setProductForm({...productForm, seoDescription: e.target.value})} /></div>
+                   </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-8">
                    <button onClick={() => setIsAddingProduct(false)} className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl">Cancel</button>
