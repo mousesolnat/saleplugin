@@ -135,6 +135,49 @@ const FAQSection = () => {
   );
 };
 
+const NewsletterSection = () => (
+  <div className="bg-indigo-900 relative overflow-hidden py-16">
+    <div className="absolute inset-0 opacity-10">
+       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+    </div>
+    <div className="absolute top-[-50%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500 blur-3xl opacity-30 animate-pulse-slow"></div>
+    <div className="absolute bottom-[-50%] right-[-10%] w-[600px] h-[600px] rounded-full bg-blue-500 blur-3xl opacity-30 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+
+    <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+       <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-4 backdrop-blur-sm border border-white/10 shadow-lg">
+          <Mail className="text-white" size={20} />
+       </div>
+       <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+          Join the Developer Club
+       </h2>
+       <p className="text-indigo-100 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+          Get instant access to secret flash sales, new product alerts, and premium WordPress tutorials delivered straight to your inbox.
+       </p>
+       
+       <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onSubmit={(e) => e.preventDefault()}>
+          <div className="flex-1 relative group">
+             <div className="absolute inset-0 bg-indigo-400 rounded-xl blur opacity-25 group-focus-within:opacity-50 transition-opacity"></div>
+             <input 
+               type="email" 
+               placeholder="Enter your email address" 
+               className="relative w-full px-6 py-3 rounded-xl text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-all shadow-sm"
+             />
+          </div>
+          <button className="px-6 py-3 bg-white text-indigo-900 font-bold text-base rounded-xl hover:bg-indigo-50 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 relative overflow-hidden group">
+             <span className="relative z-10">Subscribe</span>
+             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-100 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+          </button>
+       </form>
+       
+       <div className="mt-4 flex items-center justify-center gap-6 text-indigo-300 text-sm font-medium">
+          <span className="flex items-center gap-2"><CheckCircle size={14} className="text-green-400" /> Weekly Updates</span>
+          <span className="flex items-center gap-2"><CheckCircle size={14} className="text-green-400" /> No Spam</span>
+          <span className="flex items-center gap-2"><CheckCircle size={14} className="text-green-400" /> Unsubscribe Anytime</span>
+       </div>
+    </div>
+  </div>
+);
+
 const DEFAULT_PAGES: Page[] = [
   { id: 'page_privacy', title: 'Privacy Policy', slug: 'privacy-policy', content: 'This is the Privacy Policy content. You can edit this in the Admin Dashboard.' },
   { id: 'page_terms', title: 'Terms of Service', slug: 'terms-of-service', content: 'This is the Terms of Service content. You can edit this in the Admin Dashboard.' },
@@ -318,7 +361,6 @@ const App: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   
   // View State Management
-  // 'admin' is now a full view state, not an overlay
   const [currentView, setCurrentView] = useState<'home' | 'shop' | 'contact' | 'about' | 'blog' | 'blog-post' | 'product' | 'page' | 'wishlist' | 'profile' | 'checkout' | 'thank-you' | 'admin'>('home');
   
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -417,6 +459,8 @@ const App: React.FC = () => {
            .border-indigo-600 { border-color: var(--color-primary) !important; }
            .bg-indigo-50 { background-color: color-mix(in srgb, var(--color-primary) 10%, white) !important; }
            .ring-indigo-600 { --tw-ring-color: var(--color-primary) !important; }
+           .text-indigo-900 { color: color-mix(in srgb, var(--color-primary) 50%, black) !important; }
+           .bg-indigo-900 { background-color: color-mix(in srgb, var(--color-primary) 50%, black) !important; }
          `}</style>
        </>
      );
@@ -514,8 +558,7 @@ const App: React.FC = () => {
           setOrders(prev => [newOrder, ...prev]);
           setLastOrder(newOrder);
 
-          // Create Account if Guest and toggle checked
-          // CRITICAL FIX: Ensure this logic runs to populate newAccountDetails
+          // Create Account if Guest
           if (!currentUser) {
               const password = Math.random().toString(36).slice(-8);
               const newUser: Customer = { 
@@ -525,15 +568,10 @@ const App: React.FC = () => {
                   password, 
                   joinDate: new Date().toISOString() 
               };
-              if (createAccount) {
-                 setUsers(prev => [...prev, newUser]);
-                 setCurrentUser(newUser);
-                 setNewAccountDetails({ email: form.email, password });
-              } else {
-                 // Even if they didn't check it, for demo purposes we might want to show them credentials 
-                 // or just skip it. Let's assume we ALWAYS create it for digital goods delivery in this demo.
-                 setNewAccountDetails({ email: form.email, password });
-              }
+              // Always create an account for digital goods delivery
+              setUsers(prev => [...prev, newUser]);
+              setCurrentUser(newUser);
+              setNewAccountDetails({ email: form.email, password });
           } else {
               setNewAccountDetails(null);
           }
@@ -626,7 +664,7 @@ const App: React.FC = () => {
                               <span className="font-bold text-slate-800">Create an account?</span>
                           </label>
                           <p className="text-sm text-slate-600 mt-2 pl-8">
-                             We will automatically create an account for you with a secure password so you can access your downloads and updates instantly.
+                             We will automatically create an account for you so you can access your downloads instantly.
                           </p>
                       </div>
                   )}
@@ -931,16 +969,6 @@ const App: React.FC = () => {
                       </button>
                    </div>
                 </div>
-
-                {/* Stats Bar */}
-                <div className="border-t border-white/10 bg-white/5 backdrop-blur-sm">
-                   <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                      <div><div className="text-3xl font-bold">15k+</div><div className="text-indigo-200 text-sm">Licenses Sold</div></div>
-                      <div><div className="text-3xl font-bold">100%</div><div className="text-indigo-200 text-sm">Original Files</div></div>
-                      <div><div className="text-3xl font-bold">4.9/5</div><div className="text-indigo-200 text-sm">Customer Rating</div></div>
-                      <div><div className="text-3xl font-bold">24/7</div><div className="text-indigo-200 text-sm">Expert Support</div></div>
-                   </div>
-                </div>
              </div>
 
              {/* Trust Badges */}
@@ -1061,6 +1089,7 @@ const App: React.FC = () => {
 
                 <FAQSection />
              </div>
+             <NewsletterSection />
           </div>
         )}
 
