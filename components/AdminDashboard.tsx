@@ -7,7 +7,7 @@ import {
   BarChart2, Shield, Lock, AlertTriangle, CheckCircle,
   Layout, CreditCard, Globe, Share2, HelpCircle, LogOut, Package,
   Star, Filter, Check, Ban, ExternalLink, ChevronDown, Key,
-  LayoutList, FolderTree, Eye, Printer
+  LayoutList, FolderTree, Eye, Printer, Palette, DollarSign, Terminal, Link
 } from 'lucide-react';
 import { Product, StoreSettings, Page, BlogPost, Order, SupportTicket, Review } from '../types';
 import { CURRENCIES } from '../constants';
@@ -730,18 +730,197 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    
                    {/* Settings Sub-tabs */}
                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm max-w-4xl animate-fade-in space-y-6">
+                       
+                       {/* GENERAL */}
                        {settingsSubTab === 'general' && (
                           <>
-                             <h3 className="text-lg font-bold text-slate-900">General Information</h3>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Settings size={20} className="text-indigo-600"/> General Information</h3>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Store Name</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.storeName} onChange={e => setTempSettings({...tempSettings, storeName: e.target.value})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Default Currency</label><select className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.payment.currencyCode} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, currencyCode: e.target.value, currencySymbol: CURRENCIES.find(c => c.code === e.target.value)?.symbol || '$'}})}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name} ({c.symbol})</option>)}</select></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Support Email</label><input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.supportEmail} onChange={e => setTempSettings({...tempSettings, supportEmail: e.target.value})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Contact Address</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.contactAddress} onChange={e => setTempSettings({...tempSettings, contactAddress: e.target.value})} /></div>
                              <div><label className="block text-sm font-bold text-slate-700 mb-2">Contact Phone</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.contactPhone} onChange={e => setTempSettings({...tempSettings, contactPhone: e.target.value})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Logo URL</label><input type="text" placeholder="https://example.com/logo.png" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.logoUrl || ''} onChange={e => setTempSettings({...tempSettings, logoUrl: e.target.value})} /></div>
                           </>
                        )}
 
-                       {/* ... other settings sub-tabs similar to before ... */}
+                       {/* DESIGN */}
+                       {settingsSubTab === 'design' && (
+                          <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Palette size={20} className="text-indigo-600"/> Design & Branding</h3>
+                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Primary Color</label>
+                                <div className="flex items-center gap-3">
+                                   <input type="color" className="h-10 w-20 p-1 rounded-lg border border-slate-200 cursor-pointer" value={tempSettings.design.primaryColor} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, primaryColor: e.target.value}})} />
+                                   <span className="text-sm font-mono text-slate-500">{tempSettings.design.primaryColor}</span>
+                                </div>
+                             </div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Hero Headline</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.design.heroHeadline} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, heroHeadline: e.target.value}})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Hero Subheadline</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none" value={tempSettings.design.heroSubheadline} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, heroSubheadline: e.target.value}})} /></div>
+                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Border Radius</label>
+                                <select className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.design.borderRadius} onChange={e => setTempSettings({...tempSettings, design: {...tempSettings.design, borderRadius: e.target.value}})}>
+                                   <option value="none">Square (None)</option>
+                                   <option value="sm">Small</option>
+                                   <option value="md">Medium</option>
+                                   <option value="lg">Large</option>
+                                   <option value="xl">Extra Large (Default)</option>
+                                   <option value="2xl">2XL</option>
+                                   <option value="3xl">Round</option>
+                                </select>
+                             </div>
+                          </>
+                       )}
+
+                       {/* PAYMENT */}
+                       {settingsSubTab === 'payment' && (
+                          <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><CreditCard size={20} className="text-indigo-600"/> Payment Configuration</h3>
+                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 mb-4 flex gap-2">
+                                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                                <span>Sensitive keys are stored locally in your browser for this demo.</span>
+                             </div>
+                             <div className="flex items-center gap-3 mb-4">
+                                <input type="checkbox" id="testMode" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.payment.testMode} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, testMode: e.target.checked}})} />
+                                <label htmlFor="testMode" className="font-bold text-slate-700 select-none cursor-pointer">Enable Test Mode</label>
+                             </div>
+                             
+                             <div className="border-t border-slate-100 pt-6 mt-6">
+                                <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><div className="w-2 h-2 bg-indigo-600 rounded-full"></div> Stripe</h4>
+                                <div className="space-y-4 pl-4 border-l-2 border-indigo-100">
+                                   <div className="flex items-center gap-3 mb-2">
+                                      <input type="checkbox" id="stripeEnabled" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.payment.stripeEnabled} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripeEnabled: e.target.checked}})} />
+                                      <label htmlFor="stripeEnabled" className="font-medium text-slate-700 select-none cursor-pointer">Enable Stripe Payments</label>
+                                   </div>
+                                   <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Publishable Key</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.payment.stripePublishableKey} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripePublishableKey: e.target.value}})} /></div>
+                                   <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Secret Key</label><input type="password" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.payment.stripeSecretKey} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripeSecretKey: e.target.value}})} /></div>
+                                </div>
+                             </div>
+
+                             <div className="border-t border-slate-100 pt-6 mt-6">
+                                <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><div className="w-2 h-2 bg-blue-600 rounded-full"></div> PayPal</h4>
+                                <div className="space-y-4 pl-4 border-l-2 border-blue-100">
+                                   <div className="flex items-center gap-3 mb-2">
+                                      <input type="checkbox" id="paypalEnabled" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.payment.paypalEnabled} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalEnabled: e.target.checked}})} />
+                                      <label htmlFor="paypalEnabled" className="font-medium text-slate-700 select-none cursor-pointer">Enable PayPal Payments</label>
+                                   </div>
+                                   <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Client ID</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.payment.paypalClientId} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalClientId: e.target.value}})} /></div>
+                                   <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Secret</label><input type="password" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.payment.paypalSecret} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalSecret: e.target.value}})} /></div>
+                                </div>
+                             </div>
+                          </>
+                       )}
+
+                       {/* CHECKOUT */}
+                       {settingsSubTab === 'checkout' && (
+                          <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><ShoppingBag size={20} className="text-indigo-600"/> Checkout Flow</h3>
+                             
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                   <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                      <input type="checkbox" id="guestCheckout" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.checkout.guestCheckout} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, guestCheckout: e.target.checked}})} />
+                                      <label htmlFor="guestCheckout" className="font-medium text-slate-900 cursor-pointer select-none">Allow Guest Checkout</label>
+                                   </div>
+                                   <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                      <input type="checkbox" id="requirePhone" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.checkout.requirePhone} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, requirePhone: e.target.checked}})} />
+                                      <label htmlFor="requirePhone" className="font-medium text-slate-900 cursor-pointer select-none">Require Phone Number</label>
+                                   </div>
+                                </div>
+                                <div className="space-y-3">
+                                   <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                      <input type="checkbox" id="enableCoupons" className="w-5 h-5 text-indigo-600 rounded" checked={tempSettings.checkout.enableCoupons} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, enableCoupons: e.target.checked}})} />
+                                      <label htmlFor="enableCoupons" className="font-medium text-slate-900 cursor-pointer select-none">Enable Coupons</label>
+                                   </div>
+                                </div>
+                             </div>
+
+                             <div className="border-t border-slate-100 pt-6">
+                                <h4 className="font-bold text-slate-900 mb-4">Legal Pages Links</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                   <div><label className="block text-sm font-bold text-slate-700 mb-1">Privacy Policy URL</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.checkout.privacyUrl} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, privacyUrl: e.target.value}})} /></div>
+                                   <div><label className="block text-sm font-bold text-slate-700 mb-1">Terms of Service URL</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.checkout.termsUrl} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, termsUrl: e.target.value}})} /></div>
+                                </div>
+                             </div>
+
+                             <div className="border-t border-slate-100 pt-6">
+                                <h4 className="font-bold text-slate-900 mb-4">Thank You Page</h4>
+                                <div><label className="block text-sm font-bold text-slate-700 mb-2">Success Title</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.checkout.thankYouTitle} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, thankYouTitle: e.target.value}})} /></div>
+                                <div className="mt-4"><label className="block text-sm font-bold text-slate-700 mb-2">Success Message</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none" value={tempSettings.checkout.thankYouMessage} onChange={e => setTempSettings({...tempSettings, checkout: {...tempSettings.checkout, thankYouMessage: e.target.value}})} /></div>
+                             </div>
+                          </>
+                       )}
+
+                       {/* SEO */}
+                       {settingsSubTab === 'seo' && (
+                          <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Globe size={20} className="text-indigo-600"/> SEO & Analytics</h3>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Meta Title (Global)</label><input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" value={tempSettings.seo.title} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, title: e.target.value}})} /></div>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">Meta Description (Global)</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none" value={tempSettings.seo.description} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, description: e.target.value}})} /></div>
+                             
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                                <div><label className="block text-sm font-bold text-slate-700 mb-1">Google Analytics ID</label><input type="text" placeholder="G-XXXXXXXXXX" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.seo.googleAnalyticsId} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, googleAnalyticsId: e.target.value}})} /></div>
+                                <div><label className="block text-sm font-bold text-slate-700 mb-1">Google Search Console</label><input type="text" placeholder="verification-code" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.seo.googleSearchConsoleCode} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, googleSearchConsoleCode: e.target.value}})} /></div>
+                                <div><label className="block text-sm font-bold text-slate-700 mb-1">Bing Webmaster</label><input type="text" placeholder="verification-code" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-sm" value={tempSettings.seo.bingWebmasterCode} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, bingWebmasterCode: e.target.value}})} /></div>
+                                <div><label className="block text-sm font-bold text-slate-700 mb-1">Favicon URL</label><input type="text" placeholder="https://example.com/favicon.ico" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.faviconUrl || ''} onChange={e => setTempSettings({...tempSettings, faviconUrl: e.target.value})} /></div>
+                             </div>
+
+                             <div className="pt-4 border-t border-slate-100">
+                                <h4 className="font-bold text-slate-900 mb-4">Specific Page SEO</h4>
+                                <div className="space-y-4">
+                                   <div className="grid grid-cols-2 gap-4">
+                                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Shop Title</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.seo.shopTitle || ''} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, shopTitle: e.target.value}})} /></div>
+                                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Contact Title</label><input type="text" className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.seo.contactTitle || ''} onChange={e => setTempSettings({...tempSettings, seo: {...tempSettings.seo, contactTitle: e.target.value}})} /></div>
+                                   </div>
+                                </div>
+                             </div>
+                          </>
+                       )}
+
+                       {/* FOOTER */}
+                       {settingsSubTab === 'footer' && (
+                          <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Layout size={20} className="text-indigo-600"/> Footer Content</h3>
+                             <div><label className="block text-sm font-bold text-slate-700 mb-2">About Summary</label><textarea rows={3} className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none" value={tempSettings.footerDescription} onChange={e => setTempSettings({...tempSettings, footerDescription: e.target.value})} /></div>
+                             
+                             <div className="pt-6 border-t border-slate-100">
+                                <h4 className="font-bold text-slate-900 mb-4">Social Media Links</h4>
+                                <div className="space-y-4">
+                                   <div className="flex items-center gap-3">
+                                      <div className="w-8 flex justify-center"><Share2 size={18} className="text-blue-600"/></div>
+                                      <input type="text" placeholder="Facebook URL" className="flex-1 px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.socials.facebook} onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, facebook: e.target.value}})} />
+                                   </div>
+                                   <div className="flex items-center gap-3">
+                                      <div className="w-8 flex justify-center"><Share2 size={18} className="text-sky-500"/></div>
+                                      <input type="text" placeholder="Twitter/X URL" className="flex-1 px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.socials.twitter} onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, twitter: e.target.value}})} />
+                                   </div>
+                                   <div className="flex items-center gap-3">
+                                      <div className="w-8 flex justify-center"><Share2 size={18} className="text-pink-600"/></div>
+                                      <input type="text" placeholder="Instagram URL" className="flex-1 px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.socials.instagram} onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, instagram: e.target.value}})} />
+                                   </div>
+                                   <div className="flex items-center gap-3">
+                                      <div className="w-8 flex justify-center"><Share2 size={18} className="text-blue-700"/></div>
+                                      <input type="text" placeholder="LinkedIn URL" className="flex-1 px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" value={tempSettings.socials.linkedin} onChange={e => setTempSettings({...tempSettings, socials: {...tempSettings.socials, linkedin: e.target.value}})} />
+                                   </div>
+                                </div>
+                             </div>
+                          </>
+                       )}
+
+                       {/* SECURITY */}
+                       {settingsSubTab === 'security' && (
+                          <>
+                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Lock size={20} className="text-indigo-600"/> Admin Security</h3>
+                             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                                <h4 className="font-bold text-red-800 flex items-center gap-2 mb-1"><AlertTriangle size={16}/> Important</h4>
+                                <p className="text-sm text-red-700">Make sure to use a strong password. This controls access to your entire dashboard and customer data.</p>
+                             </div>
+                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Admin Password</label>
+                                <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono text-slate-900" value={tempSettings.adminPassword || 'admin'} onChange={e => setTempSettings({...tempSettings, adminPassword: e.target.value})} />
+                             </div>
+                          </>
+                       )}
                    </div>
 
                    <div className="sticky bottom-4 flex justify-end">

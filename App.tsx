@@ -730,9 +730,9 @@ const App: React.FC = () => {
              blogPosts={blogPosts}
              onAddPost={handleAddPost}
              onUpdatePost={handleUpdatePost}
-             onDeletePost={handleDeletePost}
+             onDeletePost={(id: string) => handleDeletePost(id)}
              orders={orders}
-             onUpdateOrder={(order: Order) => setOrders(prev => prev.map(o => o.id === order.id ? order : o))}
+             onUpdateOrder={(order: Order) => setOrders((prev) => prev.map((o) => o.id === order.id ? order : o))}
              tickets={tickets}
              onUpdateTicket={handleUpdateTicket}
              users={users}
@@ -1414,25 +1414,23 @@ const App: React.FC = () => {
                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
                       <form className="space-y-6">
                          <div><label className="block text-sm font-bold text-slate-700 mb-2">Name</label><input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Your name" /></div>
-                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Email</label><input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="your@email.com" /></div>
-                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Message</label><textarea rows={5} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="How can we help?" /></div>
-                         <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
-                            <Send size={18} /> Send Message
-                         </button>
+                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Email</label><input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="john@example.com" /></div>
+                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Message</label><textarea rows={4} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="How can we help?" /></div>
+                         <button className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"><Send size={18} /> Send Message</button>
                       </form>
                    </div>
                    <div className="space-y-8">
-                      <div className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Mail size={24} /></div>
-                         <div><h3 className="font-bold text-slate-900 text-lg">Email Us</h3><p className="text-slate-500 mb-2">Our friendly team is here to help.</p><a href={`mailto:${storeSettings.supportEmail}`} className="text-indigo-600 font-bold hover:underline">{storeSettings.supportEmail}</a></div>
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
+                         <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600"><MapPin size={24} /></div>
+                         <div><h3 className="font-bold text-slate-900 mb-1">Our Office</h3><p className="text-slate-500">{storeSettings.contactAddress}</p></div>
                       </div>
-                      <div className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><MapPin size={24} /></div>
-                         <div><h3 className="font-bold text-slate-900 text-lg">Office</h3><p className="text-slate-500 mb-2">Come say hello at our office HQ.</p><p className="text-slate-700 font-medium">{storeSettings.contactAddress}</p></div>
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
+                         <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600"><Mail size={24} /></div>
+                         <div><h3 className="font-bold text-slate-900 mb-1">Email Us</h3><p className="text-slate-500">{storeSettings.supportEmail}</p></div>
                       </div>
-                      <div className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Phone size={24} /></div>
-                         <div><h3 className="font-bold text-slate-900 text-lg">Phone</h3><p className="text-slate-500 mb-2">Mon-Fri from 8am to 5pm.</p><p className="text-slate-700 font-medium">{storeSettings.contactPhone}</p></div>
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
+                         <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600"><Phone size={24} /></div>
+                         <div><h3 className="font-bold text-slate-900 mb-1">Call Support</h3><p className="text-slate-500">{storeSettings.contactPhone}</p></div>
                       </div>
                    </div>
                 </div>
@@ -1441,28 +1439,28 @@ const App: React.FC = () => {
 
           {/* PRODUCT DETAIL VIEW */}
           {currentView === 'product' && selectedProduct && (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <ProductDetail 
-                product={selectedProduct} 
-                onAddToCart={handleAddToCart}
-                onBack={() => changeView('shop')}
-                isWishlisted={wishlist.some(p => p.id === selectedProduct.id)}
-                onToggleWishlist={() => handleToggleWishlist(selectedProduct)}
-                priceMultiplier={selectedCurrency.rate}
-                currencySymbol={selectedCurrency.symbol}
-                recentlyViewed={recentlyViewed}
-                onViewHistoryItem={handleViewProduct}
-                currentUser={currentUser}
-                onAddReview={handleAddReview}
-              />
-            </div>
+             <div className="max-w-7xl mx-auto px-4 py-8">
+               <ProductDetail 
+                 product={selectedProduct}
+                 onAddToCart={handleAddToCart}
+                 onBack={() => changeView('shop')}
+                 isWishlisted={wishlist.some(p => p.id === selectedProduct.id)}
+                 onToggleWishlist={() => handleToggleWishlist(selectedProduct)}
+                 priceMultiplier={selectedCurrency.rate}
+                 currencySymbol={selectedCurrency.symbol}
+                 recentlyViewed={recentlyViewed}
+                 onViewHistoryItem={handleViewProduct}
+                 currentUser={currentUser}
+                 onAddReview={handleAddReview}
+               />
+             </div>
           )}
 
-          {/* PAGE VIEW (CMS) */}
+          {/* PAGE VIEW */}
           {currentView === 'page' && selectedPage && (
              <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
-                <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-8">{selectedPage.title}</h1>
-                <div className="prose prose-lg prose-slate max-w-none bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <h1 className="text-3xl font-bold text-slate-900 mb-8">{selectedPage.title}</h1>
+                <div className="prose prose-slate max-w-none bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
                    {selectedPage.content}
                 </div>
              </div>
@@ -1471,22 +1469,19 @@ const App: React.FC = () => {
           {/* WISHLIST VIEW */}
           {currentView === 'wishlist' && (
              <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
-                <h1 className="text-3xl font-extrabold text-slate-900 mb-8 flex items-center gap-3">
-                   <Heart className="text-red-500 fill-red-500" /> My Wishlist
-                </h1>
+                <h1 className="text-3xl font-bold text-slate-900 mb-8 flex items-center gap-2"><Heart className="text-red-500 fill-red-500"/> My Wishlist</h1>
                 {wishlist.length === 0 ? (
                    <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed">
-                      <Heart className="mx-auto h-16 w-16 text-slate-200 mb-4" />
-                      <h3 className="text-xl font-bold text-slate-900">Your wishlist is empty</h3>
-                      <p className="text-slate-500 mt-2">Start adding items you love!</p>
-                      <button onClick={() => changeView('shop')} className="mt-6 px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700">Browse Shop</button>
+                      <Heart className="mx-auto h-12 w-12 text-slate-300 mb-4" />
+                      <h3 className="text-lg font-medium text-slate-900">Your wishlist is empty</h3>
+                      <button onClick={() => changeView('shop')} className="mt-4 text-indigo-600 font-bold hover:underline">Start Shopping</button>
                    </div>
                 ) : (
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                       {wishlist.map(product => (
                          <ProductCard 
-                            key={product.id}
-                            product={product}
+                            key={product.id} 
+                            product={product} 
                             onAddToCart={handleAddToCart}
                             onViewDetails={() => handleViewProduct(product)}
                             isWishlisted={true}
@@ -1527,16 +1522,16 @@ const App: React.FC = () => {
           onOpenAdmin={() => changeView('admin')}
           onCategoryClick={(cat) => { setSelectedCategory(cat); changeView('shop'); }}
         />
-        
+
         <MobileBottomNav 
-          currentView={currentView} 
+          currentView={currentView}
           onChangeView={(view) => changeView(view)}
           cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
           onOpenCart={() => setIsCartOpen(true)}
           wishlistCount={wishlist.length}
           onOpenWishlist={() => changeView('wishlist')}
         />
-        
+
         <CartSidebar 
           isOpen={isCartOpen} 
           onClose={() => setIsCartOpen(false)} 
@@ -1545,7 +1540,7 @@ const App: React.FC = () => {
           onUpdateQuantity={handleUpdateCartQuantity}
           priceMultiplier={selectedCurrency.rate}
           currencySymbol={selectedCurrency.symbol}
-          onCheckout={() => { setIsCartOpen(false); setCurrentView('checkout'); window.scrollTo(0,0); }}
+          onCheckout={() => { setIsCartOpen(false); changeView('checkout'); }}
         />
 
         <AuthModal 
@@ -1555,6 +1550,7 @@ const App: React.FC = () => {
           onRegister={handleRegister}
           onDemoLogin={handleDemoLogin}
         />
+
       </div>
     </>
   );
