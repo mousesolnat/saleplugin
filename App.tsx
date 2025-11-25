@@ -598,28 +598,28 @@ const App: React.FC = () => {
                   <div className="grid grid-cols-2 gap-6 mb-4">
                      <div>
                          <label className="block text-sm font-bold text-slate-700 mb-1">First Name <span className="text-red-500">*</span></label>
-                         <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
+                         <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
                      </div>
                      <div>
                          <label className="block text-sm font-bold text-slate-700 mb-1">Last Name <span className="text-red-500">*</span></label>
-                         <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
+                         <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
                      </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                      <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Phone <span className="text-red-500">*</span></label>
-                        <input required type="tel" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                        <input required type="tel" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
                      </div>
                      <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Email address <span className="text-red-500">*</span></label>
-                        <input required type="email" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                        <input required type="email" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                      </div>
                   </div>
 
                   <div className="mb-4">
                       <label className="block text-sm font-bold text-slate-700 mb-1">Country / Region <span className="text-red-500">*</span></label>
-                      <select required className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none bg-white" value={form.country} onChange={e => setForm({...form, country: e.target.value})}>
+                      <select required className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-slate-900" value={form.country} onChange={e => setForm({...form, country: e.target.value})}>
                           <option value="">Select a country / region...</option>
                           <option value="US">United States (US)</option>
                           <option value="UK">United Kingdom (UK)</option>
@@ -635,22 +635,22 @@ const App: React.FC = () => {
 
                   <div className="mb-4">
                       <label className="block text-sm font-bold text-slate-700 mb-1">Street address <span className="text-red-500">*</span></label>
-                      <input required type="text" placeholder="House number and street name" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.streetAddress} onChange={e => setForm({...form, streetAddress: e.target.value})} />
+                      <input required type="text" placeholder="House number and street name" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.streetAddress} onChange={e => setForm({...form, streetAddress: e.target.value})} />
                   </div>
 
                   <div className="mb-4">
                       <label className="block text-sm font-bold text-slate-700 mb-1">Town / City <span className="text-red-500">*</span></label>
-                      <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
+                      <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-6 mb-6">
                       <div>
                           <label className="block text-sm font-bold text-slate-700 mb-1">State / County (Optional)</label>
-                          <input type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.state} onChange={e => setForm({...form, state: e.target.value})} />
+                          <input type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.state} onChange={e => setForm({...form, state: e.target.value})} />
                       </div>
                       <div>
                           <label className="block text-sm font-bold text-slate-700 mb-1">Postcode / ZIP <span className="text-red-500">*</span></label>
-                          <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} />
+                          <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} />
                       </div>
                   </div>
                   
@@ -675,7 +675,7 @@ const App: React.FC = () => {
                       <textarea 
                         rows={4} 
                         placeholder="Notes about your order, e.g. special notes for delivery." 
-                        className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                        className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-slate-900"
                         value={form.notes}
                         onChange={e => setForm({...form, notes: e.target.value})}
                       />

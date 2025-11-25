@@ -67,24 +67,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </h2>
-            <p className="text-slate-500">
+            <p className="text-slate-500 font-medium">
               {isLogin ? 'Enter your details to access your account' : 'Join us to get premium licenses instantly'}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-slate-700 ml-1">Full Name</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-900 ml-1">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
                     type="text"
                     placeholder="John Doe"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-slate-900 placeholder:text-slate-400 font-medium"
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
                   />
@@ -92,14 +92,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Email Address</label>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-900 ml-1">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="email"
                   placeholder="john@example.com"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-slate-900 placeholder:text-slate-400 font-medium"
                   value={formData.email}
                   onChange={e => setFormData({...formData, email: e.target.value})}
                   required
@@ -107,14 +107,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700 ml-1">Password</label>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-900 ml-1">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none text-slate-900 placeholder:text-slate-400 font-medium"
                   value={formData.password}
                   onChange={e => setFormData({...formData, password: e.target.value})}
                   required
@@ -123,13 +123,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg text-sm">
+              <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-xl text-sm font-bold">
                 <AlertCircle size={16} /> {error}
               </div>
             )}
 
             {success && (
-              <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg text-sm">
+              <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl text-sm font-bold">
                 <CheckCircle size={16} /> {success}
               </div>
             )}
@@ -162,11 +162,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
           )}
 
           <div className="mt-6 text-center">
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-500 text-sm font-medium">
               {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
               <button
                 onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess(''); }}
-                className="text-indigo-600 font-bold hover:underline"
+                className="text-indigo-600 font-extrabold hover:underline ml-1"
               >
                 {isLogin ? 'Sign Up' : 'Log In'}
               </button>

@@ -5,7 +5,8 @@ import {
   Settings, ShoppingBag, FileText, MessageSquare, Users, 
   BarChart2, Shield, Lock, AlertTriangle, CheckCircle,
   Layout, CreditCard, Globe, Share2, HelpCircle, LogOut, Package,
-  Star, Filter, Check, Ban, ExternalLink, ChevronDown, Bot, Key
+  Star, Filter, Check, Ban, ExternalLink, ChevronDown, Bot, Key,
+  LayoutList, FolderTree
 } from 'lucide-react';
 import { Product, StoreSettings, Page, BlogPost, Order, SupportTicket, Review } from '../types';
 import { CURRENCIES } from '../constants';
@@ -93,11 +94,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAddingPost, setIsAddingPost] = useState(false);
   const [postForm, setPostForm] = useState<Partial<BlogPost>>({});
 
+  // Category Management State
+  const [isManagingCategory, setIsManagingCategory] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({ oldName: '', newName: '' });
+
   const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
   
   // Calculate pending reviews across all products
   const allReviews = products.flatMap(p => (p.reviews || []).map(r => ({ ...r, productName: p.name, productId: p.id })));
   const pendingReviewsCount = allReviews.filter(r => r.status === 'pending').length;
+
+  // Derive unique categories from products and settings
+  const uniqueCategories = Array.from(new Set([
+    ...products.map(p => p.category),
+    ...(storeSettings.popularCategories || [])
+  ])).filter(Boolean).sort();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +139,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const updatedReviews = product.reviews.filter(r => r.id !== reviewId);
       onUpdate({ ...product, reviews: updatedReviews });
     }
+  };
+
+  const handleRenameCategory = () => {
+    if (!categoryForm.newName.trim()) return;
+
+    if (categoryForm.oldName) {
+        // Rename existing category
+        // 1. Update all products
+        products.forEach(p => {
+            if (p.category === categoryForm.oldName) {
+                onUpdate({ ...p, category: categoryForm.newName });
+            }
+        });
+
+        // 2. Update settings popular categories
+        const updatedPopular = (storeSettings.popularCategories || []).map(c => 
+            c === categoryForm.oldName ? categoryForm.newName : c
+        );
+        onUpdateSettings({ ...storeSettings, popularCategories: updatedPopular });
+    } else {
+        // Add new category to settings only (no products yet)
+        const updatedPopular = [...(storeSettings.popularCategories || []), categoryForm.newName];
+        onUpdateSettings({ ...storeSettings, popularCategories: Array.from(new Set(updatedPopular)) });
+    }
+
+    setIsManagingCategory(false);
+    setCategoryForm({ oldName: '', newName: '' });
+  };
+
+  const handleDeleteCategory = (categoryName: string) => {
+     if(confirm(`Are you sure you want to delete "${categoryName}" from the list? Products will remain but this category will be removed from your popular list.`)) {
+         const updatedPopular = (storeSettings.popularCategories || []).filter(c => c !== categoryName);
+         onUpdateSettings({ ...storeSettings, popularCategories: updatedPopular });
+     }
   };
 
   const filteredTickets = tickets.filter(t => {
@@ -197,6 +242,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
              <SidebarItem active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={Package} label="Products" />
+             <SidebarItem active={activeTab === 'categories'} onClick={() => setActiveTab('categories')} icon={LayoutList} label="Categories" />
              <SidebarItem active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={ShoppingBag} label="Orders" badgeCount={pendingOrdersCount} />
              <SidebarItem active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')} icon={Star} label="Reviews" badgeCount={pendingReviewsCount} />
              <SidebarItem active={activeTab === 'tickets'} onClick={() => setActiveTab('tickets')} icon={MessageSquare} label="Support" badgeCount={tickets.filter(t => t.status === 'open').length} />
@@ -209,7 +255,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <Lock size={18} /> Lock Dashboard
              </button>
              <div className="text-center text-xs text-indigo-400">
-                v2.4.0 • Logged in
+                v2.5.0 • Logged in
              </div>
           </div>
        </aside>
@@ -264,6 +310,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                    </td>
                                 </tr>
                              ))}
+                          </tbody>
+                       </table>
+                    </div>
+                 </div>
+             )}
+
+             {/* CATEGORIES TAB */}
+             {activeTab === 'categories' && (
+                 <div className="space-y-6 animate-fade-in">
+                    <div className="flex justify-between items-center">
+                       <div>
+                          <h2 className="text-2xl font-bold text-slate-900">Category Manager</h2>
+                          <p className="text-slate-500">Create, rename, and manage product categories</p>
+                       </div>
+                       <button onClick={() => { setCategoryForm({ oldName: '', newName: '' }); setIsManagingCategory(true); }} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all">
+                          <Plus size={18} /> New Category
+                       </button>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                       <table className="w-full text-left">
+                          <thead className="bg-slate-50 border-b border-slate-100">
+                             <tr>
+                                <th className="p-5 font-semibold text-slate-600 text-sm uppercase tracking-wider">Category Name</th>
+                                <th className="p-5 font-semibold text-slate-600 text-sm uppercase tracking-wider">Products Count</th>
+                                <th className="p-5 font-semibold text-slate-600 text-sm uppercase tracking-wider">Status</th>
+                                <th className="p-5 font-semibold text-slate-600 text-sm uppercase tracking-wider text-right">Actions</th>
+                             </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                             {uniqueCategories.map(cat => {
+                                const count = products.filter(p => p.category === cat).length;
+                                return (
+                                  <tr key={cat} className="hover:bg-slate-50 transition-colors">
+                                     <td className="p-5 font-bold text-slate-900">{cat}</td>
+                                     <td className="p-5">
+                                        <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold">{count} Products</span>
+                                     </td>
+                                     <td className="p-5">
+                                        <span className={`text-xs font-bold uppercase ${count > 0 ? 'text-green-600' : 'text-amber-500'}`}>
+                                           {count > 0 ? 'Active' : 'Empty'}
+                                        </span>
+                                     </td>
+                                     <td className="p-5 text-right flex justify-end gap-2">
+                                        <button onClick={() => { setCategoryForm({ oldName: cat, newName: cat }); setIsManagingCategory(true); }} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Rename"><Edit size={16} /></button>
+                                        <button onClick={() => handleDeleteCategory(cat)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete from List"><Trash2 size={16} /></button>
+                                     </td>
+                                  </tr>
+                                );
+                             })}
                           </tbody>
                        </table>
                     </div>
@@ -675,7 +771,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    <div><label className="block text-sm font-bold text-slate-700 mb-1">Name</label><input type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.name || ''} onChange={e => setProductForm({...productForm, name: e.target.value})} /></div>
                    <div className="grid grid-cols-2 gap-4">
                       <div><label className="block text-sm font-bold text-slate-700 mb-1">Price</label><input type="number" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.price || ''} onChange={e => setProductForm({...productForm, price: Number(e.target.value)})} /></div>
-                      <div><label className="block text-sm font-bold text-slate-700 mb-1">Category</label><input type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.category || ''} onChange={e => setProductForm({...productForm, category: e.target.value})} /></div>
+                      <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-1">Category</label>
+                         <input list="category-suggestions" type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.category || ''} onChange={e => setProductForm({...productForm, category: e.target.value})} placeholder="Select or type..." />
+                         <datalist id="category-suggestions">
+                            {uniqueCategories.map(cat => <option key={cat} value={cat} />)}
+                         </datalist>
+                      </div>
                    </div>
                    <div><label className="block text-sm font-bold text-slate-700 mb-1">Image URL</label><input type="text" className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white" value={productForm.image || ''} onChange={e => setProductForm({...productForm, image: e.target.value})} /></div>
                    <div><label className="block text-sm font-bold text-slate-700 mb-1">Description</label><textarea rows={3} className="w-full border border-slate-200 p-3 rounded-xl outline-none resize-none bg-white" value={productForm.description || ''} onChange={e => setProductForm({...productForm, description: e.target.value})} /></div>
@@ -692,6 +794,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
        )}
        
+       {/* Modal for Managing Categories */}
+       {isManagingCategory && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+             <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl">
+                <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-2xl font-bold text-slate-900">{categoryForm.oldName ? 'Rename Category' : 'Create New Category'}</h3>
+                   <button onClick={() => setIsManagingCategory(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} /></button>
+                </div>
+                <div className="space-y-4">
+                   <p className="text-slate-500 text-sm mb-4">
+                      {categoryForm.oldName 
+                         ? `Renaming "${categoryForm.oldName}" will update all products currently using this category.` 
+                         : "Create a new category to organize your products."}
+                   </p>
+                   <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-1">Category Name</label>
+                       <input 
+                          type="text" 
+                          className="w-full border border-slate-200 p-3 rounded-xl outline-none bg-white focus:ring-2 focus:ring-indigo-500" 
+                          value={categoryForm.newName} 
+                          onChange={e => setCategoryForm({...categoryForm, newName: e.target.value})} 
+                          placeholder="e.g. Analytics Tools"
+                          autoFocus
+                       />
+                   </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-8">
+                   <button onClick={() => setIsManagingCategory(false)} className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl">Cancel</button>
+                   <button onClick={handleRenameCategory} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl">{categoryForm.oldName ? 'Rename' : 'Create'}</button>
+                </div>
+             </div>
+          </div>
+       )}
+
        {/* Modal for Adding Page */}
        {isAddingPage && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
