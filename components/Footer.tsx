@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.facebook} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-100 p-2 rounded-full text-slate-600 hover:text-white hover:bg-[#1877F2] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
+                  className="p-2 rounded-full text-white bg-[#1877F2] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
                   aria-label="Facebook"
                 >
                   <Facebook size={18} className="transition-transform group-hover:scale-110" />
@@ -45,7 +45,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.twitter} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-100 p-2 rounded-full text-slate-600 hover:text-white hover:bg-[#1DA1F2] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
+                  className="p-2 rounded-full text-white bg-[#1DA1F2] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
                   aria-label="Twitter"
                 >
                   <Twitter size={18} className="transition-transform group-hover:scale-110" />
@@ -56,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.instagram} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-100 p-2 rounded-full text-slate-600 hover:text-white hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
+                  className="p-2 rounded-full text-white bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
                   aria-label="Instagram"
                 >
                   <Instagram size={18} className="transition-transform group-hover:scale-110" />
@@ -67,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, pages = [], onChangeVi
                   href={settings.socials.linkedin} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="bg-slate-100 p-2 rounded-full text-slate-600 hover:text-white hover:bg-[#0077b5] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
+                  className="p-2 rounded-full text-white bg-[#0077b5] transition-all duration-300 group shadow-sm hover:shadow-lg hover:-translate-y-1"
                   aria-label="LinkedIn"
                 >
                   <Linkedin size={18} className="transition-transform group-hover:scale-110" />
