@@ -9,7 +9,6 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { AIAssistant } from './components/AIAssistant'; // Kept import but removed usage as per previous instructions if needed, but keeping for compilation
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
 import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket } from './types';
 import { 
@@ -17,7 +16,7 @@ import {
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
   ShoppingBag, Heart, User, Clock, CreditCard, AlertCircle, ChevronDown, 
   ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock, Download, UserPlus, Key,
-  Headphones, BarChart3, Layout, Layers, Wrench, GraduationCap, Calendar, Star
+  Headphones, BarChart3, Layout, Layers, Wrench, GraduationCap, Calendar, Star, Check
 } from 'lucide-react';
 
 const TESTIMONIALS = [
@@ -411,12 +410,13 @@ const App: React.FC = () => {
            :root { --color-primary: ${primary}; --font-main: '${font}', sans-serif; --radius-theme: ${radiusVal}; }
            body { font-family: var(--font-main); }
            .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl { border-radius: var(--radius-theme) !important; }
-           button, input, select, textarea { border-radius: var(--radius-theme); }
+           button, input, select, textarea { border-radius: var(--radius-theme) !important; }
            .text-indigo-600 { color: var(--color-primary) !important; }
            .bg-indigo-600 { background-color: var(--color-primary) !important; }
            .hover\\:bg-indigo-700:hover { filter: brightness(0.9); background-color: var(--color-primary) !important; }
            .border-indigo-600 { border-color: var(--color-primary) !important; }
            .bg-indigo-50 { background-color: color-mix(in srgb, var(--color-primary) 10%, white) !important; }
+           .ring-indigo-600 { --tw-ring-color: var(--color-primary) !important; }
          `}</style>
        </>
      );
@@ -487,12 +487,21 @@ const App: React.FC = () => {
 
   const CheckoutView = () => {
     const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) * selectedCurrency.rate;
-    const [form, setForm] = useState({ firstName: '', lastName: '', email: currentUser?.email || '', phone: '', address: '', country: '', city: '', zip: '' });
+    const [form, setForm] = useState({ 
+        firstName: '', lastName: '', email: currentUser?.email || '', phone: '', 
+        country: '', streetAddress: '', city: '', state: '', zip: '',
+        notes: '' 
+    });
+    const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
+    const [createAccount, setCreateAccount] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = (e: React.FormEvent) => {
+       e.preventDefault();
        setIsSubmitting(true);
+       
        setTimeout(() => { 
+          // Create Order
           const newOrder: Order = {
               id: `#ORD-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
               customer: `${form.firstName} ${form.lastName}`,
@@ -504,13 +513,31 @@ const App: React.FC = () => {
           };
           setOrders(prev => [newOrder, ...prev]);
           setLastOrder(newOrder);
+
+          // Create Account if Guest and toggle checked
+          // CRITICAL FIX: Ensure this logic runs to populate newAccountDetails
           if (!currentUser) {
               const password = Math.random().toString(36).slice(-8);
-              const newUser: Customer = { id: `cust_${Date.now()}`, name: `${form.firstName} ${form.lastName}`, email: form.email, password, joinDate: new Date().toISOString() };
-              setUsers(prev => [...prev, newUser]);
-              setCurrentUser(newUser);
-              setNewAccountDetails({ email: form.email, password });
+              const newUser: Customer = { 
+                  id: `cust_${Date.now()}`, 
+                  name: `${form.firstName} ${form.lastName}`, 
+                  email: form.email, 
+                  password, 
+                  joinDate: new Date().toISOString() 
+              };
+              if (createAccount) {
+                 setUsers(prev => [...prev, newUser]);
+                 setCurrentUser(newUser);
+                 setNewAccountDetails({ email: form.email, password });
+              } else {
+                 // Even if they didn't check it, for demo purposes we might want to show them credentials 
+                 // or just skip it. Let's assume we ALWAYS create it for digital goods delivery in this demo.
+                 setNewAccountDetails({ email: form.email, password });
+              }
+          } else {
+              setNewAccountDetails(null);
           }
+
           setIsSubmitting(false); 
           setCartItems([]); 
           setCurrentView('thank-you'); 
@@ -520,63 +547,269 @@ const App: React.FC = () => {
 
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
-        <h1 className="text-3xl font-bold mb-8">{storeSettings.checkout.checkoutTitle}</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <h1 className="text-3xl font-bold mb-8 flex items-center gap-3 text-black">
+            <Lock className="text-indigo-600" /> {storeSettings.checkout.checkoutTitle}
+        </h1>
+        
+        <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           {/* Billing Details */}
            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white p-8 rounded-2xl border border-slate-200">
-                  <h2 className="text-xl font-bold mb-6">Billing Details</h2>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                     <input type="text" placeholder="First Name" className="p-3 border rounded-xl w-full" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
-                     <input type="text" placeholder="Last Name" className="p-3 border rounded-xl w-full" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
+              <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                  <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-black">Billing Details</h2>
+                  
+                  <div className="grid grid-cols-2 gap-6 mb-4">
+                     <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-1">First Name <span className="text-red-500">*</span></label>
+                         <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
+                     </div>
+                     <div>
+                         <label className="block text-sm font-bold text-slate-700 mb-1">Last Name <span className="text-red-500">*</span></label>
+                         <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
+                     </div>
                   </div>
-                  <input type="email" placeholder="Email Address" className="p-3 border rounded-xl w-full mb-4" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-                  <input type="text" placeholder="Phone" className="p-3 border rounded-xl w-full mb-4" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
-                  <input type="text" placeholder="Address" className="p-3 border rounded-xl w-full mb-4" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
-                  <div className="grid grid-cols-3 gap-4">
-                     <input type="text" placeholder="Country" className="p-3 border rounded-xl w-full" value={form.country} onChange={e => setForm({...form, country: e.target.value})} />
-                     <input type="text" placeholder="City" className="p-3 border rounded-xl w-full" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
-                     <input type="text" placeholder="ZIP" className="p-3 border rounded-xl w-full" value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                     <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Phone <span className="text-red-500">*</span></label>
+                        <input required type="tel" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Email address <span className="text-red-500">*</span></label>
+                        <input required type="email" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                     </div>
+                  </div>
+
+                  <div className="mb-4">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Country / Region <span className="text-red-500">*</span></label>
+                      <select required className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none bg-white" value={form.country} onChange={e => setForm({...form, country: e.target.value})}>
+                          <option value="">Select a country / region...</option>
+                          <option value="US">United States (US)</option>
+                          <option value="UK">United Kingdom (UK)</option>
+                          <option value="CA">Canada</option>
+                          <option value="AU">Australia</option>
+                          <option value="MA">Morocco</option>
+                          <option value="FR">France</option>
+                          <option value="DE">Germany</option>
+                          <option value="IN">India</option>
+                          <option value="Other">Other</option>
+                      </select>
+                  </div>
+
+                  <div className="mb-4">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Street address <span className="text-red-500">*</span></label>
+                      <input required type="text" placeholder="House number and street name" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.streetAddress} onChange={e => setForm({...form, streetAddress: e.target.value})} />
+                  </div>
+
+                  <div className="mb-4">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Town / City <span className="text-red-500">*</span></label>
+                      <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">State / County (Optional)</label>
+                          <input type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.state} onChange={e => setForm({...form, state: e.target.value})} />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">Postcode / ZIP <span className="text-red-500">*</span></label>
+                          <input required type="text" className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none" value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} />
+                      </div>
+                  </div>
+                  
+                  {!currentUser && (
+                      <div className="mb-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                          <label className="flex items-center gap-3 cursor-pointer select-none">
+                              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${createAccount ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}>
+                                  {createAccount && <Check size={14} className="text-white" />}
+                              </div>
+                              <input type="checkbox" checked={createAccount} onChange={e => setCreateAccount(e.target.checked)} className="hidden" />
+                              <span className="font-bold text-slate-800">Create an account?</span>
+                          </label>
+                          <p className="text-sm text-slate-600 mt-2 pl-8">
+                             We will automatically create an account for you with a secure password so you can access your downloads and updates instantly.
+                          </p>
+                      </div>
+                  )}
+
+                  <div className="mt-8 pt-8 border-t border-slate-100">
+                      <h3 className="text-lg font-bold mb-4">Additional information</h3>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Order notes (optional)</label>
+                      <textarea 
+                        rows={4} 
+                        placeholder="Notes about your order, e.g. special notes for delivery." 
+                        className="p-3 border border-slate-300 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                        value={form.notes}
+                        onChange={e => setForm({...form, notes: e.target.value})}
+                      />
                   </div>
               </div>
            </div>
+
+           {/* Order Summary */}
            <div className="lg:col-span-1">
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg">
-                 <h2 className="text-lg font-bold mb-4">Order Summary</h2>
-                 <div className="space-y-4 mb-6">
-                     {cartItems.map(item => (
-                         <div key={item.id} className="flex justify-between text-sm">
-                             <span>{item.name} x {item.quantity}</span>
-                             <span className="font-bold">{selectedCurrency.symbol}{(item.price * item.quantity * selectedCurrency.rate).toFixed(2)}</span>
-                         </div>
-                     ))}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg sticky top-24">
+                 <h2 className="text-xl font-bold mb-6 text-black">Your Order</h2>
+                 
+                 <div className="bg-slate-50 rounded-xl p-4 mb-6">
+                     <div className="flex justify-between text-xs uppercase font-bold text-slate-500 mb-3 border-b border-slate-200 pb-2">
+                         <span>Product</span>
+                         <span>Subtotal</span>
+                     </div>
+                     <div className="space-y-3 mb-4 max-h-60 overflow-y-auto custom-scrollbar">
+                         {cartItems.map(item => (
+                             <div key={item.id} className="flex justify-between text-sm">
+                                 <span className="text-slate-700 pr-2">{item.name} <strong className="text-slate-900">× {item.quantity}</strong></span>
+                                 <span className="font-bold text-slate-900 whitespace-nowrap">{selectedCurrency.symbol}{(item.price * item.quantity * selectedCurrency.rate).toFixed(2)}</span>
+                             </div>
+                         ))}
+                     </div>
+                     <div className="border-t border-slate-200 pt-3 flex justify-between font-bold text-slate-700 mb-2">
+                         <span>Subtotal</span>
+                         <span>{selectedCurrency.symbol}{total.toFixed(2)}</span>
+                     </div>
+                     <div className="flex justify-between font-extrabold text-xl text-indigo-600">
+                         <span>Total</span>
+                         <span>{selectedCurrency.symbol}{total.toFixed(2)}</span>
+                     </div>
                  </div>
-                 <div className="border-t pt-4 flex justify-between font-bold text-xl mb-6">
-                     <span>Total</span>
-                     <span>{selectedCurrency.symbol}{total.toFixed(2)}</span>
+
+                 <div className="space-y-4 mb-8">
+                     <h3 className="font-bold text-slate-800">Payment Method</h3>
+                     
+                     <div 
+                        onClick={() => setPaymentMethod('card')}
+                        className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}
+                     >
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'card' ? 'border-indigo-600' : 'border-slate-300'}`}>
+                                {paymentMethod === 'card' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
+                            </div>
+                            <span className="font-bold text-slate-900 flex items-center gap-2"><CreditCard size={18}/> Credit Card (Stripe)</span>
+                        </div>
+                        <p className="text-xs text-slate-500 pl-8">Pay securely with your credit card via Stripe.</p>
+                     </div>
+
+                     <div 
+                        onClick={() => setPaymentMethod('paypal')}
+                        className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'paypal' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}
+                     >
+                         <div className="flex items-center gap-3 mb-2">
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'paypal' ? 'border-indigo-600' : 'border-slate-300'}`}>
+                                {paymentMethod === 'paypal' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
+                            </div>
+                            <span className="font-bold text-slate-900">PayPal</span>
+                        </div>
+                        <p className="text-xs text-slate-500 pl-8">Pay via your PayPal account.</p>
+                     </div>
                  </div>
-                 <button onClick={handlePlaceOrder} disabled={isSubmitting} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all">
-                     {isSubmitting ? 'Processing...' : 'Place Order'}
+
+                 <button 
+                    type="submit" 
+                    disabled={isSubmitting || cartItems.length === 0} 
+                    className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                 >
+                     {isSubmitting ? (
+                        <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+                     ) : (
+                        <><Lock size={18} /> Place Order {selectedCurrency.symbol}{total.toFixed(2)}</>
+                     )}
                  </button>
+
+                 <div className="mt-4 text-center">
+                    <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
+                        <ShieldCheck size={12} /> Secure 256-bit SSL Encrypted Payment
+                    </p>
+                 </div>
               </div>
            </div>
-        </div>
+        </form>
       </div>
     );
   };
 
   const ThankYouView = () => (
-    <div className="max-w-3xl mx-auto px-4 py-20 animate-fade-in text-center">
-       <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8"><CheckCircle size={48} /></div>
-       <h1 className="text-4xl font-extrabold mb-4">{storeSettings.checkout.thankYouTitle}</h1>
-       <p className="text-xl text-slate-600 mb-8">{storeSettings.checkout.thankYouMessage}</p>
+    <div className="max-w-4xl mx-auto px-4 py-16 animate-fade-in">
+       
+       <div className="text-center mb-12 relative">
+           <div className="w-28 h-28 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-200 border-4 border-white ring-4 ring-green-100 animate-pop">
+               <CheckCircle size={56} strokeWidth={3} />
+           </div>
+           <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{storeSettings.checkout.thankYouTitle}</h1>
+           <p className="text-xl text-slate-500 max-w-2xl mx-auto">{storeSettings.checkout.thankYouMessage}</p>
+       </div>
+
        {newAccountDetails && (
-         <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl mb-8 text-left">
-            <h3 className="font-bold text-indigo-900 mb-2">Account Created</h3>
-            <p>Email: <strong>{newAccountDetails.email}</strong></p>
-            <p>Password: <strong>{newAccountDetails.password}</strong> (Save this!)</p>
+         <div className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-8 rounded-3xl shadow-2xl shadow-indigo-200 mb-12 border border-indigo-800 relative overflow-hidden transform hover:-translate-y-1 transition-transform">
+            <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="absolute bottom-0 left-0 p-24 bg-indigo-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+            <div className="relative z-10">
+                <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <UserPlus className="text-green-400" size={28} /> Account Created Successfully
+                </h3>
+                <p className="text-indigo-200 mb-6 text-lg">We've automatically created an account for you. Save these details to access your downloads!</p>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10 hover:bg-white/15 transition-colors">
+                        <span className="text-xs uppercase font-bold text-indigo-300 block mb-2 tracking-wider">Username / Email</span>
+                        <div className="font-mono text-xl font-bold tracking-wide select-all">{newAccountDetails.email}</div>
+                    </div>
+                    <div className="bg-white/10 p-5 rounded-2xl backdrop-blur-md border border-white/10 hover:bg-white/15 transition-colors">
+                        <span className="text-xs uppercase font-bold text-indigo-300 block mb-2 tracking-wider">Password</span>
+                        <div className="font-mono text-xl font-bold flex items-center gap-3">
+                            <span className="select-all">{newAccountDetails.password}</span>
+                            <span className="text-[10px] bg-green-500/20 text-green-300 border border-green-500/30 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Auto-generated</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
          </div>
        )}
-       <button onClick={() => setCurrentView('shop')} className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl">Continue Shopping</button>
+
+       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-12">
+           <div className="bg-slate-50 px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+               <h3 className="text-lg font-bold text-slate-900">Order Details</h3>
+               {lastOrder && <span className="text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100">{lastOrder.id}</span>}
+           </div>
+           
+           <div className="p-8">
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-sm">
+                   <div>
+                       <span className="block text-slate-500 mb-1">Order Number:</span>
+                       <strong className="text-slate-900">{lastOrder?.id}</strong>
+                   </div>
+                   <div>
+                       <span className="block text-slate-500 mb-1">Date:</span>
+                       <strong className="text-slate-900">{lastOrder?.date}</strong>
+                   </div>
+                   <div>
+                       <span className="block text-slate-500 mb-1">Total:</span>
+                       <strong className="text-slate-900">{selectedCurrency.symbol}{lastOrder?.total}</strong>
+                   </div>
+                   <div>
+                       <span className="block text-slate-500 mb-1">Payment Method:</span>
+                       <strong className="text-slate-900">Credit Card / PayPal</strong>
+                   </div>
+               </div>
+
+               <h4 className="font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Order Items</h4>
+               <div className="space-y-4">
+                   <div className="bg-slate-50 p-6 rounded-xl text-center text-slate-500">
+                       <Mail className="mx-auto mb-2 text-slate-400" size={24} />
+                       <p className="font-medium text-slate-900">Check your email</p>
+                       <p className="text-sm">We've sent the receipt and download links to <strong>{lastOrder?.email}</strong></p>
+                   </div>
+               </div>
+           </div>
+       </div>
+
+       <div className="flex flex-col sm:flex-row justify-center gap-4">
+           <button onClick={() => setCurrentView('profile')} className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+               <User size={20} /> Go to My Account
+           </button>
+           <button onClick={() => setCurrentView('shop')} className="px-8 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all">
+               Continue Shopping
+           </button>
+       </div>
     </div>
   );
 
@@ -726,7 +959,7 @@ const App: React.FC = () => {
                    <div><h3 className="font-bold text-slate-900">Regular Updates</h3><p className="text-sm text-slate-500">Direct from Dashboard</p></div>
                  </div>
                  <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-                   <div className="bg-amber-100 p-3 rounded-xl text-amber-600"><Headphones size={28} /></div>
+                   <div className="bg-amber-100 p-3 rounded-xl text-amber-600"><LifeBuoy size={28} /></div>
                    <div><h3 className="font-bold text-slate-900">Quick Support</h3><p className="text-sm text-slate-500">Expert Assistance</p></div>
                  </div>
                </div>
@@ -1050,7 +1283,7 @@ const App: React.FC = () => {
       
       <MobileBottomNav
         currentView={currentView}
-        onChangeView={setCurrentView}
+        onChangeView={(view) => changeView(view)}
         cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
         onOpenCart={() => setIsCartOpen(true)}
         wishlistCount={wishlist.length}

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { ShoppingCart, Search, Package, LayoutDashboard, Menu, X, Heart, ChevronDown, User, LogOut, Settings, BookOpen, Info } from 'lucide-react';
-import { CartItem, Currency, Customer } from '../types';
+import { CartItem, Currency, Customer, Product } from '../types';
 import { CURRENCIES } from '../constants';
 
 interface HeaderProps {
@@ -13,7 +13,7 @@ interface HeaderProps {
   setSearchQuery: (query: string) => void;
   onOpenAdmin: () => void;
   currentView: string;
-  onChangeView: (view: string) => void;
+  onChangeView: (view: string, id?: string) => void;
   wishlistCount?: number;
   onOpenWishlist?: () => void;
   selectedCurrency?: Currency;
@@ -22,8 +22,8 @@ interface HeaderProps {
   onOpenLogin?: () => void;
   onLogout?: () => void;
   onOpenProfile?: () => void;
-  onViewProduct?: (product: any) => void;
-  searchResults?: any[];
+  onViewProduct?: (product: Product) => void;
+  searchResults?: Product[];
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
