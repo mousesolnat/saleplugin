@@ -1,7 +1,7 @@
 
 import { Product, Currency } from './types';
 
-export const STORE_NAME = "DigiMarket Pro";
+export const STORE_NAME = "AllPluginsWP";
 
 export const CURRENCIES: Currency[] = [
   { code: 'USD', symbol: '$', rate: 1, flag: '🇺🇸', name: 'USD' },

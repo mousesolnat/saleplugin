@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -320,8 +319,8 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('digimarket_settings');
     const defaultSettings: StoreSettings = {
       storeName: STORE_NAME,
-      siteUrl: 'https://digimarket.pro',
-      supportEmail: 'support@digimarket.pro',
+      siteUrl: 'https://allpluginswp.com',
+      supportEmail: 'support@allpluginswp.com',
       contactAddress: '123 Digital Avenue, Tech City, Cloud State, 90210',
       contactPhone: '+1 (555) 123-4567',
       footerDescription: 'The #1 marketplace for premium digital products, plugins, and themes. Instant delivery and verified quality.',
@@ -359,7 +358,7 @@ const App: React.FC = () => {
       },
 
       seo: {
-        title: 'DigiMarket Pro - Premium WordPress Tools',
+        title: 'AllPluginsWP - Premium WordPress Tools',
         description: 'The best marketplace for WordPress plugins, themes, and builder integrations. Instant delivery and verified licenses.',
         googleAnalyticsId: '',
         googleSearchConsoleCode: '',
@@ -575,7 +574,7 @@ const App: React.FC = () => {
       if (t.id === ticketId) {
          const newReply: TicketReply = {
             id: `reply_${Date.now()}`,
-            sender,
+            sender: sender,
             message,
             date: new Date().toISOString()
          };
@@ -747,7 +746,7 @@ const App: React.FC = () => {
   // SHOP View Pagination
   const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = sortedProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category))).sort()];
+  const categories: string[] = ['All', ...Array.from(new Set(products.map(p => p.category))).sort()];
 
   const getCategoryIcon = (name: string) => {
     if (name.includes('Builder')) return <LayoutTemplate size={18} />;
@@ -780,7 +779,7 @@ const App: React.FC = () => {
      const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
      const [isProcessing, setIsProcessing] = useState(false);
 
-     const handleSubmit = (e: React.FormEvent) => {
+     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsProcessing(true);
         setTimeout(() => {
@@ -1074,29 +1073,6 @@ const App: React.FC = () => {
                     </div>
                  </section>
 
-                 {/* Stats Banner */}
-                 <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-white shadow-2xl overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-32 bg-indigo-600 rounded-full opacity-20 blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-                    <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-800">
-                       <div className="p-2">
-                          <div className="text-3xl md:text-4xl font-extrabold text-indigo-400 mb-2">15,000+</div>
-                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Licenses Sold</div>
-                       </div>
-                       <div className="p-2">
-                          <div className="text-3xl md:text-4xl font-extrabold text-emerald-400 mb-2">100%</div>
-                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Original Files</div>
-                       </div>
-                       <div className="p-2">
-                          <div className="text-3xl md:text-4xl font-extrabold text-amber-400 mb-2">4.9/5</div>
-                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Customer Rating</div>
-                       </div>
-                       <div className="p-2">
-                          <div className="text-3xl md:text-4xl font-extrabold text-blue-400 mb-2">24/7</div>
-                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Expert Support</div>
-                       </div>
-                    </div>
-                 </div>
-                 
                  {/* Featured Products */}
                  <section className="animate-fade-in-up delay-200">
                     <div className="flex justify-between items-end mb-8">
@@ -1203,49 +1179,161 @@ const App: React.FC = () => {
             </div>
           )}
           
-          {/* SHOP VIEW */}
-          {currentView === 'shop' && (
-             <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 min-h-screen animate-fade-in">
-                {/* Left Sidebar (Desktop) / Top Bar (Mobile) */}
-                <aside className="lg:w-64 shrink-0">
-                   <div className="sticky top-24 z-30 lg:z-0 bg-white/95 backdrop-blur shadow-sm lg:shadow-none border-b lg:border-none border-slate-200 lg:bg-transparent -mx-4 px-4 py-2 lg:mx-0 lg:px-0 lg:py-0">
-                      <h3 className="font-bold text-slate-900 mb-4 hidden lg:block">Categories</h3>
-                      <div className="flex lg:flex-col overflow-x-auto no-scrollbar gap-2 pb-2 lg:pb-0">
-                         {categories.map(cat => {
-                           const count = products.filter(p => cat === 'All' ? true : p.category === cat).length;
-                           return (
-                             <button
-                               key={cat}
-                               onClick={() => { setSelectedCategory(cat); setCurrentPage(1); window.scrollTo(0, 0); }}
-                               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${
-                                 selectedCategory === cat
-                                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 lg:border-transparent'
-                               }`}
-                             >
-                               <span className="opacity-70">{getCategoryIcon(cat)}</span>
-                               {cat}
-                               <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${selectedCategory === cat ? 'bg-white/20' : 'bg-slate-100'}`}>{count}</span>
-                             </button>
-                           );
-                         })}
+          {/* ABOUT VIEW */}
+          {currentView === 'about' && (
+             <div className="animate-fade-in">
+                {/* About Hero */}
+                <div className="bg-slate-900 text-white py-20 px-4 text-center relative overflow-hidden">
+                   <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                   <h1 className="text-4xl md:text-5xl font-extrabold mb-6 relative z-10">Empowering Developers Worldwide</h1>
+                   <p className="text-xl text-indigo-200 max-w-2xl mx-auto relative z-10">
+                      We provide premium tools at accessible prices, helping creators build the web of tomorrow.
+                   </p>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 py-16">
+                   {/* Mission */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24">
+                      <div>
+                         <span className="text-indigo-600 font-bold tracking-wider uppercase text-sm">Our Mission</span>
+                         <h2 className="text-3xl font-extrabold text-slate-900 mt-2 mb-6">Democratizing Premium WordPress Tools</h2>
+                         <div className="space-y-4 text-slate-600 leading-relaxed">
+                            <p>
+                               At {storeSettings.storeName}, we believe that price shouldn't be a barrier to quality. 
+                               Every developer, from freelancers to agency owners, deserves access to the best tools available.
+                            </p>
+                            <p>
+                               By negotiating bulk licenses and agency deals directly with developers, we bridge the gap between 
+                               premium pricing and affordable access, ensuring you get 100% original, safe, and updatable software.
+                            </p>
+                         </div>
+                      </div>
+                      <div className="relative">
+                         <div className="absolute inset-0 bg-indigo-600 rounded-3xl rotate-3 opacity-10"></div>
+                         <img 
+                           src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" 
+                           alt="Team working" 
+                           className="relative rounded-3xl shadow-xl w-full"
+                         />
                       </div>
                    </div>
+
+                   {/* Stats */}
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-24">
+                      {[
+                        { label: 'Happy Customers', value: '15,000+' },
+                        { label: 'Products Available', value: '350+' },
+                        { label: 'Years in Business', value: '5+' },
+                        { label: 'Support Team', value: '24/7' }
+                      ].map((stat, idx) => (
+                         <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center hover:-translate-y-1 transition-transform">
+                            <div className="text-3xl font-extrabold text-indigo-600 mb-2">{stat.value}</div>
+                            <div className="text-sm font-bold text-slate-500 uppercase">{stat.label}</div>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+          )}
+
+          {/* BLOG VIEW */}
+          {currentView === 'blog' && (
+             <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
+                <div className="text-center mb-16">
+                   <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Latest Insights</h1>
+                   <p className="text-slate-500 text-lg">Tips, tutorials, and news from the WordPress world.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                   {blogPosts.map(post => (
+                      <div key={post.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group" onClick={() => changeView('blog-post', post.id)}>
+                         <div className="h-48 overflow-hidden relative">
+                            <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold text-indigo-600 uppercase tracking-wide">
+                               {post.category}
+                            </div>
+                         </div>
+                         <div className="p-6">
+                            <div className="text-xs text-slate-400 mb-3 flex items-center gap-2">
+                               <span>{new Date(post.date).toLocaleDateString()}</span> • <span>{post.author}</span>
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-indigo-600 transition-colors">{post.title}</h2>
+                            <p className="text-slate-500 text-sm line-clamp-3 mb-4">{post.excerpt}</p>
+                            <span className="text-indigo-600 font-bold text-sm flex items-center gap-1">Read Article <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" /></span>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+          )}
+
+          {/* BLOG POST VIEW */}
+          {currentView === 'blog-post' && selectedPost && (
+             <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
+                <button onClick={() => changeView('blog')} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium mb-8"><ArrowLeft size={18} /> Back to Blog</button>
+                <div className="mb-8">
+                   <div className="flex items-center gap-3 text-sm text-slate-500 mb-4">
+                      <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold text-xs uppercase">{selectedPost.category}</span>
+                      <span>{new Date(selectedPost.date).toLocaleDateString()}</span>
+                   </div>
+                   <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">{selectedPost.title}</h1>
+                   <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">{selectedPost.author.charAt(0)}</div>
+                      <span className="font-medium text-slate-900">{selectedPost.author}</span>
+                   </div>
+                </div>
+                <div className="rounded-3xl overflow-hidden mb-12 shadow-lg">
+                   <img src={selectedPost.image} alt={selectedPost.title} className="w-full h-auto" />
+                </div>
+                <div className="prose prose-lg prose-slate max-w-none">
+                   {selectedPost.content}
+                </div>
+             </div>
+          )}
+          
+          {/* SHOP VIEW */}
+          {currentView === 'shop' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+              <div className="flex flex-col lg:flex-row gap-8">
+                {/* Desktop Sidebar / Mobile Horizontal Scroll */}
+                <aside className="lg:w-64 shrink-0">
+                  <div className="sticky top-24 z-30 bg-white lg:bg-transparent shadow-sm lg:shadow-none -mx-4 px-4 py-4 lg:mx-0 lg:px-0 lg:py-0 border-b lg:border-none border-slate-100">
+                     <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 no-scrollbar">
+                        {categories.map((category: string) => (
+                           <button
+                             key={category}
+                             onClick={() => { setSelectedCategory(category); setCurrentPage(1); }}
+                             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                               selectedCategory === category
+                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                 : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-100'
+                             }`}
+                           >
+                              <span className={selectedCategory === category ? 'text-white' : 'text-slate-400'}>
+                                {category === 'All' ? <Layout size={18} /> : getCategoryIcon(category)}
+                              </span>
+                              <span>{category}</span>
+                              <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${selectedCategory === category ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                {category === 'All' ? products.length : products.filter(p => p.category === category).length}
+                              </span>
+                           </button>
+                        ))}
+                     </div>
+                  </div>
                 </aside>
 
                 <div className="flex-1">
                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-bold text-slate-900">
-                         {selectedCategory === 'All' ? 'All Products' : selectedCategory}
-                         <span className="text-slate-400 text-lg font-normal ml-2">({filteredProducts.length})</span>
+                      <h2 className="text-xl font-bold text-slate-900">
+                         {selectedCategory} <span className="text-slate-400 text-sm font-medium ml-2">({filteredProducts.length} results)</span>
                       </h2>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
+                         <span className="text-sm text-slate-500 hidden sm:inline">Sort by:</span>
                          <select 
-                           className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                           className="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 outline-none cursor-pointer"
                            value={sortBy}
                            onChange={(e) => setSortBy(e.target.value)}
                          >
-                            <option value="default">Sort by: Default</option>
+                            <option value="default">Relevance</option>
                             <option value="price-low">Price: Low to High</option>
                             <option value="price-high">Price: High to Low</option>
                             <option value="name">Name: A-Z</option>
@@ -1253,117 +1341,98 @@ const App: React.FC = () => {
                       </div>
                    </div>
 
-                   {paginatedProducts.length > 0 ? (
+                   {filteredProducts.length === 0 ? (
+                      <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed">
+                         <ShoppingBag className="mx-auto h-12 w-12 text-slate-300 mb-4" />
+                         <h3 className="text-lg font-medium text-slate-900">No products found</h3>
+                         <p className="text-slate-500">Try adjusting your search or filter.</p>
+                      </div>
+                   ) : (
                       <>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                           {paginatedProducts.map(product => (
-                              <ProductCard 
-                                 key={product.id} 
-                                 product={product} 
-                                 onAddToCart={handleAddToCart}
-                                 onViewDetails={() => handleViewProduct(product)}
-                                 isWishlisted={wishlist.some(p => p.id === product.id)}
-                                 onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
-                                 priceMultiplier={selectedCurrency.rate}
-                                 currencySymbol={selectedCurrency.symbol}
-                              />
-                           ))}
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {paginatedProducts.map((product) => (
+                            <ProductCard
+                              key={product.id}
+                              product={product}
+                              onAddToCart={handleAddToCart}
+                              onViewDetails={() => handleViewProduct(product)}
+                              isWishlisted={wishlist.some(p => p.id === product.id)}
+                              onToggleWishlist={(e) => { e.stopPropagation(); handleToggleWishlist(product); }}
+                              priceMultiplier={selectedCurrency.rate}
+                              currencySymbol={selectedCurrency.symbol}
+                            />
+                          ))}
                         </div>
+
                         {/* Pagination */}
                         {totalPages > 1 && (
                           <div className="mt-12 flex justify-center gap-2">
                              <button 
                                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo(0,0); }}
                                disabled={currentPage === 1}
-                               className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
+                               className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                              >
-                               <ChevronLeft size={20} />
+                                <ChevronLeft size={20} />
                              </button>
-                             {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
-                               <button
-                                 key={page}
-                                 onClick={() => { setCurrentPage(page); window.scrollTo(0,0); }}
-                                 className={`w-10 h-10 rounded-lg font-bold text-sm ${
-                                   currentPage === page 
-                                   ? 'bg-indigo-600 text-white shadow-md' 
-                                   : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'
-                                 }`}
-                               >
-                                 {page}
-                               </button>
+                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                   key={page}
+                                   onClick={() => { setCurrentPage(page); window.scrollTo(0,0); }}
+                                   className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${
+                                      currentPage === page 
+                                      ? 'bg-indigo-600 text-white shadow-md' 
+                                      : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                                   }`}
+                                >
+                                   {page}
+                                </button>
                              ))}
                              <button 
                                onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0,0); }}
                                disabled={currentPage === totalPages}
-                               className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
+                               className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                              >
-                               <ChevronRight size={20} />
+                                <ChevronRight size={20} />
                              </button>
                           </div>
                         )}
                       </>
-                   ) : (
-                      <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
-                         <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
-                           <Search className="text-slate-300" size={32} />
-                         </div>
-                         <h3 className="text-lg font-bold text-slate-900">No products found</h3>
-                         <p className="text-slate-500">Try adjusting your filters or search query.</p>
-                         <button onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }} className="mt-4 text-indigo-600 font-bold hover:underline">Clear Filters</button>
-                      </div>
                    )}
                 </div>
-             </div>
+              </div>
+            </div>
           )}
 
           {/* CONTACT VIEW */}
           {currentView === 'contact' && (
-             <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
-                <div className="text-center mb-12">
+             <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
+                <div className="text-center mb-16">
                    <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Get in Touch</h1>
-                   <p className="text-slate-500 text-lg">We'd love to hear from you. Our team is always here to help.</p>
+                   <p className="text-slate-500 text-lg">We'd love to hear from you. Our team is always here to chat.</p>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center hover:-translate-y-1 transition-transform">
-                      <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4"><Mail size={24}/></div>
-                      <h3 className="font-bold text-slate-900 mb-2">Email Us</h3>
-                      <p className="text-slate-500 text-sm">{storeSettings.supportEmail}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                   <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                      <form className="space-y-6">
+                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Name</label><input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Your name" /></div>
+                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Email</label><input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="your@email.com" /></div>
+                         <div><label className="block text-sm font-bold text-slate-700 mb-2">Message</label><textarea rows={5} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="How can we help?" /></div>
+                         <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+                            <Send size={18} /> Send Message
+                         </button>
+                      </form>
                    </div>
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center hover:-translate-y-1 transition-transform">
-                      <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4"><Phone size={24}/></div>
-                      <h3 className="font-bold text-slate-900 mb-2">Call Us</h3>
-                      <p className="text-slate-500 text-sm">{storeSettings.contactPhone}</p>
-                   </div>
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center hover:-translate-y-1 transition-transform">
-                      <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mx-auto mb-4"><MapPin size={24}/></div>
-                      <h3 className="font-bold text-slate-900 mb-2">Visit Us</h3>
-                      <p className="text-slate-500 text-sm px-4">{storeSettings.contactAddress}</p>
-                   </div>
-                </div>
-
-                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
-                   <div className="grid grid-cols-1 md:grid-cols-2">
-                      <div className="p-8 md:p-12">
-                         <h2 className="text-2xl font-bold text-slate-900 mb-6">Send us a Message</h2>
-                         <form className="space-y-4">
-                            <div><label className="block text-sm font-bold text-slate-700 mb-1">Name</label><input type="text" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Your name" /></div>
-                            <div><label className="block text-sm font-bold text-slate-700 mb-1">Email</label><input type="email" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="your@email.com" /></div>
-                            <div><label className="block text-sm font-bold text-slate-700 mb-1">Message</label><textarea rows={4} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="How can we help?" /></div>
-                            <button className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Send Message</button>
-                         </form>
+                   <div className="space-y-8">
+                      <div className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Mail size={24} /></div>
+                         <div><h3 className="font-bold text-slate-900 text-lg">Email Us</h3><p className="text-slate-500 mb-2">Our friendly team is here to help.</p><a href={`mailto:${storeSettings.supportEmail}`} className="text-indigo-600 font-bold hover:underline">{storeSettings.supportEmail}</a></div>
                       </div>
-                      <div className="bg-indigo-900 p-8 md:p-12 text-white flex flex-col justify-center relative overflow-hidden">
-                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20 translate-x-1/2 -translate-y-1/2"></div>
-                         <div className="relative z-10">
-                            <h3 className="text-2xl font-bold mb-4">Why Choose Us?</h3>
-                            <ul className="space-y-4">
-                               <li className="flex items-center gap-3"><CheckCircle className="text-emerald-400" size={20}/> <span>24/7 Premium Support</span></li>
-                               <li className="flex items-center gap-3"><CheckCircle className="text-emerald-400" size={20}/> <span>Instant Delivery</span></li>
-                               <li className="flex items-center gap-3"><CheckCircle className="text-emerald-400" size={20}/> <span>Secure Payments</span></li>
-                               <li className="flex items-center gap-3"><CheckCircle className="text-emerald-400" size={20}/> <span>100% Satisfaction Guarantee</span></li>
-                            </ul>
-                         </div>
+                      <div className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><MapPin size={24} /></div>
+                         <div><h3 className="font-bold text-slate-900 text-lg">Office</h3><p className="text-slate-500 mb-2">Come say hello at our office HQ.</p><p className="text-slate-700 font-medium">{storeSettings.contactAddress}</p></div>
+                      </div>
+                      <div className="flex items-start gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Phone size={24} /></div>
+                         <div><h3 className="font-bold text-slate-900 text-lg">Phone</h3><p className="text-slate-500 mb-2">Mon-Fri from 8am to 5pm.</p><p className="text-slate-700 font-medium">{storeSettings.contactPhone}</p></div>
                       </div>
                    </div>
                 </div>
@@ -1372,7 +1441,7 @@ const App: React.FC = () => {
 
           {/* PRODUCT DETAIL VIEW */}
           {currentView === 'product' && selectedProduct && (
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <ProductDetail 
                 product={selectedProduct} 
                 onAddToCart={handleAddToCart}
@@ -1389,18 +1458,35 @@ const App: React.FC = () => {
             </div>
           )}
 
+          {/* PAGE VIEW (CMS) */}
+          {currentView === 'page' && selectedPage && (
+             <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-8">{selectedPage.title}</h1>
+                <div className="prose prose-lg prose-slate max-w-none bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                   {selectedPage.content}
+                </div>
+             </div>
+          )}
+
           {/* WISHLIST VIEW */}
           {currentView === 'wishlist' && (
-             <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in min-h-[60vh]">
+             <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
                 <h1 className="text-3xl font-extrabold text-slate-900 mb-8 flex items-center gap-3">
-                   <Heart className="text-red-500 fill-red-500" size={32} /> My Wishlist
+                   <Heart className="text-red-500 fill-red-500" /> My Wishlist
                 </h1>
-                {wishlist.length > 0 ? (
+                {wishlist.length === 0 ? (
+                   <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed">
+                      <Heart className="mx-auto h-16 w-16 text-slate-200 mb-4" />
+                      <h3 className="text-xl font-bold text-slate-900">Your wishlist is empty</h3>
+                      <p className="text-slate-500 mt-2">Start adding items you love!</p>
+                      <button onClick={() => changeView('shop')} className="mt-6 px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700">Browse Shop</button>
+                   </div>
+                ) : (
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                       {wishlist.map(product => (
                          <ProductCard 
-                            key={product.id} 
-                            product={product} 
+                            key={product.id}
+                            product={product}
                             onAddToCart={handleAddToCart}
                             onViewDetails={() => handleViewProduct(product)}
                             isWishlisted={true}
@@ -1410,19 +1496,10 @@ const App: React.FC = () => {
                          />
                       ))}
                    </div>
-                ) : (
-                   <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 border-dashed">
-                      <div className="inline-block p-4 bg-red-50 rounded-full mb-4">
-                        <Heart className="text-red-300" size={32} />
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900">Your wishlist is empty</h3>
-                      <p className="text-slate-500 mt-2">Save items you want to buy later.</p>
-                      <button onClick={() => changeView('shop')} className="mt-6 px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700">Browse Shop</button>
-                   </div>
                 )}
              </div>
           )}
-          
+
           {/* PROFILE VIEW */}
           {currentView === 'profile' && currentUser && (
              <CustomerDashboard 
@@ -1435,16 +1512,6 @@ const App: React.FC = () => {
              />
           )}
 
-          {/* PAGE VIEW (CMS) */}
-          {currentView === 'page' && selectedPage && (
-             <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
-                <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200">
-                   <h1 className="text-4xl font-extrabold text-slate-900 mb-8 pb-4 border-b border-slate-100">{selectedPage.title}</h1>
-                   <div className="prose prose-slate max-w-none prose-lg" dangerouslySetInnerHTML={{ __html: selectedPage.content }} />
-                </div>
-             </div>
-          )}
-
           {/* CHECKOUT VIEW */}
           {currentView === 'checkout' && <CheckoutView />}
 
@@ -1454,27 +1521,27 @@ const App: React.FC = () => {
         </main>
 
         <Footer 
-           settings={storeSettings}
-           pages={pages}
-           onChangeView={changeView}
-           onOpenAdmin={() => changeView('admin')}
-           onCategoryClick={(cat: string) => { setSelectedCategory(cat); changeView('shop'); }}
+          settings={storeSettings} 
+          pages={pages}
+          onChangeView={changeView}
+          onOpenAdmin={() => changeView('admin')}
+          onCategoryClick={(cat) => { setSelectedCategory(cat); changeView('shop'); }}
         />
-
+        
         <MobileBottomNav 
-           currentView={currentView} 
-           onChangeView={changeView} 
-           cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-           onOpenCart={() => setIsCartOpen(true)}
-           wishlistCount={wishlist.length}
-           onOpenWishlist={() => changeView('wishlist')}
+          currentView={currentView} 
+          onChangeView={(view) => changeView(view)}
+          cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+          onOpenCart={() => setIsCartOpen(true)}
+          wishlistCount={wishlist.length}
+          onOpenWishlist={() => changeView('wishlist')}
         />
-
+        
         <CartSidebar 
           isOpen={isCartOpen} 
           onClose={() => setIsCartOpen(false)} 
           items={cartItems} 
-          onRemoveItem={handleRemoveFromCart} 
+          onRemoveItem={handleRemoveFromCart}
           onUpdateQuantity={handleUpdateCartQuantity}
           priceMultiplier={selectedCurrency.rate}
           currencySymbol={selectedCurrency.symbol}
@@ -1482,13 +1549,12 @@ const App: React.FC = () => {
         />
 
         <AuthModal 
-          isOpen={isAuthModalOpen} 
+          isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           onLogin={handleLogin}
           onRegister={handleRegister}
           onDemoLogin={handleDemoLogin}
         />
-
       </div>
     </>
   );
