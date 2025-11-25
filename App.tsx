@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -9,15 +10,14 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES, DEFAULT_CATEGORIES } from './constants';
-import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket, TicketReply, CategoryData } from './types';
+import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
+import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket, TicketReply } from './types';
 import { 
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
   ShoppingBag, Heart, User, Clock, CreditCard, AlertCircle, ChevronDown, 
   ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock, Download, UserPlus, Key,
-  Headphones, BarChart3, Layout, Layers, Wrench, GraduationCap, Calendar, Star, Check, LayoutTemplate,
-  Grid
+  Headphones, BarChart3, Layout, Layers, Wrench, GraduationCap, Calendar, Star, Check, LayoutTemplate
 } from 'lucide-react';
 
 const TESTIMONIALS = [
@@ -223,46 +223,9 @@ const DEFAULT_BLOG_POSTS: BlogPost[] = [
 ];
 
 const MOCK_ORDERS: Order[] = [
-    { 
-      id: '#ORD-7829', 
-      customer: 'Alex Johnson', 
-      email: 'alex@example.com', 
-      total: 65, 
-      status: 'completed', 
-      date: '2024-03-10', 
-      items: 3,
-      products: [
-        { id: 'prod_1', name: 'CartFlows', price: 45, category: 'eCommerce', quantity: 1 },
-        { id: 'prod_3', name: 'Convert PRO', price: 20, category: 'Forms & Leads', quantity: 1 }
-      ],
-      billingDetails: { address: '123 Main St', city: 'New York', country: 'United States', zip: '10001', phone: '555-0199' }
-    },
-    { 
-      id: '#ORD-7830', 
-      customer: 'Sarah Smith', 
-      email: 'sarah@design.co', 
-      total: 20, 
-      status: 'completed', 
-      date: '2024-03-11', 
-      items: 1,
-      products: [
-        { id: 'prod_11', name: 'Elementor Pro', price: 20, category: 'Builders & Addons', quantity: 1 }
-      ],
-      billingDetails: { address: '456 Queen St', city: 'London', country: 'United Kingdom', zip: 'EC1A 1BB', phone: '020-7946-0123' }
-    },
-    { 
-      id: '#ORD-7831', 
-      customer: 'Mike Brown', 
-      email: 'mike@agency.net', 
-      total: 125, 
-      status: 'pending', 
-      date: '2024-03-12', 
-      items: 5,
-      products: [
-        { id: 'prod_2', name: 'CodeSnippets + AI', price: 25, category: 'Plugins & Tools', quantity: 5 }
-      ],
-      billingDetails: { address: '789 Tech Blvd', city: 'San Francisco', country: 'United States', zip: '94105', phone: '555-0234' }
-    },
+    { id: '#ORD-7829', customer: 'Alex Johnson', email: 'alex@example.com', total: 65, status: 'completed', date: '2024-03-10', items: 3 },
+    { id: '#ORD-7830', customer: 'Sarah Smith', email: 'sarah@design.co', total: 20, status: 'completed', date: '2024-03-11', items: 1 },
+    { id: '#ORD-7831', customer: 'Mike Brown', email: 'mike@agency.net', total: 125, status: 'pending', date: '2024-03-12', items: 5 },
 ];
 
 const ITEMS_PER_PAGE = 30;
@@ -284,12 +247,6 @@ const App: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => {
     const saved = localStorage.getItem('digimarket_posts');
     return saved ? JSON.parse(saved) : DEFAULT_BLOG_POSTS;
-  });
-
-  // Categories State
-  const [categories, setCategories] = useState<CategoryData[]>(() => {
-      const saved = localStorage.getItem('digimarket_categories');
-      return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
   });
 
   // Orders State
@@ -430,7 +387,6 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('digimarket_products', JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem('digimarket_pages', JSON.stringify(pages)); }, [pages]);
   useEffect(() => { localStorage.setItem('digimarket_posts', JSON.stringify(blogPosts)); }, [blogPosts]);
-  useEffect(() => { localStorage.setItem('digimarket_categories', JSON.stringify(categories)); }, [categories]);
   useEffect(() => { localStorage.setItem('digimarket_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('digimarket_tickets', JSON.stringify(tickets)); }, [tickets]);
   useEffect(() => { localStorage.setItem('digimarket_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
@@ -639,15 +595,7 @@ const App: React.FC = () => {
         total: total,
         status: 'processing',
         date: new Date().toISOString().split('T')[0],
-        items: cartItems.length,
-        products: [...cartItems],
-        billingDetails: {
-           address: orderDetails.address,
-           city: orderDetails.city,
-           country: orderDetails.country,
-           zip: orderDetails.zip,
-           phone: orderDetails.phone
-        }
+        items: cartItems.length
     };
     setOrders([newOrder, ...orders]);
     setLastOrder(newOrder);
@@ -686,10 +634,6 @@ const App: React.FC = () => {
   const handleAddPost = (p: BlogPost) => setBlogPosts(prev => [p, ...prev]);
   const handleUpdatePost = (p: BlogPost) => setBlogPosts(prev => prev.map(post => post.id === p.id ? p : post));
   const handleDeletePost = (id: string) => setBlogPosts(prev => prev.filter(post => post.id !== id));
-
-  const handleAddCategory = (c: CategoryData) => setCategories(prev => [...prev, c]);
-  const handleUpdateCategory = (c: CategoryData) => setCategories(prev => prev.map(cat => cat.id === c.id ? c : cat));
-  const handleDeleteCategory = (id: string) => setCategories(prev => prev.filter(cat => cat.id !== id));
 
   // Search Logic
   const filteredProducts = useMemo(() => {
@@ -748,10 +692,6 @@ const App: React.FC = () => {
              users={users}
              onDeleteUser={handleDeleteUser}
              onReplyTicket={handleTicketReply}
-             categories={categories}
-             onAddCategory={handleAddCategory}
-             onUpdateCategory={handleUpdateCategory}
-             onDeleteCategory={handleDeleteCategory}
           />
         </>
      );
@@ -760,16 +700,9 @@ const App: React.FC = () => {
   // SHOP View Pagination
   const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = sortedProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  
-  // Combine managed categories with any extra ones found in products
-  const categoryList = ['All', ...categories.map(c => c.name)];
+  const categories = ['All', ...Array.from(new Set(products.map(p => p.category))).sort()];
 
   const getCategoryIcon = (name: string) => {
-    const cat = categories.find(c => c.name === name);
-    if (cat && cat.icon) {
-        return <img src={cat.icon} alt="" className="w-5 h-5 object-contain rounded" />;
-    }
-
     if (name.includes('Builder')) return <LayoutTemplate size={18} />;
     if (name.includes('SEO')) return <BarChart3 size={18} />;
     if (name.includes('eCommerce')) return <ShoppingBag size={18} />;
@@ -1094,6 +1027,29 @@ const App: React.FC = () => {
                     </div>
                  </section>
 
+                 {/* Stats Banner */}
+                 <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-white shadow-2xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-32 bg-indigo-600 rounded-full opacity-20 blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-800">
+                       <div className="p-2">
+                          <div className="text-3xl md:text-4xl font-extrabold text-indigo-400 mb-2">15,000+</div>
+                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Licenses Sold</div>
+                       </div>
+                       <div className="p-2">
+                          <div className="text-3xl md:text-4xl font-extrabold text-emerald-400 mb-2">100%</div>
+                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Original Files</div>
+                       </div>
+                       <div className="p-2">
+                          <div className="text-3xl md:text-4xl font-extrabold text-amber-400 mb-2">4.9/5</div>
+                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Customer Rating</div>
+                       </div>
+                       <div className="p-2">
+                          <div className="text-3xl md:text-4xl font-extrabold text-blue-400 mb-2">24/7</div>
+                          <div className="text-slate-400 text-sm font-medium uppercase tracking-wider">Expert Support</div>
+                       </div>
+                    </div>
+                 </div>
+                 
                  {/* Featured Products */}
                  <section className="animate-fade-in-up delay-200">
                     <div className="flex justify-between items-end mb-8">
@@ -1208,7 +1164,7 @@ const App: React.FC = () => {
                    <div className="sticky top-24 z-30 lg:z-0 bg-white/95 backdrop-blur shadow-sm lg:shadow-none border-b lg:border-none border-slate-200 lg:bg-transparent -mx-4 px-4 py-2 lg:mx-0 lg:px-0 lg:py-0">
                       <h3 className="font-bold text-slate-900 mb-4 hidden lg:block">Categories</h3>
                       <div className="flex lg:flex-col overflow-x-auto no-scrollbar gap-2 pb-2 lg:pb-0">
-                         {categoryList.map(cat => {
+                         {categories.map(cat => {
                            const count = products.filter(p => cat === 'All' ? true : p.category === cat).length;
                            return (
                              <button
@@ -1379,7 +1335,7 @@ const App: React.FC = () => {
                 priceMultiplier={selectedCurrency.rate}
                 currencySymbol={selectedCurrency.symbol}
                 recentlyViewed={recentlyViewed}
-                onViewHistoryItem={(p) => handleViewProduct(p)}
+                onViewHistoryItem={handleViewProduct}
                 currentUser={currentUser}
                 onAddReview={handleAddReview}
               />

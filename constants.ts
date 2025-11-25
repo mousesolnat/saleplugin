@@ -1,5 +1,5 @@
 
-import { Product, Currency, CategoryData } from './types';
+import { Product, Currency } from './types';
 
 export const STORE_NAME = "DigiMarket Pro";
 
@@ -8,17 +8,6 @@ export const CURRENCIES: Currency[] = [
   { code: 'EUR', symbol: '€', rate: 0.92, flag: '🇪🇺', name: 'EUR' },
   { code: 'GBP', symbol: '£', rate: 0.79, flag: '🇬🇧', name: 'GBP' },
   { code: 'MAD', symbol: 'DH', rate: 10.12, flag: '🇲🇦', name: 'MAD' },
-];
-
-export const DEFAULT_CATEGORIES: CategoryData[] = [
-  { id: 'cat_1', name: 'Builders & Addons', slug: 'builders-addons' },
-  { id: 'cat_2', name: 'SEO & Marketing', slug: 'seo-marketing' },
-  { id: 'cat_3', name: 'eCommerce', slug: 'ecommerce' },
-  { id: 'cat_4', name: 'Forms & Leads', slug: 'forms-leads' },
-  { id: 'cat_5', name: 'Performance', slug: 'performance' },
-  { id: 'cat_6', name: 'Booking & Events', slug: 'booking-events' },
-  { id: 'cat_7', name: 'LMS & Education', slug: 'lms-education' },
-  { id: 'cat_8', name: 'Plugins & Tools', slug: 'plugins-tools' },
 ];
 
 // Helper to auto-categorize based on name keywords
