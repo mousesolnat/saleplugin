@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -366,6 +365,7 @@ const App: React.FC = () => {
       },
       
       popularCategories: ['WordPress Plugins', 'Page Builders', 'SEO Tools', 'eCommerce'],
+      categoryIcons: {}, // Initialize empty
       
       socials: {
         facebook: 'https://facebook.com',
@@ -388,6 +388,7 @@ const App: React.FC = () => {
         checkout: { ...defaultSettings.checkout, ...parsed.checkout },
         seo: { ...defaultSettings.seo, ...parsed.seo },
         socials: { ...defaultSettings.socials, ...parsed.socials },
+        categoryIcons: parsed.categoryIcons || {}
       };
     }
     return defaultSettings;
@@ -428,6 +429,7 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('digimarket_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
   useEffect(() => { localStorage.setItem('digimarket_history', JSON.stringify(recentlyViewed)); }, [recentlyViewed]);
   useEffect(() => { localStorage.setItem('digimarket_users', JSON.stringify(users)); }, [users]);
+  useEffect(() => { localStorage.setItem('digimarket_settings', JSON.stringify(storeSettings)); }, [storeSettings]);
   useEffect(() => { 
     if (currentUser) localStorage.setItem('digimarket_current_user', JSON.stringify(currentUser));
     else localStorage.removeItem('digimarket_current_user');
@@ -730,7 +732,7 @@ const App: React.FC = () => {
              blogPosts={blogPosts}
              onAddPost={handleAddPost}
              onUpdatePost={handleUpdatePost}
-             onDeletePost={(id: string) => handleDeletePost(id)}
+             onDeletePost={handleDeletePost}
              orders={orders}
              onUpdateOrder={(order: Order) => setOrders((prev) => prev.map((o) => o.id === order.id ? order : o))}
              tickets={tickets}
@@ -749,6 +751,11 @@ const App: React.FC = () => {
   const categories: string[] = ['All', ...Array.from(new Set(products.map(p => p.category))).sort()];
 
   const getCategoryIcon = (name: string) => {
+    // Check for custom icon first
+    if (storeSettings.categoryIcons && storeSettings.categoryIcons[name]) {
+        return <img src={storeSettings.categoryIcons[name]} className="w-5 h-5 object-contain" alt={name} />;
+    }
+    // Fallback to defaults
     if (name.includes('Builder')) return <LayoutTemplate size={18} />;
     if (name.includes('SEO')) return <BarChart3 size={18} />;
     if (name.includes('eCommerce')) return <ShoppingBag size={18} />;
@@ -1241,7 +1248,7 @@ const App: React.FC = () => {
              <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
                 <div className="text-center mb-16">
                    <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Latest Insights</h1>
-                   <p className="text-slate-500 text-lg">Tips, tutorials, and news from the WordPress world.</p>
+                   <p className="text-black text-lg">Tips, tutorials, and news from the WordPress world.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                    {blogPosts.map(post => (
@@ -1253,11 +1260,11 @@ const App: React.FC = () => {
                             </div>
                          </div>
                          <div className="p-6">
-                            <div className="text-xs text-slate-400 mb-3 flex items-center gap-2">
+                            <div className="text-xs text-black mb-3 flex items-center gap-2">
                                <span>{new Date(post.date).toLocaleDateString()}</span> • <span>{post.author}</span>
                             </div>
                             <h2 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-indigo-600 transition-colors">{post.title}</h2>
-                            <p className="text-slate-500 text-sm line-clamp-3 mb-4">{post.excerpt}</p>
+                            <p className="text-black text-sm line-clamp-3 mb-4">{post.excerpt}</p>
                             <span className="text-indigo-600 font-bold text-sm flex items-center gap-1">Read Article <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" /></span>
                          </div>
                       </div>
@@ -1269,9 +1276,9 @@ const App: React.FC = () => {
           {/* BLOG POST VIEW */}
           {currentView === 'blog-post' && selectedPost && (
              <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
-                <button onClick={() => changeView('blog')} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium mb-8"><ArrowLeft size={18} /> Back to Blog</button>
+                <button onClick={() => changeView('blog')} className="flex items-center gap-2 text-black hover:text-indigo-600 font-medium mb-8"><ArrowLeft size={18} /> Back to Blog</button>
                 <div className="mb-8">
-                   <div className="flex items-center gap-3 text-sm text-slate-500 mb-4">
+                   <div className="flex items-center gap-3 text-sm text-black mb-4">
                       <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold text-xs uppercase">{selectedPost.category}</span>
                       <span>{new Date(selectedPost.date).toLocaleDateString()}</span>
                    </div>
@@ -1284,7 +1291,7 @@ const App: React.FC = () => {
                 <div className="rounded-3xl overflow-hidden mb-12 shadow-lg">
                    <img src={selectedPost.image} alt={selectedPost.title} className="w-full h-auto" />
                 </div>
-                <div className="prose prose-lg prose-slate max-w-none">
+                <div className="prose prose-lg max-w-none prose-p:text-black prose-headings:text-black prose-li:text-black text-black">
                    {selectedPost.content}
                 </div>
              </div>

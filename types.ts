@@ -173,6 +173,7 @@ export interface StoreSettings {
 
   // Categorization
   popularCategories: string[];
+  categoryIcons?: Record<string, string>; // Map category name to icon URL (or base64)
   
   // Admin Security
   adminPassword?: string;
