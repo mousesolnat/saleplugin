@@ -58,7 +58,7 @@ const SidebarItem = ({
     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-bold ${
       active 
         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
-        : 'text-black hover:bg-slate-100'
+        : 'text-black hover:bg-slate-50'
     }`}
   >
     <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ const RevenueChart = () => {
                   style={{ height: `${h}%` }} 
                   className="absolute bottom-0 w-full bg-indigo-600 rounded-t-lg transition-all duration-500 group-hover:bg-indigo-500"
                 ></div>
-                <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold py-1 px-2 rounded shadow-lg transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-black text-white text-xs font-bold py-1 px-2 rounded shadow-lg transition-opacity whitespace-nowrap z-10 pointer-events-none">
                    ${h * 15}
                 </div>
              </div>
@@ -149,9 +149,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Order Detail
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   
-  // Notification Dropdown
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-
   const pendingOrdersCount = orders ? orders.filter(o => o.status === 'pending').length : 0;
   const allReviews = products ? products.flatMap(p => (p.reviews || []).map(r => ({ ...r, productName: p.name, productId: p.id }))) : [];
   const pendingReviewsCount = allReviews.filter(r => r.status === 'pending').length;
@@ -196,7 +193,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleSaveProduct = () => {
     if (productForm.name && productForm.licensePricing) {
-      // Find the lowest price among enabled licenses to set as the 'display price'
       let displayPrice = 0;
       const enabledPrices = Object.values(productForm.licensePricing)
         .filter((lp: any) => lp.enabled)
@@ -405,8 +401,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   if (!isAuthenticated) {
     return (
-      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
           <div className="bg-indigo-600 p-8 text-center">
              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
                 <Shield size={32} className="text-white" />
@@ -420,7 +416,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    <label className="block text-sm font-bold text-black mb-2">Password</label>
                    <input 
                         type="password" 
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-black"
+                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-black"
                         value={passwordInput}
                         onChange={(e) => setPasswordInput(e.target.value)}
                         autoFocus
@@ -437,8 +433,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-black">
-       {/* SIDEBAR - Light Theme (White Background, Black Text) */}
+    <div className="flex h-screen bg-white font-sans text-black">
+       {/* SIDEBAR - White Theme */}
        <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 print:hidden">
           <div className="p-6 flex items-center justify-between border-b border-slate-100">
              <div className="font-bold text-xl flex items-center gap-2 text-black">
@@ -463,15 +459,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </nav>
           
           <div className="p-4 border-t border-slate-100">
-             <button onClick={() => setIsAuthenticated(false)} className="w-full flex gap-2 px-4 py-3 text-slate-500 hover:bg-slate-50 hover:text-black rounded-xl transition-colors font-bold">
+             <button onClick={() => setIsAuthenticated(false)} className="w-full flex gap-2 px-4 py-3 text-slate-500 hover:bg-slate-100 hover:text-black rounded-xl transition-colors font-bold">
                 <Lock size={18} /> Lock Dashboard
              </button>
           </div>
        </aside>
 
-       <main className="flex-1 overflow-y-auto bg-slate-50 print:bg-white print:overflow-visible relative">
+       <main className="flex-1 overflow-y-auto bg-white print:bg-white print:overflow-visible relative">
           
-          <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-sm border-b border-slate-200 px-8 py-4 flex justify-between items-center print:hidden">
+          <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-8 py-4 flex justify-between items-center print:hidden">
              <h2 className="text-xl font-extrabold text-black capitalize">{activeTab}</h2>
              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -487,7 +483,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
              {activeTab === 'overview' && (
                 <div className="space-y-8 animate-fade-in">
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                          <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-green-50 text-green-600 rounded-xl"><DollarSign size={24}/></div>
                             <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1"><TrendingUp size={12}/> +12%</span>
@@ -495,21 +491,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                          <h3 className="text-slate-500 text-sm font-bold mb-1">Total Revenue</h3>
                          <p className="text-2xl font-extrabold text-black">${totalRevenue.toFixed(2)}</p>
                       </div>
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                          <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><ShoppingBag size={24}/></div>
                          </div>
                          <h3 className="text-slate-500 text-sm font-bold mb-1">Total Orders</h3>
                          <p className="text-2xl font-extrabold text-black">{orders.length}</p>
                       </div>
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                          <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Users size={24}/></div>
                          </div>
                          <h3 className="text-slate-500 text-sm font-bold mb-1">Customers</h3>
                          <p className="text-2xl font-extrabold text-black">{users.length}</p>
                       </div>
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                          <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><MessageSquare size={24}/></div>
                             {activeTickets > 0 && <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">{activeTickets} Active</span>}
@@ -520,14 +516,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    </div>
 
                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                      <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                      <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                          <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-black text-lg">Revenue Analytics</h3>
                          </div>
                          <RevenueChart />
                       </div>
 
-                      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                          <h3 className="font-bold text-black text-lg mb-6">Recent Activity</h3>
                          <div className="space-y-6">
                             {activities.map(act => (
@@ -555,9 +551,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                        <h2 className="text-2xl font-bold text-black">Products</h2>
                        <button onClick={() => { setProductForm({ licensePricing: defaultLicensePricing }); setIsAddingProduct(true); }} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold flex gap-2"><Plus size={18} /> Add Product</button>
                     </div>
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr>
                                 <th className="p-4 font-bold text-black text-sm">Product</th>
                                 <th className="p-4 font-bold text-black text-sm">Base Price</th>
@@ -593,9 +589,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                        <h2 className="text-2xl font-bold text-black">Categories</h2>
                        <button onClick={() => { setCategoryForm({ oldName: '', newName: '', icon: '' }); setIsManagingCategory(true); }} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold flex gap-2"><Plus size={18} /> Add Category</button>
                     </div>
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr><th className="p-4 font-bold text-black text-sm">Icon</th><th className="p-4 font-bold text-black text-sm">Name</th><th className="p-4 font-bold text-black text-sm">Products</th><th className="p-4 text-right font-bold text-black">Actions</th></tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -627,9 +623,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <h2 className="text-2xl font-bold text-black">Orders</h2>
                       <button onClick={handleExportOrders} className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-black font-bold text-sm flex items-center gap-2 hover:bg-slate-50"><Download size={16}/> Export CSV</button>
                    </div>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                       <table className="w-full text-left">
-                         <thead className="bg-slate-50 border-b border-slate-100">
+                         <thead className="bg-white border-b border-slate-200">
                             <tr>
                                <th className="p-4 font-bold text-black text-sm">Order ID</th>
                                <th className="p-4 font-bold text-black text-sm">Customer</th>
@@ -682,9 +678,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                        <h2 className="text-2xl font-bold text-black">Coupons & Discounts</h2>
                        <button onClick={() => setIsAddingCoupon(true)} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold flex gap-2 hover:bg-indigo-700 transition-colors"><Plus size={18} /> Add Coupon</button>
                    </div>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr>
                                 <th className="p-4 font-bold text-black text-sm">Code</th>
                                 <th className="p-4 font-bold text-black text-sm">Discount</th>
@@ -720,9 +716,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
              {activeTab === 'reviews' && (
                 <div className="space-y-6 animate-fade-in">
                    <h2 className="text-2xl font-bold text-black">Reviews</h2>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr>
                                 <th className="p-4 font-bold text-black text-sm">Product</th>
                                 <th className="p-4 font-bold text-black text-sm">User</th>
@@ -759,9 +755,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                          <button key={f} onClick={() => setTicketFilter(f as any)} className={`px-4 py-2 rounded-lg text-sm font-bold uppercase ${ticketFilter === f ? 'bg-indigo-600 text-white' : 'bg-white text-black border border-slate-200'}`}>{f}</button>
                       ))}
                    </div>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr>
                                 <th className="p-4 font-bold text-black text-sm">ID</th>
                                 <th className="p-4 font-bold text-black text-sm">Subject</th>
@@ -790,9 +786,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
              {activeTab === 'customers' && (
                 <div className="space-y-6 animate-fade-in">
                    <h2 className="text-2xl font-bold text-black">Customers</h2>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr><th className="p-4 font-bold text-black text-sm">Name</th><th className="p-4 font-bold text-black text-sm">Email</th><th className="p-4 font-bold text-black text-sm">Joined</th><th className="p-4 text-right font-bold text-black">Actions</th></tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -819,9 +815,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                        <h2 className="text-2xl font-bold text-black">Pages</h2>
                        <button onClick={() => { setPageForm({}); setIsAddingPage(true); }} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold flex gap-2"><Plus size={18} /> Add Page</button>
                    </div>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr><th className="p-4 font-bold text-black text-sm">Title</th><th className="p-4 font-bold text-black text-sm">Slug</th><th className="p-4 text-right font-bold text-black">Actions</th></tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -848,9 +844,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                        <h2 className="text-2xl font-bold text-black">Blog Posts</h2>
                        <button onClick={() => { setPostForm({}); setIsAddingPost(true); }} className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold flex gap-2"><Plus size={18} /> Add Post</button>
                    </div>
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                   <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
+                          <thead className="bg-white border-b border-slate-200">
                              <tr><th className="p-4 font-bold text-black text-sm">Title</th><th className="p-4 font-bold text-black text-sm">Category</th><th className="p-4 font-bold text-black text-sm">Date</th><th className="p-4 text-right font-bold text-black">Actions</th></tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -874,14 +870,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
              {/* SETTINGS TAB */}
              {activeTab === 'settings' && (
                 <div className="space-y-6 flex h-full">
-                   <div className="w-64 bg-slate-50 border-r p-2 space-y-1">
+                   <div className="w-64 bg-white border-r border-slate-200 p-2 space-y-1">
                       {['general', 'design', 'payment', 'checkout', 'email', 'seo', 'footer', 'security'].map(t => (
-                         <button key={t} onClick={() => setSettingsSubTab(t)} className={`w-full text-left px-4 py-3 rounded-lg font-bold capitalize ${settingsSubTab === t ? 'bg-white shadow text-indigo-600' : 'text-black hover:bg-slate-200'}`}>
+                         <button key={t} onClick={() => setSettingsSubTab(t)} className={`w-full text-left px-4 py-3 rounded-lg font-bold capitalize ${settingsSubTab === t ? 'bg-indigo-50 shadow-sm text-indigo-600' : 'text-black hover:bg-slate-100'}`}>
                             {t}
                          </button>
                       ))}
                    </div>
-                   <div className="flex-1 p-6 overflow-y-auto">
+                   <div className="flex-1 p-6 overflow-y-auto bg-white">
                       {/* GENERAL */}
                       {settingsSubTab === 'general' && (
                          <div className="space-y-4 max-w-xl">
@@ -922,7 +918,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                    {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name} ({c.symbol})</option>)}
                                 </select>
                             </div>
-                            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200">
                                <button 
                                   onClick={() => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalEnabled: !tempSettings.payment.paypalEnabled}})}
                                   className={`relative w-12 h-6 rounded-full transition-colors ${tempSettings.payment.paypalEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
@@ -937,7 +933,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">PayPal Secret</label><input type="password" className="w-full p-3 border border-slate-200 rounded-xl text-black text-sm font-mono" value={tempSettings.payment.paypalSecret} onChange={e => setTempSettings({...tempSettings, payment: {...tempSettings.payment, paypalSecret: e.target.value}})} placeholder="Secret Key" /></div>
                                </div>
                             )}
-                            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200">
                                <button 
                                   onClick={() => setTempSettings({...tempSettings, payment: {...tempSettings.payment, stripeEnabled: !tempSettings.payment.stripeEnabled}})}
                                   className={`relative w-12 h-6 rounded-full transition-colors ${tempSettings.payment.stripeEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
@@ -986,12 +982,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    <input className="w-full border border-slate-200 p-3 rounded-xl text-black font-medium" placeholder="Product Name" value={productForm.name || ''} onChange={e => setProductForm({...productForm, name: e.target.value})} />
                    
                    {/* License Pricing Configuration */}
-                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                   <div className="bg-white p-6 rounded-2xl border border-slate-200">
                       <h4 className="font-bold text-black mb-4 flex items-center gap-2"><Tag size={18} className="text-indigo-600"/> License Pricing</h4>
                       <p className="text-xs text-slate-500 mb-4">Enable licenses and set unique prices for this product.</p>
                       <div className="space-y-3">
                          {LICENSE_DEFINITIONS.map(def => (
-                            <div key={def.type} className="flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-100">
+                            <div key={def.type} className="flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-200">
                                <input 
                                   type="checkbox" 
                                   className="w-5 h-5 text-indigo-600 rounded"
@@ -1084,7 +1080,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                    </div>
                    <button onClick={() => setSelectedTicket(null)}><X size={20} className="text-black"/></button>
                 </div>
-                <div className="flex-1 overflow-y-auto bg-slate-50 p-4 rounded-xl mb-4 space-y-4">
+                <div className="flex-1 overflow-y-auto bg-white p-4 rounded-xl mb-4 space-y-4 border border-slate-200">
                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                       <p className="text-sm font-bold text-slate-900 mb-1">{selectedTicket.customerName}</p>
                       <p className="text-black font-medium">{selectedTicket.message}</p>
