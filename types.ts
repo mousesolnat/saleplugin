@@ -3,7 +3,6 @@
 export interface Product {
   id: string;
   name: string;
-  price: number;
   category: string;
   description?: string;
   image?: string;
@@ -11,6 +10,17 @@ export interface Product {
   seoDescription?: string;
   reviews?: Review[];
   demoUrl?: string;
+  
+  // New: Per-product license configuration
+  // This replaces the simple 'price' field
+  licensePricing: {
+    [key in LicenseType]?: {
+      enabled: boolean;
+      price: number;
+    }
+  };
+  // We keep a 'displayPrice' just for the grid view sorting/display (usually the lowest enabled price)
+  price: number; 
 }
 
 export interface Review {
@@ -23,15 +33,15 @@ export interface Review {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-// New License Type Definition
+// License Types
 export type LicenseType = 'single' | 'double' | 'five' | 'ten' | 'unlimited';
 
 export interface CartItem extends Product {
   quantity: number;
-  // Added license specific fields
   licenseType: LicenseType;
   licenseLabel: string;
-  basePrice: number; // The original price of 1 item
+  finalPrice: number; // The specific price at time of purchase
+  basePrice: number; // The original price before currency conversion
 }
 
 export interface Order {

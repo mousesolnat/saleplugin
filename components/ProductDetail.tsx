@@ -6,7 +6,7 @@ import {
   AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard, Heart, User, MessageSquare, ExternalLink, Key
 } from 'lucide-react';
 import { Product, Customer, Review, CartItem, LicenseType } from '../types';
-import { LICENSE_OPTIONS } from '../constants';
+import { LICENSE_DEFINITIONS } from '../constants';
 
 interface ProductDetailProps {
   product: Product;
@@ -37,7 +37,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
   const [isAdded, setIsAdded] = useState(false);
-  const [selectedLicense, setSelectedLicense] = useState<LicenseType>('single');
+  
+  // Find the first enabled license to select by default
+  const availableLicenses = LICENSE_DEFINITIONS.filter(def => 
+    product.licensePricing && 
+    product.licensePricing[def.type]?.enabled
+  );
+
+  const [selectedLicense, setSelectedLicense] = useState<LicenseType>(
+    availableLicenses.length > 0 ? availableLicenses[0].type : 'single'
+  );
 
   // Review Form State
   const [rating, setRating] = useState(5);
@@ -46,11 +55,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
-  // Calculate final price based on currency AND selected license
-  const licenseMultiplier = LICENSE_OPTIONS.find(opt => opt.type === selectedLicense)?.multiplier || 1;
-  const finalPrice = (product.price * priceMultiplier * licenseMultiplier).toFixed(2);
+  // Get specific price for selected license from product config
+  const selectedLicenseConfig = product.licensePricing?.[selectedLicense];
+  const basePrice = selectedLicenseConfig ? selectedLicenseConfig.price : 0;
+  const finalPrice = (basePrice * priceMultiplier).toFixed(2);
   
-  // Show reviews that are approved OR have no status (legacy compatibility)
   const reviews = (product.reviews || []).filter(r => !r.status || r.status === 'approved');
   
   const averageRating = reviews.length > 0 
@@ -58,11 +67,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     : 0;
 
   useEffect(() => {
-    // 1. Update Document Title
     const title = product.seoTitle || product.name;
     document.title = title;
 
-    // 2. Update Meta Description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
       metaDesc = document.createElement('meta');
@@ -72,34 +79,22 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     const description = product.seoDescription || product.description?.substring(0, 160) || '';
     metaDesc.setAttribute('content', description);
 
-    // 3. Open Graph Tags
-    const updateMeta = (property: string, content: string) => {
-        let tag = document.querySelector(`meta[property="${property}"]`);
-        if (!tag) {
-            tag = document.createElement('meta');
-            tag.setAttribute('property', property);
-            document.head.appendChild(tag);
-        }
-        tag.setAttribute('content', content);
-    };
-
-    updateMeta('og:title', title);
-    updateMeta('og:description', description);
-    updateMeta('og:image', product.image || '');
-    updateMeta('og:type', 'product');
-    updateMeta('og:url', window.location.href);
-
-  }, [product, finalPrice, reviews, averageRating, currencySymbol]);
+  }, [product]);
 
   const handleAdd = () => {
-    // Construct the CartItem with license info
+    if (!selectedLicenseConfig) return;
+
+    const licenseDef = LICENSE_DEFINITIONS.find(l => l.type === selectedLicense);
+
     const cartItem: CartItem = {
       ...product,
       quantity: 1,
       licenseType: selectedLicense,
-      licenseLabel: LICENSE_OPTIONS.find(l => l.type === selectedLicense)?.label || 'Single License',
-      basePrice: product.price * licenseMultiplier,
-      price: product.price * licenseMultiplier // The price in cart is usually base currency price
+      licenseLabel: licenseDef?.label || 'Unknown License',
+      basePrice: selectedLicenseConfig.price,
+      // Store the specific configured price as the item price
+      price: selectedLicenseConfig.price,
+      finalPrice: selectedLicenseConfig.price * priceMultiplier
     };
 
     onAddToCart(cartItem);
@@ -108,7 +103,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   };
 
   const handleBuyNow = () => {
-    alert(`Proceeding to secure checkout for ${product.name} (${LICENSE_OPTIONS.find(l => l.type === selectedLicense)?.label})...`);
+    alert(`Proceeding to secure checkout for ${product.name}...`);
   };
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -146,7 +141,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   
   return (
     <div className="animate-fade-in pb-12 relative">
-      {/* Breadcrumb / Back */}
       <div className="mb-6">
         <button 
           onClick={onBack}
@@ -206,59 +200,60 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <Key size={18} className="text-indigo-600"/> Select License Type
                </h3>
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {LICENSE_OPTIONS.map((option) => (
-                     <button
-                        key={option.type}
-                        onClick={() => setSelectedLicense(option.type)}
-                        className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between ${
-                           selectedLicense === option.type
-                              ? 'border-indigo-600 bg-indigo-50 shadow-sm'
-                              : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
-                        }`}
-                     >
-                        <div>
-                           <span className={`block font-bold text-sm ${selectedLicense === option.type ? 'text-indigo-900' : 'text-slate-700'}`}>
-                              {option.label}
-                           </span>
-                           <span className={`text-xs font-medium ${selectedLicense === option.type ? 'text-indigo-600' : 'text-slate-500'}`}>
-                              {currencySymbol}{(product.price * priceMultiplier * option.multiplier).toFixed(2)}
-                           </span>
-                        </div>
-                        {selectedLicense === option.type && (
-                           <div className="bg-indigo-600 rounded-full p-1 text-white">
-                              <Check size={12} strokeWidth={3} />
-                           </div>
-                        )}
-                        {option.badge && (
-                           <div className="absolute -top-2.5 right-2 bg-amber-400 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">
-                              {option.badge}
-                           </div>
-                        )}
-                     </button>
-                  ))}
-               </div>
-            </div>
-
-            {/* Short Description */}
-            <div className="prose prose-slate text-slate-600 mb-8 leading-relaxed text-sm">
-              <p>
-                <strong>{product.name} License</strong> – You are purchasing a {LICENSE_OPTIONS.find(l => l.type === selectedLicense)?.label} license.
-                The product license is 100% original and will be valid for LIFETIME. 
-                Your WordPress website will be able to update this product directly via your dashboard. 
-                <strong> WP ORIGIN never sells any kind of warez, crack, or GPL products!</strong>
-              </p>
+               {availableLicenses.length > 0 ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {availableLicenses.map((def) => {
+                       const price = product.licensePricing[def.type]?.price || 0;
+                       return (
+                         <button
+                            key={def.type}
+                            onClick={() => setSelectedLicense(def.type)}
+                            className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between ${
+                               selectedLicense === def.type
+                                  ? 'border-indigo-600 bg-indigo-50 shadow-sm'
+                                  : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                            }`}
+                         >
+                            <div>
+                               <span className={`block font-bold text-sm ${selectedLicense === def.type ? 'text-indigo-900' : 'text-slate-700'}`}>
+                                  {def.label}
+                               </span>
+                               <span className={`text-xs font-medium ${selectedLicense === def.type ? 'text-indigo-600' : 'text-slate-500'}`}>
+                                  {currencySymbol}{(price * priceMultiplier).toFixed(2)}
+                               </span>
+                            </div>
+                            {selectedLicense === def.type && (
+                               <div className="bg-indigo-600 rounded-full p-1 text-white">
+                                  <Check size={12} strokeWidth={3} />
+                               </div>
+                            )}
+                            {def.badge && (
+                               <div className="absolute -top-2.5 right-2 bg-amber-400 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">
+                                  {def.badge}
+                               </div>
+                            )}
+                         </button>
+                       );
+                    })}
+                 </div>
+               ) : (
+                 <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold">
+                    No license options available for this product.
+                 </div>
+               )}
             </div>
 
             {/* Add to Cart & Buy Now */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8 border-b border-slate-100 pb-8">
               <button
                 onClick={handleAdd}
-                disabled={isAdded}
+                disabled={isAdded || availableLicenses.length === 0}
                 className={`flex-1 py-4 px-6 rounded-xl flex items-center justify-center gap-2 font-bold text-lg transition-all duration-200 transform ${
                   isAdded
                     ? 'bg-green-600 text-white shadow-lg shadow-green-200 scale-[1.02]'
-                    : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-xl shadow-indigo-200 hover:-translate-y-1'
+                    : availableLicenses.length === 0
+                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-xl shadow-indigo-200 hover:-translate-y-1'
                 }`}
               >
                 {isAdded ? (
@@ -274,7 +269,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
 
               <button
                 onClick={handleBuyNow}
-                className="flex-1 py-4 px-6 rounded-xl flex items-center justify-center gap-2 font-bold text-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 hover:-translate-y-1 transition-all duration-200"
+                disabled={availableLicenses.length === 0}
+                className={`flex-1 py-4 px-6 rounded-xl flex items-center justify-center gap-2 font-bold text-lg transition-all duration-200 ${
+                   availableLicenses.length === 0 
+                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                   : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 hover:-translate-y-1'
+                }`}
               >
                 <CreditCard size={24} /> Buy Now
               </button>

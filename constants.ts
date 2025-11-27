@@ -11,13 +11,13 @@ export const CURRENCIES: Currency[] = [
   { code: 'MAD', symbol: 'DH', rate: 10.12, flag: '🇲🇦', name: 'MAD' },
 ];
 
-// Configuration for License Tiers
-export const LICENSE_OPTIONS: { type: LicenseType; label: string; multiplier: number; badge?: string }[] = [
-  { type: 'single', label: '1 Site Activation', multiplier: 1 },
-  { type: 'double', label: '2 Sites Activation', multiplier: 1.5, badge: 'Popular' },
-  { type: 'five', label: '5 Sites Activation', multiplier: 2.5 },
-  { type: 'ten', label: '10 Sites Activation', multiplier: 4 },
-  { type: 'unlimited', label: 'Unlimited Sites', multiplier: 8, badge: 'Best Value' },
+// Helper to define available licenses and their default display order
+export const LICENSE_DEFINITIONS: { type: LicenseType; label: string; defaultMultiplier: number; badge?: string }[] = [
+  { type: 'single', label: '1-Site Activation', defaultMultiplier: 1 },
+  { type: 'double', label: '2-Site Activation', defaultMultiplier: 1.5, badge: 'Popular' },
+  { type: 'five', label: '5-Site Activation', defaultMultiplier: 2.5 },
+  { type: 'ten', label: '10-Site Activation', defaultMultiplier: 4 },
+  { type: 'unlimited', label: 'Unlimited Sites', defaultMultiplier: 8, badge: 'Best Value' },
 ];
 
 const categorize = (name: string): string => {
@@ -163,14 +163,27 @@ const getPlaceholderImage = (name: string, category: string) => {
   return `https://placehold.co/600x400/${color}/ffffff?text=${text}`;
 };
 
+// Generate default license pricing for initial data
+const generateDefaultPricing = (basePrice: number) => {
+  const pricing: any = {};
+  LICENSE_DEFINITIONS.forEach(def => {
+    pricing[def.type] = {
+      enabled: true,
+      price: Math.round(basePrice * def.defaultMultiplier)
+    };
+  });
+  return pricing;
+};
+
 export const PRODUCTS: Product[] = uniqueData.map((item, index) => {
   const category = categorize(item.name);
   return {
     id: `prod_${index + 1}`,
     name: item.name,
-    price: item.price,
+    price: item.price, // Base display price (usually single site)
     category: category,
     description: `Premium license key for ${item.name}. Instant digital delivery.`,
-    image: getPlaceholderImage(item.name, category)
+    image: getPlaceholderImage(item.name, category),
+    licensePricing: generateDefaultPricing(item.price)
   };
 });

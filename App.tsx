@@ -10,7 +10,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
+import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES, LICENSE_DEFINITIONS } from './constants';
 import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket, TicketReply, Coupon } from './types';
 import { 
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
@@ -229,8 +229,8 @@ const MOCK_ORDERS: Order[] = [
     date: '2024-03-15',
     items: 2,
     products: [
-       { id: 'prod_1', name: 'Elementor Pro', price: 25, quantity: 1, category: 'Page Builders', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 25 },
-       { id: 'prod_2', name: 'WP Rocket', price: 20, quantity: 1, category: 'Performance', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 20 }
+       { id: 'prod_1', name: 'Elementor Pro', price: 25, finalPrice: 25, quantity: 1, category: 'Page Builders', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 25 },
+       { id: 'prod_2', name: 'WP Rocket', price: 20, finalPrice: 20, quantity: 1, category: 'Performance', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 20 }
     ]
   }
 ];
@@ -241,7 +241,24 @@ const App: React.FC = () => {
   // Persistence for products
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem('digimarket_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migration: Ensure all loaded products have the new licensePricing structure
+      return parsed.map((p: any) => {
+        if (!p.licensePricing) {
+          const pricing: any = {};
+          LICENSE_DEFINITIONS.forEach(def => {
+            pricing[def.type] = {
+              enabled: true,
+              price: Math.round(p.price * def.defaultMultiplier)
+            };
+          });
+          return { ...p, licensePricing: pricing };
+        }
+        return p;
+      });
+    }
+    return INITIAL_PRODUCTS;
   });
 
   // Pages State
@@ -547,6 +564,24 @@ const App: React.FC = () => {
   // Updated to handle CartItem which now includes license information
   const handleAddToCart = (itemToAdd: CartItem | Product) => {
     // If it's a raw Product (from grid view), assume single license default
+    // We need to fetch the single license price from the config
+    let productPrice = itemToAdd.price;
+    let licenseType: any = 'single';
+    let licenseLabel = '1 Site Activation';
+
+    if (!('licenseType' in itemToAdd)) {
+       // It's a raw product, find default single license price
+       const p = itemToAdd as Product;
+       if (p.licensePricing && p.licensePricing.single) {
+          productPrice = p.licensePricing.single.price;
+       }
+    } else {
+       // It's already a CartItem (from detail view)
+       productPrice = (itemToAdd as CartItem).price;
+       licenseType = (itemToAdd as CartItem).licenseType;
+       licenseLabel = (itemToAdd as CartItem).licenseLabel;
+    }
+
     const product: CartItem = 'licenseType' in itemToAdd 
       ? (itemToAdd as CartItem) 
       : { 
@@ -554,8 +589,9 @@ const App: React.FC = () => {
           quantity: 1, 
           licenseType: 'single', 
           licenseLabel: '1 Site Activation', 
-          basePrice: itemToAdd.price,
-          price: itemToAdd.price
+          basePrice: productPrice,
+          price: productPrice,
+          finalPrice: productPrice // Default for grid add
         };
 
     setCartItems(prev => {
