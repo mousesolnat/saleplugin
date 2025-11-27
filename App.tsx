@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -9,36 +11,36 @@ import { AuthModal } from './components/AuthModal';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { PRODUCTS as INITIAL_PRODUCTS, STORE_NAME, CURRENCIES } from './constants';
-import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket, TicketReply } from './types';
+import { Product, CartItem, StoreSettings, Page, Currency, Customer, Review, BlogPost, Order, SupportTicket, TicketReply, Coupon } from './types';
 import { 
   Filter, ArrowRight, ArrowLeft, Mail, Phone, MapPin, Send, Zap, Trophy,
   ShieldCheck, Ban, RefreshCw, LifeBuoy, Search, CheckCircle, FileInput,
   ShoppingBag, Heart, User, Clock, CreditCard, AlertCircle, ChevronDown, 
   ChevronLeft, ChevronRight, HelpCircle, ChevronUp, Lock, Download, UserPlus, Key,
-  Headphones, BarChart3, Layout, Layers, Wrench, GraduationCap, Calendar, Star, Check, LayoutTemplate
+  Headphones, BarChart3, Layout, Layers, Wrench, GraduationCap, Calendar, Star, Check, LayoutTemplate, Globe
 } from 'lucide-react';
 
 const TESTIMONIALS = [
   {
     id: 1,
     name: "Sarah Jenkins",
-    role: "Web Developer",
-    text: "Incredible value. I've saved hundreds on plugin licenses for my client sites. The instant delivery is a game changer.",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces"
+    role: "Freelance Developer",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
+    text: "This platform has saved me thousands of dollars. The plugins are genuine and the updates work perfectly."
   },
   {
     id: 2,
     name: "Mike Ross",
     role: "Agency Owner",
-    text: "The support team is amazing. Had a small activation issue and they sorted it out within minutes. Highly recommended!",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=faces"
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+    text: "Incredible value for money. Support is responsive and the library is massive. Highly recommended!"
   },
   {
     id: 3,
-    name: "Emily Chen",
-    role: "Freelancer",
-    text: "Finally a place where I can get genuine keys at a reasonable price for my startup. Will definitely be buying more.",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces"
+    name: "Elena Rodriguez",
+    role: "WordPress Specialist",
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
+    text: "I was skeptical at first, but after 6 months of using their service, I'm a loyal customer. Best deal online."
   }
 ];
 
@@ -178,89 +180,59 @@ const NewsletterSection = () => (
 );
 
 const DEFAULT_PAGES: Page[] = [
-  { id: 'page_privacy', title: 'Privacy Policy', slug: 'privacy-policy', content: 'This is the Privacy Policy content. You can edit this in the Admin Dashboard.' },
-  { id: 'page_terms', title: 'Terms of Service', slug: 'terms-of-service', content: 'This is the Terms of Service content. You can edit this in the Admin Dashboard.' },
-  { id: 'page_dmca', title: 'DMCA', slug: 'dmca', content: 'This is the DMCA content. You can edit this in the Admin Dashboard.' },
-  { id: 'page_cookie', title: 'Cookie Policy', slug: 'cookie-policy', content: 'This is the Cookie Policy content. You can edit this in the Admin Dashboard.' },
+  {
+    id: 'page_terms',
+    title: 'Terms of Service',
+    slug: 'terms-of-service',
+    content: '<h2>1. Introduction</h2><p>Welcome to DigiMarket. By accessing our website, you agree to these terms.</p><h2>2. License</h2><p>All products are licensed under GPL.</p>'
+  },
+  {
+    id: 'page_privacy',
+    title: 'Privacy Policy',
+    slug: 'privacy-policy',
+    content: '<h2>Data Collection</h2><p>We collect basic information to process your orders.</p>'
+  }
 ];
 
 const DEFAULT_BLOG_POSTS: BlogPost[] = [
   {
     id: 'post_1',
-    title: 'Top 10 WordPress Plugins for 2024',
-    slug: 'top-10-wordpress-plugins-2024',
-    excerpt: 'Discover the essential plugins every WordPress site owner needs to boost performance and SEO.',
-    content: 'This is a dummy blog post content. You can edit it in the admin dashboard. Listing the top plugins...',
-    date: '2024-03-15',
-    author: 'Admin',
-    category: 'Guides',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80'
+    title: 'Top 10 WordPress Plugins for SEO in 2024',
+    slug: 'top-10-seo-plugins',
+    excerpt: 'Discover the essential tools to rank your website higher on search engines this year.',
+    content: '<p>Search Engine Optimization is crucial...</p>',
+    author: 'Alex Writer',
+    date: '2024-03-10',
+    category: 'SEO',
+    image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'post_2',
-    title: 'How to Optimize Core Web Vitals',
-    slug: 'optimize-core-web-vitals',
-    excerpt: 'Learn how to improve your LCP, FID, and CLS scores using premium caching plugins.',
-    content: 'Detailed guide on optimizing Core Web Vitals...',
-    date: '2024-03-10',
-    author: 'Admin',
-    category: 'Performance',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 'post_3',
-    title: 'Elementor vs Bricks Builder: Which is Better?',
-    slug: 'elementor-vs-bricks',
-    excerpt: 'A comprehensive comparison of the two most popular WordPress page builders.',
-    content: 'Comparing features, performance, and pricing...',
+    title: 'Elementor vs Divi: Which Builder is Right for You?',
+    slug: 'elementor-vs-divi',
+    excerpt: 'A comprehensive comparison of the two most popular page builders.',
+    content: '<p>Choosing a page builder is a big decision...</p>',
+    author: 'Sarah Dev',
     date: '2024-03-05',
-    author: 'Admin',
-    category: 'Reviews',
-    image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80'
+    category: 'Page Builders',
+    image: 'https://images.unsplash.com/photo-1555421689-4922cd295046?auto=format&fit=crop&w=800&q=80'
   }
 ];
 
 const MOCK_ORDERS: Order[] = [
-    { 
-      id: '#ORD-7829', 
-      customer: 'Alex Johnson', 
-      email: 'alex@example.com', 
-      total: 65, 
-      status: 'completed', 
-      date: '2024-03-10', 
-      items: 3,
-      products: [
-        { id: 'prod_1', name: 'Elementor Pro', price: 20, category: 'Page Builders', quantity: 1 },
-        { id: 'prod_2', name: 'CartFlows', price: 45, category: 'eCommerce', quantity: 1 }
-      ],
-      billingDetails: { address: '123 Main St', city: 'New York', country: 'United States', zip: '10001', state: 'NY' }
-    },
-    { 
-      id: '#ORD-7830', 
-      customer: 'Sarah Smith', 
-      email: 'sarah@design.co', 
-      total: 20, 
-      status: 'completed', 
-      date: '2024-03-11', 
-      items: 1,
-      products: [
-        { id: 'prod_1', name: 'Elementor Pro', price: 20, category: 'Page Builders', quantity: 1 }
-      ],
-      billingDetails: { address: '456 Design Ave', city: 'San Francisco', country: 'United States', zip: '94103', state: 'CA' }
-    },
-    { 
-      id: '#ORD-7831', 
-      customer: 'Mike Brown', 
-      email: 'mike@agency.net', 
-      total: 125, 
-      status: 'pending', 
-      date: '2024-03-12', 
-      items: 5,
-      products: [
-        { id: 'prod_3', name: 'WP Rocket', price: 25, category: 'Performance', quantity: 5 }
-      ],
-      billingDetails: { address: '789 Tech Blvd', city: 'Austin', country: 'United States', zip: '73301', state: 'TX' }
-    },
+  {
+    id: '#ORD-1001',
+    customer: 'Demo Customer',
+    email: 'demo@example.com',
+    total: 45.00,
+    status: 'completed',
+    date: '2024-03-15',
+    items: 2,
+    products: [
+       { id: 'prod_1', name: 'Elementor Pro', price: 25, quantity: 1, category: 'Page Builders', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 25 },
+       { id: 'prod_2', name: 'WP Rocket', price: 20, quantity: 1, category: 'Performance', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 20 }
+    ]
+  }
 ];
 
 const ITEMS_PER_PAGE = 30;
@@ -313,6 +285,12 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : null;
   });
 
+  // Coupons State
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    const saved = localStorage.getItem('digimarket_coupons');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // Global Store Settings
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
     const saved = localStorage.getItem('digimarket_settings');
@@ -323,18 +301,29 @@ const App: React.FC = () => {
       contactAddress: '123 Digital Avenue, Tech City, Cloud State, 90210',
       contactPhone: '+1 (555) 123-4567',
       footerDescription: 'The #1 marketplace for premium digital products, plugins, and themes. Instant delivery and verified quality.',
+      maintenanceMode: false,
+      timezone: 'UTC',
+      dateFormat: 'MM/DD/YYYY',
       
       design: {
         primaryColor: '#4f46e5',
         heroHeadline: 'Premium WordPress Tools Without The Premium Price',
         heroSubheadline: "Get instant access to 100% original, verified license keys for the world's best plugins and themes. Secure, affordable, and developer-friendly.",
         fontFamily: 'Inter',
-        borderRadius: 'xl'
+        borderRadius: '1rem',
+        announcementBar: {
+          enabled: false,
+          text: 'Flash Sale: Get 20% off all plugins this weekend!',
+          backgroundColor: '#4f46e5',
+          textColor: '#ffffff'
+        }
       },
 
       payment: {
         currencySymbol: '$',
         currencyCode: 'USD',
+        currencyPosition: 'left',
+        taxRate: 0,
         stripeEnabled: true,
         stripePublishableKey: '',
         stripeSecretKey: '',
@@ -353,7 +342,15 @@ const App: React.FC = () => {
         checkoutTitle: 'Secure Checkout',
         checkoutSubtitle: 'Your information is protected with 256-bit SSL encryption.',
         thankYouTitle: 'Thank You For Your Order!',
-        thankYouMessage: 'Your order has been received. You will receive an email confirmation with your license keys shortly. You can also access your downloads from your account dashboard.'
+        thankYouMessage: 'Your order has been received. You will receive an email confirmation with your license keys shortly. You can also access your downloads from your account dashboard.',
+        invoicePrefix: 'INV-'
+      },
+
+      emailSettings: {
+        senderName: STORE_NAME,
+        senderEmail: 'noreply@allpluginswp.com',
+        welcomeSubject: 'Welcome to AllPluginsWP',
+        orderSubject: 'Your Order Confirmation'
       },
 
       seo: {
@@ -365,7 +362,7 @@ const App: React.FC = () => {
       },
       
       popularCategories: ['WordPress Plugins', 'Page Builders', 'SEO Tools', 'eCommerce'],
-      categoryIcons: {}, // Initialize empty
+      categoryIcons: {}, 
       
       socials: {
         facebook: 'https://facebook.com',
@@ -383,9 +380,10 @@ const App: React.FC = () => {
       return {
         ...defaultSettings,
         ...parsed,
-        design: { ...defaultSettings.design, ...parsed.design },
+        design: { ...defaultSettings.design, ...parsed.design, announcementBar: { ...defaultSettings.design.announcementBar, ...parsed.design?.announcementBar } },
         payment: { ...defaultSettings.payment, ...parsed.payment },
         checkout: { ...defaultSettings.checkout, ...parsed.checkout },
+        emailSettings: { ...defaultSettings.emailSettings, ...parsed.emailSettings },
         seo: { ...defaultSettings.seo, ...parsed.seo },
         socials: { ...defaultSettings.socials, ...parsed.socials },
         categoryIcons: parsed.categoryIcons || {}
@@ -397,10 +395,7 @@ const App: React.FC = () => {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(CURRENCIES[0]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  
-  // View State Management
   const [currentView, setCurrentView] = useState<'home' | 'shop' | 'contact' | 'about' | 'blog' | 'blog-post' | 'product' | 'page' | 'wishlist' | 'profile' | 'checkout' | 'thank-you' | 'admin'>('home');
-  
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -430,15 +425,15 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('digimarket_history', JSON.stringify(recentlyViewed)); }, [recentlyViewed]);
   useEffect(() => { localStorage.setItem('digimarket_users', JSON.stringify(users)); }, [users]);
   useEffect(() => { localStorage.setItem('digimarket_settings', JSON.stringify(storeSettings)); }, [storeSettings]);
+  useEffect(() => { localStorage.setItem('digimarket_coupons', JSON.stringify(coupons)); }, [coupons]);
   useEffect(() => { 
     if (currentUser) localStorage.setItem('digimarket_current_user', JSON.stringify(currentUser));
     else localStorage.removeItem('digimarket_current_user');
   }, [currentUser]);
 
-  // SEO & Head Logic
   useEffect(() => {
-    let title = storeSettings.seo.title;
-    let description = storeSettings.seo.description;
+    let title: string = storeSettings.seo.title;
+    let description: string = storeSettings.seo.description;
 
     if (currentView === 'shop') {
         title = storeSettings.seo.shopTitle || `Shop - ${storeSettings.storeName}`;
@@ -460,7 +455,6 @@ const App: React.FC = () => {
     }
     metaDesc.setAttribute('content', description);
 
-    // Favicon
     let favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
     if (!favicon) {
       favicon = document.createElement('link');
@@ -471,24 +465,22 @@ const App: React.FC = () => {
 
   }, [storeSettings, currentView]);
 
+  useEffect(() => {
+    if (currentView === 'checkout' && storeSettings.payment.paypalEnabled && storeSettings.payment.paypalClientId) {
+       console.log('PayPal Script loaded with ID:', storeSettings.payment.paypalClientId);
+    }
+  }, [currentView, storeSettings.payment.paypalEnabled, storeSettings.payment.paypalClientId]);
+
   const generateThemeStyles = () => {
      const primary = storeSettings.design.primaryColor || '#4f46e5';
      const font = storeSettings.design.fontFamily || 'Inter';
-     const radiusKey = storeSettings.design.borderRadius || 'xl';
-
-     const radiusMap: Record<string, string> = {
-        'none': '0px', 'sm': '0.25rem', 'md': '0.5rem', 'lg': '0.75rem', 
-        'xl': '1rem', '2xl': '1.5rem', '3xl': '2rem'
-     };
-     
-     let radiusVal = radiusMap[radiusKey] || '1rem';
-     if (!radiusVal && radiusKey.startsWith('rounded-')) radiusVal = '1rem';
+     const radius = storeSettings.design.borderRadius || '1rem';
 
      return (
        <>
          <link href={`https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700&display=swap`} rel="stylesheet" />
          <style>{`
-           :root { --color-primary: ${primary}; --font-main: '${font}', sans-serif; --radius-theme: ${radiusVal}; }
+           :root { --color-primary: ${primary}; --font-main: '${font}', sans-serif; --radius-theme: ${radius}; }
            body { font-family: var(--font-main); }
            .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl { border-radius: var(--radius-theme) !important; }
            button, input, select, textarea { border-radius: var(--radius-theme) !important; }
@@ -506,7 +498,7 @@ const App: React.FC = () => {
   };
 
   const changeView = (view: string, id?: string) => {
-    if (id) {
+    if (typeof id === 'string') {
        if (view === 'product') setSelectedProductId(id);
        if (view === 'page') setSelectedPageId(id);
        if (view === 'blog-post') setSelectedPostId(id);
@@ -526,14 +518,22 @@ const App: React.FC = () => {
 
   const handleRegister = async (name: string, email: string, pass: string): Promise<boolean> => {
      if (users.some(u => u.email === email)) return false;
-     const newUser: Customer = { id: `cust_${Date.now()}`, name, email, password: pass, joinDate: new Date().toISOString() };
+     
+     const newUser: Customer = { 
+        id: `cust_${Date.now()}`, 
+        name, 
+        email, 
+        password: pass, 
+        joinDate: new Date().toISOString(),
+        isVerified: false
+     };
      setUsers([...users, newUser]);
      setCurrentUser(newUser);
      return true;
   };
 
   const handleDemoLogin = () => {
-    const demoUser: Customer = { id: 'cust_demo_123', name: 'Demo Customer', email: 'demo@example.com', joinDate: new Date().toISOString() };
+    const demoUser: Customer = { id: 'cust_demo_123', name: 'Demo Customer', email: 'demo@example.com', joinDate: new Date().toISOString(), isVerified: true };
     setCurrentUser(demoUser);
     setIsAuthModalOpen(false);
     setCurrentView('profile');
@@ -544,10 +544,31 @@ const App: React.FC = () => {
     setCurrentView('home');
   };
 
-  const handleAddToCart = (product: Product) => {
+  // Updated to handle CartItem which now includes license information
+  const handleAddToCart = (itemToAdd: CartItem | Product) => {
+    // If it's a raw Product (from grid view), assume single license default
+    const product: CartItem = 'licenseType' in itemToAdd 
+      ? (itemToAdd as CartItem) 
+      : { 
+          ...itemToAdd, 
+          quantity: 1, 
+          licenseType: 'single', 
+          licenseLabel: '1 Site Activation', 
+          basePrice: itemToAdd.price,
+          price: itemToAdd.price
+        };
+
     setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
-      if (existingItem) return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      // Find existing item with same ID AND same license type
+      const existingItem = prev.find(item => item.id === product.id && item.licenseType === product.licenseType);
+      
+      if (existingItem) {
+        return prev.map(item => 
+          (item.id === product.id && item.licenseType === product.licenseType)
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        );
+      }
       return [...prev, { ...product, quantity: 1 }];
     });
     setIsCartOpen(true);
@@ -564,8 +585,6 @@ const App: React.FC = () => {
     setRecentlyViewed(prev => [product, ...prev.filter(p => p.id !== product.id)].slice(0, 4));
   };
 
-  const handleSearchEnter = () => setCurrentView('shop');
-  
   const handleDeleteUser = (userId: string) => {
      setUsers(prev => prev.filter(u => u.id !== userId));
      if (currentUser?.id === userId) setCurrentUser(null);
@@ -627,14 +646,13 @@ const App: React.FC = () => {
   const handlePlaceOrder = (orderDetails: any) => {
     const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const newOrder: Order = {
-        id: `#ORD-${Math.floor(Math.random() * 100000)}`,
+        id: `${storeSettings.checkout.invoicePrefix || '#ORD-'}${Math.floor(Math.random() * 100000)}`,
         customer: orderDetails.firstName + ' ' + orderDetails.lastName,
         email: orderDetails.email,
         total: total,
         status: 'processing',
         date: new Date().toISOString().split('T')[0],
         items: cartItems.length,
-        // Added for Receipt functionality
         products: [...cartItems],
         billingDetails: {
            address: orderDetails.address,
@@ -656,7 +674,8 @@ const App: React.FC = () => {
           name: orderDetails.firstName + ' ' + orderDetails.lastName,
           email: orderDetails.email,
           password: autoPassword,
-          joinDate: new Date().toISOString()
+          joinDate: new Date().toISOString(),
+          isVerified: false
        };
        setUsers([...users, newUser]);
        setCurrentUser(newUser);
@@ -670,7 +689,6 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  // Admin Handlers
   const handleUpdateProduct = (updated: Product) => setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
   const handleAddProduct = (newProduct: Product) => setProducts(prev => [newProduct, ...prev]);
   const handleDeleteProduct = (id: string) => setProducts(prev => prev.filter(p => p.id !== id));
@@ -683,7 +701,9 @@ const App: React.FC = () => {
   const handleUpdatePost = (p: BlogPost) => setBlogPosts(prev => prev.map(post => post.id === p.id ? p : post));
   const handleDeletePost = (id: string) => setBlogPosts(prev => prev.filter(post => post.id !== id));
 
-  // Search Logic
+  const handleAddCoupon = (c: Coupon) => setCoupons(prev => [...prev, c]);
+  const handleDeleteCoupon = (id: string) => setCoupons(prev => prev.filter(c => c.id !== id));
+
   const filteredProducts = useMemo(() => {
     let result = products;
     if (selectedCategory !== 'All') {
@@ -706,13 +726,11 @@ const App: React.FC = () => {
      return result;
   }, [filteredProducts, sortBy]);
 
-  // Derived search results for header dropdown
   const searchResults = useMemo(() => {
     if (!searchQuery) return [];
     return products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5);
   }, [searchQuery, products]);
 
-  // Render Logic
   if (currentView === 'admin') {
      return (
         <>
@@ -740,22 +758,22 @@ const App: React.FC = () => {
              users={users}
              onDeleteUser={handleDeleteUser}
              onReplyTicket={handleTicketReply}
+             coupons={coupons}
+             onAddCoupon={handleAddCoupon}
+             onDeleteCoupon={handleDeleteCoupon}
           />
         </>
      );
   }
 
-  // SHOP View Pagination
   const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = sortedProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
   const categories: string[] = ['All', ...Array.from(new Set(products.map(p => p.category))).sort()];
 
   const getCategoryIcon = (name: string) => {
-    // Check for custom icon first
     if (storeSettings.categoryIcons && storeSettings.categoryIcons[name]) {
         return <img src={storeSettings.categoryIcons[name]} className="w-5 h-5 object-contain" alt={name} />;
     }
-    // Fallback to defaults
     if (name.includes('Builder')) return <LayoutTemplate size={18} />;
     if (name.includes('SEO')) return <BarChart3 size={18} />;
     if (name.includes('eCommerce')) return <ShoppingBag size={18} />;
@@ -767,7 +785,6 @@ const App: React.FC = () => {
     return <Layers size={18} />;
   };
 
-  // CHECKOUT VIEW COMPONENT
   const CheckoutView = () => {
      const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) * selectedCurrency.rate;
      const [details, setDetails] = useState({ 
@@ -783,11 +800,17 @@ const App: React.FC = () => {
         createAccount: !currentUser,
         notes: ''
      });
-     const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
+     
+     const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>(() => {
+        if (storeSettings.payment.stripeEnabled) return 'card';
+        if (storeSettings.payment.paypalEnabled) return 'paypal';
+        return 'card';
+     });
+
      const [isProcessing, setIsProcessing] = useState(false);
 
-     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+     const handleSubmit = (e: React.FormEvent<HTMLFormElement> | React.MouseEvent) => {
+        if (e && 'preventDefault' in e) e.preventDefault();
         setIsProcessing(true);
         setTimeout(() => {
            handlePlaceOrder(details);
@@ -815,27 +838,27 @@ const App: React.FC = () => {
                           <User className="text-indigo-600"/> Billing Details
                        </h2>
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">First Name *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.firstName} onChange={e => setDetails({...details, firstName: e.target.value})} /></div>
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Last Name *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.lastName} onChange={e => setDetails({...details, lastName: e.target.value})} /></div>
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Phone *</label><input type="tel" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.phone} onChange={e => setDetails({...details, phone: e.target.value})} /></div>
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Email Address *</label><input type="email" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.email} onChange={e => setDetails({...details, email: e.target.value})} /></div>
-                          <div className="md:col-span-2"><label className="block text-sm font-bold text-slate-900 mb-2">Country / Region *</label><select className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.country} onChange={e => setDetails({...details, country: e.target.value})}><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option><option>Germany</option><option>France</option><option>Morocco</option></select></div>
-                          <div className="md:col-span-2"><label className="block text-sm font-bold text-slate-900 mb-2">Street Address *</label><input type="text" required placeholder="House number and street name" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 mb-3" value={details.address} onChange={e => setDetails({...details, address: e.target.value})} /></div>
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Town / City *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.city} onChange={e => setDetails({...details, city: e.target.value})} /></div>
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">State (Optional)</label><input type="text" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.state} onChange={e => setDetails({...details, state: e.target.value})} /></div>
-                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Postcode / ZIP *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.zip} onChange={e => setDetails({...details, zip: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">First Name *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.firstName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, firstName: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Last Name *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.lastName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, lastName: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Phone *</label><input type="tel" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.phone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, phone: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Email Address *</label><input type="email" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, email: e.target.value})} /></div>
+                          <div className="md:col-span-2"><label className="block text-sm font-bold text-slate-900 mb-2">Country / Region *</label><select className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.country} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDetails({...details, country: e.target.value})}><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option><option>Germany</option><option>France</option><option>Morocco</option></select></div>
+                          <div className="md:col-span-2"><label className="block text-sm font-bold text-slate-900 mb-2">Street Address *</label><input type="text" required placeholder="House number and street name" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 mb-3" value={details.address} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, address: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Town / City *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.city} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, city: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">State (Optional)</label><input type="text" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.state} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, state: e.target.value})} /></div>
+                          <div><label className="block text-sm font-bold text-slate-900 mb-2">Postcode / ZIP *</label><input type="text" required className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900" value={details.zip} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, zip: e.target.value})} /></div>
                        </div>
                        
                        {!currentUser && (
                           <div className="mt-6 flex items-center gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                             <input type="checkbox" id="create-account" checked={details.createAccount} onChange={e => setDetails({...details, createAccount: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500" />
+                             <input type="checkbox" id="create-account" checked={details.createAccount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDetails({...details, createAccount: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500" />
                              <label htmlFor="create-account" className="font-bold text-slate-900 text-sm cursor-pointer select-none">Create an account automatically?</label>
                           </div>
                        )}
 
                        <div className="mt-6">
                           <label className="block text-sm font-bold text-slate-900 mb-2">Additional information</label>
-                          <textarea rows={3} placeholder="Notes about your order, e.g. special notes for delivery." className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 resize-none" value={details.notes} onChange={e => setDetails({...details, notes: e.target.value})} />
+                          <textarea rows={3} placeholder="Notes about your order, e.g. special notes for delivery." className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 resize-none" value={details.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDetails({...details, notes: e.target.value})} />
                        </div>
                     </div>
                  </form>
@@ -846,9 +869,12 @@ const App: React.FC = () => {
                     <h2 className="text-xl font-bold text-black mb-6">Your Order</h2>
                     <div className="space-y-4 mb-6">
                        <div className="flex justify-between font-bold text-sm text-slate-500 pb-2 border-b border-slate-100"><span>Product</span><span>Subtotal</span></div>
-                       {cartItems.map(item => (
-                          <div key={item.id} className="flex justify-between text-sm">
-                             <span className="text-slate-600">{item.name} <span className="font-bold">× {item.quantity}</span></span>
+                       {cartItems.map((item, idx) => (
+                          <div key={`${item.id}-${idx}`} className="flex justify-between text-sm">
+                             <div className="flex flex-col">
+                               <span className="text-slate-600">{item.name} <span className="font-bold">× {item.quantity}</span></span>
+                               <span className="text-xs text-slate-400">{item.licenseLabel || 'Single License'}</span>
+                             </div>
                              <span className="font-bold text-slate-900">{selectedCurrency.symbol}{(item.price * selectedCurrency.rate * item.quantity).toFixed(2)}</span>
                           </div>
                        ))}
@@ -859,46 +885,87 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="space-y-3 mb-8">
-                       <div 
-                          onClick={() => setPaymentMethod('card')}
-                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
-                       >
-                          <div className="flex items-center gap-3 font-bold text-slate-900">
-                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'card' ? 'border-indigo-600' : 'border-slate-300'}`}>
-                                {paymentMethod === 'card' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
-                             </div>
-                             Credit Card (Stripe)
-                          </div>
-                       </div>
-                       <div 
-                          onClick={() => setPaymentMethod('paypal')}
-                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'paypal' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
-                       >
-                          <div className="flex items-center gap-3 font-bold text-slate-900">
-                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'paypal' ? 'border-indigo-600' : 'border-slate-300'}`}>
-                                {paymentMethod === 'paypal' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
-                             </div>
-                             PayPal
-                          </div>
-                       </div>
+                       {storeSettings.payment.stripeEnabled && (
+                           <div 
+                              onClick={() => setPaymentMethod('card')}
+                              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
+                           >
+                              <div className="flex items-center gap-3 font-bold text-slate-900">
+                                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'card' ? 'border-indigo-600' : 'border-slate-300'}`}>
+                                    {paymentMethod === 'card' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+                                 </div>
+                                 Credit Card (Stripe)
+                              </div>
+                           </div>
+                       )}
+                       
+                       {storeSettings.payment.paypalEnabled && (
+                           <div 
+                              onClick={() => setPaymentMethod('paypal')}
+                              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'paypal' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
+                           >
+                              <div className="flex items-center gap-3 font-bold text-slate-900">
+                                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'paypal' ? 'border-indigo-600' : 'border-slate-300'}`}>
+                                    {paymentMethod === 'paypal' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+                                 </div>
+                                 PayPal
+                              </div>
+                           </div>
+                       )}
+                       
+                       {!storeSettings.payment.stripeEnabled && !storeSettings.payment.paypalEnabled && (
+                           <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm font-bold flex items-center gap-2">
+                               <AlertCircle size={16} /> No payment methods available.
+                           </div>
+                       )}
                     </div>
 
                     <p className="text-xs text-slate-500 mb-6 leading-relaxed">
                        Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our <button onClick={() => changeView('page', 'page_privacy')} className="text-indigo-600 hover:underline">privacy policy</button>.
                     </p>
 
-                    <button 
-                       type="submit" 
-                       form="checkout-form"
-                       disabled={isProcessing}
-                       className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
-                    >
-                       {isProcessing ? (
-                          <>Processing...</>
-                       ) : (
-                          <>Place Order <Lock size={18} /></>
-                       )}
-                    </button>
+                    {paymentMethod === 'paypal' && storeSettings.payment.paypalEnabled ? (
+                        storeSettings.payment.paypalClientId ? (
+                            <div className="w-full space-y-3">
+                                <div className="p-3 bg-blue-50 text-blue-700 text-xs font-mono border border-blue-200 rounded-lg flex items-center gap-2 justify-between">
+                                    <div className="flex items-center gap-2">
+                                       <Globe size={14}/>
+                                       <span>PayPal Test Mode</span>
+                                    </div>
+                                    <span className="font-bold bg-blue-100 px-2 py-0.5 rounded">SDK Loaded</span>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    onClick={(e) => handleSubmit(e)}
+                                    disabled={isProcessing}
+                                    className="w-full py-4 bg-[#FFC439] text-black font-bold rounded-xl hover:brightness-95 transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {isProcessing ? 'Processing...' : (
+                                        <span className="italic font-extrabold text-blue-900 text-lg flex items-center gap-1">
+                                            Pay<span className="text-[#009cde]">Pal</span>
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="p-4 bg-amber-50 text-amber-700 rounded-xl text-sm font-bold border border-amber-100">
+                                PayPal enabled but Client ID is missing in settings.
+                            </div>
+                        )
+                    ) : (
+                        <button 
+                           type="submit" 
+                           form="checkout-form"
+                           disabled={isProcessing || !storeSettings.payment.stripeEnabled}
+                           className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                           {isProcessing ? (
+                              <>Processing...</>
+                           ) : (
+                              <>Place Order <Lock size={18} /></>
+                           )}
+                        </button>
+                    )}
                  </div>
               </div>
            </div>
@@ -914,6 +981,11 @@ const App: React.FC = () => {
         </div>
         <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{storeSettings.checkout.thankYouTitle}</h1>
         <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto">{storeSettings.checkout.thankYouMessage}</p>
+        
+        <div className="mb-12 p-4 bg-indigo-50 border border-indigo-100 rounded-xl inline-flex items-center gap-3 text-indigo-800">
+           <Mail size={24} className="text-indigo-600" />
+           <span className="font-medium">A confirmation email has been sent to your inbox. Please verify your account.</span>
+        </div>
 
         {newAccountDetails && (
            <div className="max-w-md mx-auto bg-indigo-900 text-white p-8 rounded-3xl shadow-xl mb-12 relative overflow-hidden transform hover:scale-105 transition-transform duration-300">

@@ -1,5 +1,6 @@
 
-import { Product, Currency } from './types';
+
+import { Product, Currency, LicenseType } from './types';
 
 export const STORE_NAME = "AllPluginsWP";
 
@@ -10,7 +11,15 @@ export const CURRENCIES: Currency[] = [
   { code: 'MAD', symbol: 'DH', rate: 10.12, flag: '🇲🇦', name: 'MAD' },
 ];
 
-// Helper to auto-categorize based on name keywords
+// Configuration for License Tiers
+export const LICENSE_OPTIONS: { type: LicenseType; label: string; multiplier: number; badge?: string }[] = [
+  { type: 'single', label: '1 Site Activation', multiplier: 1 },
+  { type: 'double', label: '2 Sites Activation', multiplier: 1.5, badge: 'Popular' },
+  { type: 'five', label: '5 Sites Activation', multiplier: 2.5 },
+  { type: 'ten', label: '10 Sites Activation', multiplier: 4 },
+  { type: 'unlimited', label: 'Unlimited Sites', multiplier: 8, badge: 'Best Value' },
+];
+
 const categorize = (name: string): string => {
   const n = name.toLowerCase();
   if (n.includes('builder') || n.includes('bricks') || n.includes('oxygen') || n.includes('divi') || n.includes('elementor') || n.includes('spectra') || n.includes('crocoblock') || n.includes('addon')) return 'Builders & Addons';
@@ -24,7 +33,6 @@ const categorize = (name: string): string => {
 };
 
 const rawData = [
-  // Existing
   { name: "CartFlows", price: 45 },
   { name: "CodeSnippets + AI", price: 25 },
   { name: "Convert PRO", price: 20 },
@@ -104,7 +112,6 @@ const rawData = [
   { name: "WP Reset Pro", price: 20 },
   { name: "YABE Webfonts", price: 20 },
   { name: "Zion Builder", price: 20 },
-  // New Products Added
   { name: "Advanced Themer", price: 20 },
   { name: "Amelia Booking", price: 20 },
   { name: "Better Payment Pro", price: 20 },
@@ -137,20 +144,18 @@ const rawData = [
   { name: "WP Forms", price: 25 }
 ];
 
-// Deduplicate and process
 const uniqueData = Array.from(new Map(rawData.map(item => [item.name, item])).values());
 
-// Helper to generate a nice placeholder image
 const getPlaceholderImage = (name: string, category: string) => {
   const bgColors: Record<string, string> = {
-    'Builders & Addons': '2563eb', // blue
-    'SEO & Marketing': '059669', // emerald
-    'eCommerce': '7c3aed', // violet
-    'Forms & Leads': 'db2777', // pink
-    'Performance': 'd97706', // amber
-    'Booking & Events': 'dc2626', // red
-    'LMS & Education': '0891b2', // cyan
-    'Plugins & Tools': '475569' // slate
+    'Builders & Addons': '2563eb',
+    'SEO & Marketing': '059669',
+    'eCommerce': '7c3aed',
+    'Forms & Leads': 'db2777',
+    'Performance': 'd97706',
+    'Booking & Events': 'dc2626',
+    'LMS & Education': '0891b2',
+    'Plugins & Tools': '475569'
   };
   
   const color = bgColors[category] || '475569';

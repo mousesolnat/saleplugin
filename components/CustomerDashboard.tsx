@@ -30,6 +30,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
   
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [resendStatus, setResendStatus] = useState('');
 
   // Filter tickets for current customer
   const myTickets = tickets.filter(t => t.customerId === customer.id);
@@ -50,6 +51,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
         case 'refunded': return 'bg-red-100 text-red-700';
         default: return 'bg-slate-100 text-slate-700';
     }
+  };
+
+  const handleResendVerification = () => {
+     setResendStatus('Sending...');
+     setTimeout(() => {
+        setResendStatus('Email sent!');
+        setTimeout(() => setResendStatus(''), 3000);
+     }, 1500);
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -132,6 +141,25 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
         </button>
       </div>
 
+      {/* Verification Banner */}
+      {customer.isVerified === false && (
+         <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+               <div className="p-2 bg-amber-100 text-amber-700 rounded-lg"><Mail size={20}/></div>
+               <div>
+                  <h4 className="font-bold text-slate-900 text-sm">Verify your email address</h4>
+                  <p className="text-slate-500 text-xs">Please check your inbox at <span className="font-semibold">{customer.email}</span> to verify your account.</p>
+               </div>
+            </div>
+            <button 
+               onClick={handleResendVerification}
+               className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white px-3 py-2 rounded-lg border border-indigo-100 shadow-sm transition-all"
+            >
+               {resendStatus || 'Resend Email'}
+            </button>
+         </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
@@ -141,6 +169,9 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ customer, 
               </div>
               <h2 className="font-bold text-slate-900 text-lg">{customer.name}</h2>
               <p className="text-slate-500 text-sm mb-4">{customer.email}</p>
+              {customer.isVerified && (
+                 <div className="text-xs bg-green-100 text-green-700 rounded-full py-1 px-3 inline-block font-bold mb-2">Verified Account</div>
+              )}
               <div className="text-xs bg-slate-100 rounded-full py-1 px-3 inline-block font-medium text-slate-600">
                 Member since {new Date(customer.joinDate).toLocaleDateString()}
               </div>

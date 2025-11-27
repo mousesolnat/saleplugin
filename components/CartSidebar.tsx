@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { X, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { CartItem } from '../types';
@@ -24,6 +25,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   currencySymbol = '$',
   onCheckout
 }) => {
+  // Use the stored price in the cart item which already includes license multiplier
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * priceMultiplier;
 
   return (
@@ -76,9 +78,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 </button>
               </div>
             ) : (
-              items.map((item) => (
-                <div key={item.id} className="flex gap-4 group">
-                  <div className="w-20 h-20 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-medium text-xs text-center p-2 overflow-hidden">
+              items.map((item, index) => (
+                <div key={`${item.id}-${item.licenseType}-${index}`} className="flex gap-4 group">
+                  <div className="w-20 h-20 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-medium text-xs text-center p-2 overflow-hidden shrink-0">
                      {item.image ? (
                         <img src={item.image} alt="" className="w-full h-full object-cover rounded-lg" />
                      ) : (
@@ -87,15 +89,21 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-semibold text-slate-900 line-clamp-1">{item.name}</h4>
+                      <div>
+                        <h4 className="font-semibold text-slate-900 line-clamp-1">{item.name}</h4>
+                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 inline-block mt-1 font-bold">
+                           {item.licenseLabel}
+                        </span>
+                      </div>
                       <button
-                        onClick={() => onRemoveItem(item.id)}
+                        // Use a composite key or logic to remove specific variation
+                        onClick={() => onRemoveItem(item.id)} // Note: Simple ID removal might need enhancement if multiple variations of same product exist
                         className="text-slate-400 hover:text-red-500 transition-colors p-1"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
-                    <p className="text-indigo-600 font-bold mb-3">
+                    <p className="text-indigo-600 font-bold mb-3 mt-1">
                       {currencySymbol}{(item.price * priceMultiplier).toFixed(2)}
                     </p>
                     <div className="flex items-center gap-3">

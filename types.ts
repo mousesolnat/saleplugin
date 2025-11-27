@@ -10,6 +10,7 @@ export interface Product {
   seoTitle?: string;
   seoDescription?: string;
   reviews?: Review[];
+  demoUrl?: string;
 }
 
 export interface Review {
@@ -22,8 +23,15 @@ export interface Review {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+// New License Type Definition
+export type LicenseType = 'single' | 'double' | 'five' | 'ten' | 'unlimited';
+
 export interface CartItem extends Product {
   quantity: number;
+  // Added license specific fields
+  licenseType: LicenseType;
+  licenseLabel: string;
+  basePrice: number; // The original price of 1 item
 }
 
 export interface Order {
@@ -34,7 +42,6 @@ export interface Order {
   status: 'pending' | 'processing' | 'completed' | 'on-hold' | 'cancelled' | 'refunded';
   date: string;
   items: number;
-  // Added for Receipt functionality
   products?: CartItem[];
   billingDetails?: {
     address: string;
@@ -102,6 +109,18 @@ export interface Customer {
   email: string;
   password?: string; // Demo only
   joinDate: string;
+  isVerified?: boolean;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  usageLimit?: number;
+  usedCount: number;
+  expiryDate?: string;
+  status: 'active' | 'expired';
 }
 
 export interface StoreSettings {
@@ -113,20 +132,31 @@ export interface StoreSettings {
   footerDescription: string;
   logoUrl?: string;
   faviconUrl?: string;
+  maintenanceMode: boolean;
   
-  // Design & Branding
+  timezone: string;
+  dateFormat: string;
+
   design: {
     primaryColor: string;
     heroHeadline: string;
     heroSubheadline: string;
     fontFamily: string;
     borderRadius: string;
+    announcementBar: {
+      enabled: boolean;
+      text: string;
+      link?: string;
+      backgroundColor: string;
+      textColor: string;
+    };
   };
 
-  // Payment Configuration
   payment: {
     currencySymbol: string;
     currencyCode: string;
+    currencyPosition: 'left' | 'right';
+    taxRate: number;
     stripeEnabled: boolean;
     stripePublishableKey: string;
     stripeSecretKey: string;
@@ -136,7 +166,6 @@ export interface StoreSettings {
     testMode: boolean;
   };
 
-  // Checkout Configuration
   checkout: {
     guestCheckout: boolean;
     requirePhone: boolean;
@@ -147,9 +176,16 @@ export interface StoreSettings {
     checkoutSubtitle: string;
     thankYouTitle: string;
     thankYouMessage: string;
+    invoicePrefix: string;
   };
 
-  // SEO & Analytics
+  emailSettings: {
+    senderName: string;
+    senderEmail: string;
+    welcomeSubject: string;
+    orderSubject: string;
+  };
+
   seo: {
     title: string;
     description: string;
@@ -162,7 +198,6 @@ export interface StoreSettings {
     contactDescription?: string;
   };
 
-  // Social Media
   socials: {
     facebook: string;
     twitter: string;
@@ -171,10 +206,8 @@ export interface StoreSettings {
     youtube: string;
   };
 
-  // Categorization
   popularCategories: string[];
-  categoryIcons?: Record<string, string>; // Map category name to icon URL (or base64)
+  categoryIcons?: Record<string, string>;
   
-  // Admin Security
   adminPassword?: string;
 }

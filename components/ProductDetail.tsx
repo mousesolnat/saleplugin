@@ -1,14 +1,16 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, ShoppingCart, Check, ShieldCheck, Clock, 
-  AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard, Heart, User, MessageSquare
+  AlertTriangle, Star, Share2, Facebook, Twitter, Linkedin, CreditCard, Heart, User, MessageSquare, ExternalLink, Key
 } from 'lucide-react';
-import { Product, Customer, Review } from '../types';
+import { Product, Customer, Review, CartItem, LicenseType } from '../types';
+import { LICENSE_OPTIONS } from '../constants';
 
 interface ProductDetailProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: CartItem) => void;
   onBack: () => void;
   isWishlisted?: boolean;
   onToggleWishlist?: () => void;
@@ -35,6 +37,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
   const [isAdded, setIsAdded] = useState(false);
+  const [selectedLicense, setSelectedLicense] = useState<LicenseType>('single');
 
   // Review Form State
   const [rating, setRating] = useState(5);
@@ -43,7 +46,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
-  const finalPrice = (product.price * priceMultiplier).toFixed(2);
+  // Calculate final price based on currency AND selected license
+  const licenseMultiplier = LICENSE_OPTIONS.find(opt => opt.type === selectedLicense)?.multiplier || 1;
+  const finalPrice = (product.price * priceMultiplier * licenseMultiplier).toFixed(2);
   
   // Show reviews that are approved OR have no status (legacy compatibility)
   const reviews = (product.reviews || []).filter(r => !r.status || r.status === 'approved');
@@ -52,7 +57,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
     : 0;
 
-  // SEO: Update Title, Meta Description, Open Graph, and JSON-LD Schema
   useEffect(() => {
     // 1. Update Document Title
     const title = product.seoTitle || product.name;
@@ -68,7 +72,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     const description = product.seoDescription || product.description?.substring(0, 160) || '';
     metaDesc.setAttribute('content', description);
 
-    // 3. Update Open Graph Tags (Social Media)
+    // 3. Open Graph Tags
     const updateMeta = (property: string, content: string) => {
         let tag = document.querySelector(`meta[property="${property}"]`);
         if (!tag) {
@@ -85,70 +89,26 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     updateMeta('og:type', 'product');
     updateMeta('og:url', window.location.href);
 
-    // 4. Inject JSON-LD Schema for Google Rich Snippets
-    const currencyCode = currencySymbol === '€' ? 'EUR' : currencySymbol === '£' ? 'GBP' : currencySymbol === 'DH' ? 'MAD' : 'USD';
-    const sku = `SKU-${product.id.split('_')[1]?.padStart(5, '0') || product.id}`;
-    
-    const schema = {
-      "@context": "https://schema.org/",
-      "@type": "Product",
-      "name": product.name,
-      "image": product.image ? [product.image] : [],
-      "description": description,
-      "sku": sku,
-      "brand": {
-        "@type": "Brand",
-        "name": "DigiMarket" 
-      },
-      "offers": {
-        "@type": "Offer",
-        "url": window.location.href,
-        "priceCurrency": currencyCode,
-        "price": finalPrice,
-        "availability": "https://schema.org/InStock",
-        "itemCondition": "https://schema.org/NewCondition"
-      }
-    };
-
-    // Add aggregate rating if reviews exist
-    if (reviews.length > 0) {
-      (schema as any).aggregateRating = {
-        "@type": "AggregateRating",
-        "ratingValue": averageRating.toFixed(1),
-        "reviewCount": reviews.length,
-        "bestRating": "5",
-        "worstRating": "1"
-      };
-    }
-
-    let script = document.getElementById('product-schema-jsonld') as HTMLScriptElement | null;
-    if (!script) {
-      const newScript = document.createElement('script');
-      newScript.id = 'product-schema-jsonld';
-      newScript.type = 'application/ld+json';
-      document.head.appendChild(newScript);
-      script = newScript;
-    }
-    script.textContent = JSON.stringify(schema);
-
-    return () => {
-        // Cleanup schema on unmount to prevent duplicates
-        const s = document.getElementById('product-schema-jsonld');
-        if (s) s.remove();
-        
-        // Note: We leave meta tags as they will be overwritten by the next view or are harmless
-    };
   }, [product, finalPrice, reviews, averageRating, currencySymbol]);
 
   const handleAdd = () => {
-    onAddToCart(product);
+    // Construct the CartItem with license info
+    const cartItem: CartItem = {
+      ...product,
+      quantity: 1,
+      licenseType: selectedLicense,
+      licenseLabel: LICENSE_OPTIONS.find(l => l.type === selectedLicense)?.label || 'Single License',
+      basePrice: product.price * licenseMultiplier,
+      price: product.price * licenseMultiplier // The price in cart is usually base currency price
+    };
+
+    onAddToCart(cartItem);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1500);
   };
 
   const handleBuyNow = () => {
-    // Simulate checkout process
-    alert(`Proceeding to secure checkout for ${product.name}...`);
+    alert(`Proceeding to secure checkout for ${product.name} (${LICENSE_OPTIONS.find(l => l.type === selectedLicense)?.label})...`);
   };
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -158,7 +118,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
 
     setIsSubmittingReview(true);
     
-    // Simulate API call
     setTimeout(() => {
         if (onAddReview) {
             onAddReview(product.id, {
@@ -183,7 +142,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     { icon: <Check size={18} className="text-indigo-600" />, text: "100% Money Back Guarantee" },
   ];
 
-  // Generate a SKU based on ID
   const sku = `SKU-${product.id.split('_')[1].padStart(5, '0')}`;
   
   return (
@@ -223,39 +181,73 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <h1 className="text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
             
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-3xl font-bold text-indigo-600">{currencySymbol}{finalPrice}</span>
-              <div className="flex items-center gap-1">
-                 {[1, 2, 3, 4, 5].map((star) => (
-                    <Star 
-                      key={star} 
-                      size={16} 
-                      className={`${star <= Math.round(averageRating) ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} 
-                    />
-                 ))}
-                 <span className="text-slate-400 text-sm ml-2">({reviews.length} reviews)</span>
+              <div className="flex flex-col">
+                 <span className="text-sm text-slate-500 font-medium uppercase tracking-wide">Price</span>
+                 <span className="text-4xl font-extrabold text-indigo-600 tracking-tight">{currencySymbol}{finalPrice}</span>
+              </div>
+              <div className="h-10 w-px bg-slate-200 mx-2"></div>
+              <div className="flex flex-col justify-center">
+                 <div className="flex items-center gap-1 text-amber-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <Star 
+                          key={star} 
+                          size={16} 
+                          fill={star <= Math.round(averageRating) ? "currentColor" : "none"}
+                          className={star <= Math.round(averageRating) ? "" : "text-slate-300"} 
+                        />
+                    ))}
+                 </div>
+                 <span className="text-slate-400 text-xs font-bold mt-1">{reviews.length} Verified Reviews</span>
               </div>
             </div>
 
+            {/* License Selection Options */}
+            <div className="mb-8">
+               <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <Key size={18} className="text-indigo-600"/> Select License Type
+               </h3>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {LICENSE_OPTIONS.map((option) => (
+                     <button
+                        key={option.type}
+                        onClick={() => setSelectedLicense(option.type)}
+                        className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between ${
+                           selectedLicense === option.type
+                              ? 'border-indigo-600 bg-indigo-50 shadow-sm'
+                              : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                        }`}
+                     >
+                        <div>
+                           <span className={`block font-bold text-sm ${selectedLicense === option.type ? 'text-indigo-900' : 'text-slate-700'}`}>
+                              {option.label}
+                           </span>
+                           <span className={`text-xs font-medium ${selectedLicense === option.type ? 'text-indigo-600' : 'text-slate-500'}`}>
+                              {currencySymbol}{(product.price * priceMultiplier * option.multiplier).toFixed(2)}
+                           </span>
+                        </div>
+                        {selectedLicense === option.type && (
+                           <div className="bg-indigo-600 rounded-full p-1 text-white">
+                              <Check size={12} strokeWidth={3} />
+                           </div>
+                        )}
+                        {option.badge && (
+                           <div className="absolute -top-2.5 right-2 bg-amber-400 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm">
+                              {option.badge}
+                           </div>
+                        )}
+                     </button>
+                  ))}
+               </div>
+            </div>
+
             {/* Short Description */}
-            <div className="prose prose-slate text-slate-600 mb-8 leading-relaxed">
+            <div className="prose prose-slate text-slate-600 mb-8 leading-relaxed text-sm">
               <p>
-                <strong>{product.name} License</strong> – We have a valid subscription for this plugin. 
+                <strong>{product.name} License</strong> – You are purchasing a {LICENSE_OPTIONS.find(l => l.type === selectedLicense)?.label} license.
                 The product license is 100% original and will be valid for LIFETIME. 
                 Your WordPress website will be able to update this product directly via your dashboard. 
                 <strong> WP ORIGIN never sells any kind of warez, crack, or GPL products!</strong>
               </p>
-            </div>
-
-            {/* Warning / Instruction Box */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex gap-4 animate-pulse">
-              <AlertTriangle className="text-amber-600 shrink-0 mt-1" />
-              <div>
-                <h4 className="font-bold text-amber-800 mb-1">Activation Requirement</h4>
-                <p className="text-sm text-amber-700">
-                  You have to provide temporary admin login details for your website. 
-                  We’ll activate your licenses with our original license key manually.
-                </p>
-              </div>
             </div>
 
             {/* Add to Cart & Buy Now */}
@@ -286,20 +278,17 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               >
                 <CreditCard size={24} /> Buy Now
               </button>
-
-              {/* Wishlist Button */}
-              {onToggleWishlist && (
-                <button
-                  onClick={onToggleWishlist}
-                  className={`w-16 flex items-center justify-center rounded-xl border-2 transition-all ${
-                    isWishlisted 
-                    ? 'border-red-500 bg-red-50 text-red-500' 
-                    : 'border-slate-200 text-slate-400 hover:border-red-400 hover:text-red-500'
-                  }`}
-                  title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+              
+              {product.demoUrl && (
+                <a
+                  href={product.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-4 rounded-xl flex items-center justify-center gap-2 font-bold text-lg bg-white text-slate-700 border-2 border-slate-200 hover:border-indigo-600 hover:text-indigo-600 transition-all hover:-translate-y-1"
+                  title="View Live Demo"
                 >
-                  <Heart size={24} className={isWishlisted ? 'fill-current' : ''} />
-                </button>
+                  <ExternalLink size={24} /> <span className="hidden sm:inline">Preview</span>
+                </a>
               )}
             </div>
 
@@ -322,29 +311,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               <div className="flex gap-2">
                 <span className="font-bold text-slate-900 w-24">Category:</span> 
                 <span className="text-indigo-600 cursor-pointer hover:underline">{product.category}</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="font-bold text-slate-900 w-24">Share:</span> 
-                <div className="flex gap-2">
-                  <button 
-                    title="Share on Facebook"
-                    className="text-slate-400 hover:text-[#1877F2] cursor-pointer transition-colors hover:scale-110"
-                  >
-                    <Facebook size={16} />
-                  </button>
-                  <button 
-                    title="Share on Twitter"
-                    className="text-slate-400 hover:text-[#1DA1F2] cursor-pointer transition-colors hover:scale-110"
-                  >
-                    <Twitter size={16} />
-                  </button>
-                  <button 
-                    title="Share on LinkedIn"
-                    className="text-slate-400 hover:text-[#0077b5] cursor-pointer transition-colors hover:scale-110"
-                  >
-                    <Linkedin size={16} />
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -384,15 +350,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                    We’re aware of the importance of using licensed and original products for the security of your WordPress website. 
                    Check Our Licenses. If you get any product from our store, please share your experience with others.
                  </p>
-                 <p className="mb-4">
-                   <strong>Important Notes:</strong>
-                 </p>
-                 <ul className="list-disc pl-5 space-y-2 mb-6">
-                   <li>Original License - We only sell our valid subscriptions.</li>
-                   <li>We never sell any GPL or Unsafe products.</li>
-                   <li>All our products get automatic updates via your WordPress backend.</li>
-                   <li>If you are not happy, we offer a 100% money-back guarantee.</li>
-                 </ul>
                  <p>
                    Share Your Review on Our Google Profile to help other developers find safe, affordable tools.
                  </p>
@@ -408,7 +365,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
              {activeTab === 'reviews' && (
                <div className="max-w-4xl mx-auto">
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    
                     {/* Review Form */}
                     <div className="lg:col-span-1">
                        <h3 className="text-lg font-bold text-slate-900 mb-4">Write a Review</h3>
@@ -416,7 +372,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                           <div className="bg-green-50 border border-green-200 text-green-700 p-6 rounded-2xl text-center">
                             <Check size={32} className="mx-auto mb-2" />
                             <h4 className="font-bold mb-1">Review Submitted!</h4>
-                            <p className="text-sm">Your review is pending approval and will appear shortly.</p>
+                            <p className="text-sm">Your review is pending approval.</p>
                             <button onClick={() => setReviewSubmitted(false)} className="mt-4 text-sm font-bold underline">Write another</button>
                           </div>
                        ) : (
@@ -526,7 +482,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
         </div>
       </div>
       
-      {/* Recently Viewed Section */}
+      {/* Recently Viewed */}
       {recentlyViewed.length > 0 && (
         <div className="mt-16 animate-fade-in-up">
            <h3 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-2">

@@ -42,8 +42,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
         }
         const result = await onRegister(formData.name, formData.email, formData.password);
         if (result) {
-          setSuccess('Account created! Logging you in...');
-          setTimeout(onClose, 1500);
+          setSuccess('Account created! Please check your email to verify your account.');
+          setTimeout(onClose, 3000);
         } else {
           setError('Email already exists');
         }
