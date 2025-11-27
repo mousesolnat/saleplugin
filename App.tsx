@@ -229,8 +229,30 @@ const MOCK_ORDERS: Order[] = [
     date: '2024-03-15',
     items: 2,
     products: [
-       { id: 'prod_1', name: 'Elementor Pro', price: 25, finalPrice: 25, quantity: 1, category: 'Page Builders', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 25 },
-       { id: 'prod_2', name: 'WP Rocket', price: 20, finalPrice: 20, quantity: 1, category: 'Performance', licenseType: 'single', licenseLabel: '1 Site Activation', basePrice: 20 }
+       { 
+         id: 'prod_1', 
+         name: 'Elementor Pro', 
+         price: 25, 
+         finalPrice: 25, 
+         quantity: 1, 
+         category: 'Page Builders', 
+         licenseType: 'single', 
+         licenseLabel: '1 Site Activation', 
+         basePrice: 25,
+         licensePricing: { single: { enabled: true, price: 25 } }
+       },
+       { 
+         id: 'prod_2', 
+         name: 'WP Rocket', 
+         price: 20, 
+         finalPrice: 20, 
+         quantity: 1, 
+         category: 'Performance', 
+         licenseType: 'single', 
+         licenseLabel: '1 Site Activation', 
+         basePrice: 20,
+         licensePricing: { single: { enabled: true, price: 20 } }
+       }
     ]
   }
 ];
